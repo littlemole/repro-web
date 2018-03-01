@@ -1,0 +1,132 @@
+#include "reproweb/view/tpl.h"
+#include "priohttp/common.h"
+
+#ifndef _WIN32
+#include <unistd.h>
+#else
+#include <direct.h>
+#define getcwd _getcwd
+#endif
+
+namespace reproweb  {
+
+
+mustache::mustache( const std::string& tpl)
+	: template_(tpl)
+{}
+
+std::string mustache::render(Json::Value data)
+{
+	std::ostringstream oss;
+
+	Mustache tmpl{template_};
+
+	Data d(fromJson(data));
+
+	tmpl.render(d, oss);
+
+	return oss.str();
+}
+
+mustache::Data mustache::fromJson(Json::Value& data)
+{
+	if ( data.isArray())
+	{
+		Data d(Data::List());
+		for( unsigned int i = 0; i < data.size(); i++)
+		{
+			d.push_back( fromJson( data[i]));
+		}
+		return d;
+	}
+	if ( data.isObject())
+	{
+		Data d(Data::Type::Object);
+		std::vector<std::string> members = data.getMemberNames();
+		for( std::string m : members)
+		{
+			d.set(m, fromJson( data[m]));
+		}
+		return d;
+	}
+	if ( data.isNull())
+	{
+		return Data("null");
+	}
+	return Data(data.asString());
+}
+
+
+
+TplStore::TplStore()
+{
+	char* cwd = getcwd(0,0);
+	path_ = cwd;
+	free(cwd);
+}
+
+void TplStore::register_tpl(const std::string& name, const std::string& tpl)
+{
+	templates_[name] = tpl;
+}
+
+void TplStore::unregister_tpl(const std::string& name)
+{
+	templates_.erase(name);
+}
+
+std::string& TplStore::get(const std::string& name)
+{
+	return templates_[name];
+}
+
+void TplStore::load(const std::string& path)
+{
+	std::string p = path_ + prio::safe_path(path);
+
+	std::vector<std::string> v = prio::glob(p);
+	for ( std::string s : v )
+	{
+		std::string fn = p + "/" + s;
+		std::string f = prio::slurp(fn);
+		if ( f.empty() )
+		{
+			continue;
+		}
+		std::string n = s;
+		size_t pos = s.find_last_of(".");
+		if ( pos != std::string::npos)
+		{
+			n = s.substr(0,pos);
+		}
+		register_tpl(n,f);
+	}
+}
+
+
+TplStore& templates()
+{
+	static TplStore store;
+	return store;
+}
+
+std::string render(const std::string& tpl, Json::Value val)
+{
+	mustache m = {
+		templates().get(tpl)
+	};
+
+	return m.render(val);
+}
+
+std::string render(const std::string& tpl, const std::string& json)
+{
+	mustache m = {
+		templates().get(tpl)
+	};
+
+	Json::Value val = reproweb::JSON::parse(json);
+	return m.render(val);
+}
+
+}
