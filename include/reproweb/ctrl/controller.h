@@ -145,7 +145,7 @@ private:
 #ifdef _RESUMABLE_FUNCTIONS_SUPPORTED
 
 template<class T, class C>
-Future<> coro_handler(FrontController& fc, T& t, Async(C::*fun)(prio::Request&, prio::Response&), prio::Request& req, prio::Response& res)
+repro::Future<> coro_handler(FrontController& fc, T& t, Async(C::*fun)(prio::Request&, prio::Response&), prio::Request& req, prio::Response& res)
 {
 	try
 	{

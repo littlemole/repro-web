@@ -3,9 +3,9 @@ BACKEND=libevent
 DESTDIR=/
 PREFIX=/usr/local
 
-LIBNAME = priohttp
+LIBNAME = reproweb
 LIB = ./lib$(LIBNAME).a
-LIBINC = ./include/priocpp
+LIBINC = ./include/reproweb
 
 PWD=$(shell pwd)
 
@@ -68,7 +68,7 @@ install: remove  ## installs lib to $(DESTDIR)/$(PREFIX) defaults to /usr/local
 
 remove: ## remove lib from $(DESTDIR)/$(PREFIX) defaults to /usr/local
 	-rm -rf $(DESTDIR)/$(PREFIX)/include/$(LIBNAME)
-	-rm $(DESTDIR)/$(PREFIX)/lib/libpriohttp*.a
+	-rm $(DESTDIR)/$(PREFIX)/lib/lib$(LIBNAME)*.a
 	-rm $(DESTDIR)/$(PREFIX)/lib/pkgconfig/$(LIBNAME).pc
 	
 

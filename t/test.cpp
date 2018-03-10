@@ -37,6 +37,7 @@ using namespace prio;
 using namespace cryptoneat;
 using namespace diy;
 
+DIY_DEFINE_CONTEXT()
 
 class BasicTest : public ::testing::Test {
  protected:
@@ -70,7 +71,7 @@ public:
 
 #ifdef _RESUMABLE_FUNCTIONS_SUPPORTED
 
-	Future<int> test()
+	repro::Future<int> test()
 	{
 		co_await nextTick();
 		co_return 42;
@@ -105,7 +106,7 @@ public:
 	}
 
 #ifdef _RESUMABLE_FUNCTIONS_SUPPORTED
-	Async handlerB( mol::http::Request& req, mol::http::Response& res) 
+	Async handlerB( prio::Request& req, prio::Response& res) 
 	{
 		int status = 0;
 		std::string header;
@@ -114,9 +115,9 @@ public:
 
 		try {
 
-			auto req = curl::async_curl()->url("http://localhost:8765/path/a");
+			auto req = reprocurl::async_curl()->url("http://localhost:8765/path/a");
 
-			curl::CurlEasy::Ptr curl = co_await req->perform();
+			reprocurl::CurlEasy::Ptr curl = co_await req->perform();
 
 			status = curl->status();
 
@@ -446,14 +447,14 @@ TEST_F(BasicTest,dummy)
 
 #ifdef _RESUMABLE_FUNCTIONS_SUPPORTED
 
-Future<> coroutine_example(mol::WebServer& server, std::string& result);
+repro::Future<> coroutine_example(reproweb::WebServer& server, std::string& result);
 
 TEST_F(BasicTest, coroutine)
 {
 	std::string result;
 
 	{
-		mol::WebServer server;
+		reproweb::WebServer server;
 
 		coroutine_example(server,result);
 
@@ -467,22 +468,22 @@ TEST_F(BasicTest, coroutine)
 
 
 
-Future<> coroutine_example(mol::WebServer& server, std::string& result)
+repro::Future<> coroutine_example(reproweb::WebServer& server, std::string& result)
 {
 	try
 	{
 		co_await nextTick();
 
-		auto post = curl::async_curl()->url("http://localhost:8765/path/b")->method("POST");
+		auto post = reprocurl::async_curl()->url("http://localhost:8765/path/b")->method("POST");
 
-		curl::CurlEasy::Ptr curl = co_await post->perform();
+		reprocurl::CurlEasy::Ptr curl = co_await post->perform();
 
 		result = curl->response_header("server");
 		server.shutdown();
 
 		timeout( []() {
 			theLoop().exit();
-			curl::curl_multi().dispose();
+			reprocurl::curl_multi().dispose();
 		},1,0);
 	}
 	catch(const std::exception& ex)
@@ -490,11 +491,159 @@ Future<> coroutine_example(mol::WebServer& server, std::string& result)
 		std::cout << ex.what() << std::endl;
 		server.shutdown();
 		theLoop().exit();
-		curl::curl_multi().dispose();
+		reprocurl::curl_multi().dispose();
 	}
 }
 
 #endif
+
+#include <reproweb/ws/ws.h>
+#include <fcntl.h>
+#include <signal.h>
+
+
+
+
+class WebSocketController
+{
+public:
+
+	WebSocketController()
+	{}
+
+    void onConnect(WsConnection::Ptr ws)
+    {
+    	std::cout << "ws on connect" << std::endl;
+    };
+
+    void onClose(WsConnection::Ptr ws)
+    {
+    	std::cout << "ws on close" << std::endl;
+    };
+
+    void onMsg(WsConnection::Ptr ws, const std::string& data)
+	{
+    	std::cout << "ws: " << data << std::endl;
+    	ws->send(0x01,data);
+	};
+
+};
+
+provider<WebSocketController()> WebSocketControllerComponent;
+
+
+TEST_F(BasicTest, SimpleHttp) {
+
+	std::string result;
+	{
+	//	context().registerValue(std::shared_ptr<Loop>(&theLoop(),[](Loop*){}));
+
+	//	ctx_value loopComponent();
+
+		reproweb::WebServer server;
+
+
+		ws_controller<WebSocketController> ws("/ws");
+
+		WsConnection::Ptr client= WsConnection::create();
+
+		nextTick([&client,&server]()
+		{
+			client->connect("ws://localhost:8765/ws")
+			.then( [&server](WsConnection::Ptr ws)
+			{
+				std::cout << "connected" << std::endl;
+				ws->onMsg([&server](WsConnection::Ptr ws, const std::string& data)
+				{
+					std::cout << "ws client: " << data << std::endl;
+					//ws->connection()->shutdown();
+					ws->close();
+					//ws->connection()->close();
+					//ws->dispose();
+					//loop.exit();
+					timeout([&server]()
+					{
+						std::cout << "TIMEOUT" << std::endl;
+						server.shutdown();
+						timeout([]()
+						{
+							theLoop().exit();
+						},0,200);
+					},0,200);
+				});
+				ws->onClose( [](WsConnection::Ptr ws) 
+				{
+					std::cout << "client ws on close" << std::endl;
+				});
+				ws->send(0x01,"HELO");
+			});
+
+		});
+
+
+
+		server.run(8765);
+	}
+
+	EXPECT_EQ(1,1);
+	MOL_TEST_ASSERT_CNTS(0,0);
+}
+
+TEST_F(BasicTest, SimpleHttps) {
+
+	std::string result;
+	{
+		prio::SslCtx server_ctx;
+		server_ctx.load_cert_pem("pem/server.pem");
+		prio::SslCtx client_ctx;
+
+		reproweb::WebServer server(server_ctx);
+
+
+		ws_controller<WebSocketController> ws("/ws");
+
+		WsConnection::Ptr client;
+
+		timeout([&client_ctx,&client,&server]()
+		{
+			client= WsConnection::create(client_ctx);
+			client->connect("wss://localhost:8766/ws")
+			.then( [&server](WsConnection::Ptr ws)
+			{
+				std::cout << "connected" << std::endl;
+				ws->onMsg([&server](WsConnection::Ptr ws, const std::string& data)
+				{
+					std::cout << "ws client: " << data << std::endl;
+					//ws->connection()->shutdown();
+					ws->close();
+					//ws->connection()->close();
+					//ws->dispose();
+			    	//loop.exit();
+					timeout([&server]()
+					{
+						std::cout << "TIMEOUT" << std::endl;
+						server.shutdown();
+						timeout([]()
+						{
+							theLoop().exit();
+						}, 0, 200);
+						
+					},0,200);
+				});
+
+				ws->send(0x01,"HELO");
+			});
+
+		},0,500);
+
+		server.run(8766);
+	}
+
+	EXPECT_EQ(1,1);
+	MOL_TEST_ASSERT_CNTS(0,0);
+}
+
+
 
 
 int main(int argc, char **argv)

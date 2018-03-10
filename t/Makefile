@@ -3,7 +3,7 @@ release : override DEBUG = -O3
 
 LIBEVENT=$(shell pkg-config libevent_pthreads --libs)
 PKG_INC=$(shell pkg-config cryptoneat reprocpp --cflags)
-PKG_LIB=$(shell pkg-config cryptoneat libnghttp2 zlib --libs)
+PKG_LIB=$(shell pkg-config jsoncpp cryptoneat libnghttp2 zlib libcurl --libs)
 
 # if not g++ we assume clang++
 DEFAULT_LIBS = -stdlib=libc++ -fcoroutines-ts  -lc++abi -std=c++14 
@@ -28,8 +28,8 @@ OPTIONS = -g -fpic -Wno-write-strings -pthread -D_REENTRANT $(DEFAULT_OPTS) $(PK
 CPPFLAGS = -Wall -I../include $(DEBUG) $(OPTIONS) $(PROMISE_IMPL)
 
 # target
-LIB = ../src/build/libpriohttpd.a -lpriocppd
-release : override LIB = ../src/build/libpriohttp.a -lpriocpp
+LIB = ../src/build/libpriowebd.a -lpriohttpd -lpriocppd -lreprocurld
+release : override LIB = ../src/build/libprioweb.a -lpriohttp -lpriocpp -lreprocurl
 
 TEST_SRC   = .
 TEST_BUILD = ./build

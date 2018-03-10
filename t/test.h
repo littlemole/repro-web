@@ -21,12 +21,10 @@ LITTLE_MOLE_DEFINE_DEBUG_REF_CNT(timeouts)
 LITTLE_MOLE_DEFINE_DEBUG_REF_CNT(sockets)
 LITTLE_MOLE_DEFINE_DEBUG_REF_CNT(server_connections)
 LITTLE_MOLE_DEFINE_DEBUG_REF_CNT(client_connections)
-/*
-LITTLE_MOLE_DEFINE_DEBUG_REF_CNT(server_connections)
-LITTLE_MOLE_DEFINE_DEBUG_REF_CNT(client_connections)
+
 LITTLE_MOLE_DEFINE_DEBUG_REF_CNT(ws_connections)
 LITTLE_MOLE_DEFINE_DEBUG_REF_CNT(ws_writers)
-*/
+
 LITTLE_MOLE_DEFINE_DEBUG_REF_CNT(tcp_connections)
 LITTLE_MOLE_DEFINE_DEBUG_REF_CNT(ssl_connections)
 
@@ -43,9 +41,9 @@ LITTLE_MOLE_DEFINE_DEBUG_REF_CNT(ssl_connections)
 		std::cerr << "tcp connections:" << tcp_connections_g_count << std::endl; \
 		std::cerr << "ssl connections:" << ssl_connections_g_count << std::endl; \
 		std::cerr << "processors:" << server_connections_g_count << std::endl; \
-		std::cerr << "clients:" << client_connections_g_count << std::endl; 
-//		std::cerr << "websockets:" << mol::g_ws_connections_count << std::endl; 
-//		std::cerr << "clients:" << mol::g_ws_writers_count << std::endl; 
+		std::cerr << "clients:" << client_connections_g_count << std::endl; \
+		std::cerr << "websockets:" << prio::ws_connections_g_count << std::endl; \
+		std::cerr << "clients:" << prio::ws_writers_g_count << std::endl; 
 
 #else
 #define MOL_TEST_PRINT_CNTS()
@@ -60,11 +58,10 @@ LITTLE_MOLE_DEFINE_DEBUG_REF_CNT(ssl_connections)
 		EXPECT_EQ(0,tcp_connections_g_count); \
 		EXPECT_EQ(0,ssl_connections_g_count); \
 	    EXPECT_EQ(0,server_connections_g_count); \
-	    EXPECT_EQ(0,client_connections_g_count);
-/*		
-		EXPECT_EQ(0,mol::g_ws_connections_count); \
-		EXPECT_EQ(0,mol::g_ws_writers_count); \
-		*/
+	    EXPECT_EQ(0,client_connections_g_count); \
+		EXPECT_EQ(0,prio::ws_connections_g_count); \
+		EXPECT_EQ(0,prio::ws_writers_g_count); \
+		
 #else
 #define MOL_TEST_ASSERT_CNTS(p,e)
 #endif
