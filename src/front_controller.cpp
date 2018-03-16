@@ -240,7 +240,7 @@ FrontController& frontController()
 
 
 
-std::string StaticHttpHandler::get_mime( const std::map<std::string,std::string>& mime_, const std::string& fp )
+std::string static_content::get_mime( const std::map<std::string,std::string>& mime_, const std::string& fp )
 {
 	size_t pos = fp.find_last_of('.');
 	if ( pos == std::string::npos)
@@ -257,7 +257,7 @@ std::string StaticHttpHandler::get_mime( const std::map<std::string,std::string>
 }
 
 
-StaticHttpHandler::StaticHttpHandler(const std::string& htdocs_path,const std::string& mime_file_path)
+static_content::static_content(const std::string& htdocs_path,const std::string& mime_file_path)
 {   
 	std::map<std::string,std::string> mime_;
     char* cwd = getcwd(0,0);
@@ -313,7 +313,7 @@ StaticHttpHandler::StaticHttpHandler(const std::string& htdocs_path,const std::s
     frontController().registerStaticHandler("GET","/.*",handler);
 }
 
-StaticHttpHandler::~StaticHttpHandler() 
+static_content::~static_content() 
 {
 }
 

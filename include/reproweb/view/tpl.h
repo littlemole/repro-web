@@ -43,10 +43,10 @@ TplStore& templates();
 std::string render(const std::string& tpl, Json::Value val);
 std::string render(const std::string& tpl, const std::string& json);
 
-class view_templates
+class view_path
 {
 public:
-	view_templates(const std::string& path)
+	view_path(const std::string& path)
 	{
 		templates().load(path);
 	}

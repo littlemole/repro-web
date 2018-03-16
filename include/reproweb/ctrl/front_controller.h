@@ -61,13 +61,13 @@ private:
 	);
 };
 
-class StaticHttpHandler
+class static_content
 {
 public:
 
-    StaticHttpHandler(const std::string& htdocs_path,const std::string& mime_file_path);
+    static_content(const std::string& htdocs_path,const std::string& mime_file_path);
 
-    ~StaticHttpHandler();
+    ~static_content();
 
 private:
 
