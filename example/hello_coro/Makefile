@@ -1,9 +1,11 @@
-CXX = g++
+CXX = clang++-5.0
 BACKEND=libevent
 BUILDCHAIN = make
 
 CONTAINER = $(shell echo "reproweb_coro_example_$(CXX)_$(BACKEND)_$(BUILDCHAIN)" | sed 's/++/pp/')
+BASE_CONTAINER = $(shell echo "reproweb_$(CXX)_$(BACKEND)_$(BUILDCHAIN)" | sed 's/++/pp/')
 IMAGE = littlemole/$(CONTAINER)
+BASE_IMAGE = littlemole\/$(BASE_CONTAINER)
 
 DEBUG = -g -DMOL_PROMISE_DEBUG
 release : override DEBUG = -O3
@@ -83,24 +85,16 @@ clean:
 
 release : all
 
+update-dockerfile:
+	CXX=$(CXX) BACKEND=$(BACKEND) BUILDCHAIN=$(BUILDCHAIN) /bin/sed -i "s/FROM .*/FROM ${BASE_IMAGE}/" Dockerfile
 
-image: ## build docker test image
-	docker build -t $(IMAGE) . -fDockerfile  --build-arg CXX=$(CXX) --build-arg BACKEND=$(BACKEND) --build-arg BUILDCHAIN=$(BUILDCHAIN)
+build: update-dockerfile ## run the docker image and open a shell
+	CXX=$(CXX) BACKEND=$(BACKEND) BUILDCHAIN=$(BUILDCHAIN) docker-compose build
 
-clean-image: ## rebuild the docker test image from scratch
-	docker build -t $(IMAGE) . --no-cache -fDockerfile --build-arg CXX=$(CXX) --build-arg BACKEND=$(BACKEND) --build-arg BUILDCHAIN=$(BUILDCHAIN)
-
-run: rmc image ## run the docker image and open a shell
-	docker run --name $(CONTAINER) -d -p "9876:9876" $(IMAGE) 
-
-bash: rmc image ## run the docker image and open a shell
-	docker run --name $(CONTAINER) -p "9876:9876" -ti $(IMAGE) bash
+run: update-dockerfile ## run the docker image and open a shell
+	CXX=$(CXX) BACKEND=$(BACKEND) BUILDCHAIN=$(BUILDCHAIN) docker-compose up -d
 
 stop: ## stop running docker image, if any
-	-docker stop $(CONTAINER)
+	CXX=$(CXX) BACKEND=$(BACKEND) BUILDCHAIN=$(BUILDCHAIN) docker-compose stop
 	
-rmc: stop ## remove docker container, if any
-	-docker rm $(CONTAINER)
-
-rmi : ## remove existing docker image, if any
-	-docker rmi $(IMAGE)
+.PHONY: build

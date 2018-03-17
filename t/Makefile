@@ -28,8 +28,8 @@ OPTIONS = -g -fpic -Wno-write-strings -pthread -D_REENTRANT $(DEFAULT_OPTS) $(PK
 CPPFLAGS = -Wall -I../include $(DEBUG) $(OPTIONS) $(PROMISE_IMPL)
 
 # target
-LIB = ../src/build/libpriowebd.a -lpriohttpd -lpriocppd -lreprocurld
-release : override LIB = ../src/build/libprioweb.a -lpriohttp -lpriocpp -lreprocurl
+LIB = ../src/build/libreprowebd.a -lpriohttpd -lpriocppd -lreprocurld
+release : override LIB = ../src/build/libreproweb.a -lpriohttp -lpriocpp -lreprocurl
 
 TEST_SRC   = .
 TEST_BUILD = ./build

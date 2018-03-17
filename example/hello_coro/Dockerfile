@@ -2,7 +2,7 @@
 FROM littlemole/reproweb_clangpp-5.0_libevent_make
 MAINTAINER me <little.mole@oha7.org>
 
-RUN DEBIAN_FRONTEND=noninteractive apt-get install -y libhiredis-dev redis-server sqlite3 libsqlite3-dev
+RUN DEBIAN_FRONTEND=noninteractive apt-get install -y libhiredis-dev libsqlite3-dev
 
 ARG CXX=g++
 ENV CXX=${CXX}
@@ -21,6 +21,7 @@ ADD . /usr/local/src/reproweb-example
 
 RUN cd /usr/local/src/reproweb-example && make -e 
 
-CMD bash -c "/etc/init.d/redis-server start && cd /usr/local/src/reproweb-example && build/test.bin"
+ENV REDIS_HOST=redis
+CMD bash -c "cd /usr/local/src/reproweb-example &&  build/test.bin"
 
 

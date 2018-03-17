@@ -28,7 +28,10 @@ else
         cmake .. -DCMAKE_CXX_COMPILER=$CXX -DWITH_LIBEVENT=Off
     fi 
     make
-    make test
+    if [ "$SKIPTESTS" != "true" ]
+    then       
+        make test
+    fi
     make install
 fi
 

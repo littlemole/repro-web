@@ -30,8 +30,8 @@ CPPFLAGS = -Wall -I../include $(DEBUG) $(INCLUDE) $(OPTIONS) $(PROMISE_IMPL)
 #################################################
 
 # the shared lib
-LIB = ./build/libpriowebd.a
-release : override LIB = ./build/libprioweb.a
+LIB = ./build/libreprowebd.a
+release : override LIB = ./build/libreproweb.a
 
 LIB_SRC = .
 LIB_BUILD = ./build

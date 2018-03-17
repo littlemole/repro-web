@@ -23,7 +23,6 @@ using namespace cryptoneat;
 using namespace diy;
  
  
- 
 class SessionRepository
 {
 public: 
@@ -179,7 +178,6 @@ public:
 	{
 		try 
 		{
-
 			QueryParams qp(req.body());
 			std::string login = qp.get("login");
 			std::string pwd   = qp.get("pwd");
@@ -252,9 +250,28 @@ DIY_DEFINE_CONTEXT()
 
 typedef Application components;
 
+struct Config
+{
+	Config()
+	{
+		const char* redis = getenv("REDIS_HOST");
+		if(!redis)
+		{
+			redis = "localhost";
+		}
+
+		std::ostringstream oss;
+		oss << "redis://" << redis << ":6379";
+
+		redis_host = oss.str();
+	}
+
+	std::string redis_host;
+};
+
 struct SessionPool : public RedisPool
 {
-	SessionPool() : RedisPool("redis://localhost:6379") {}
+	SessionPool(std::shared_ptr<Config> config) : RedisPool(config->redis_host) {}
 };
 
 struct UserPool : public SqlitePool
@@ -274,13 +291,15 @@ Application depends(
 	),
  
 	components(
-		singleton<SessionPool()>(),
+		singleton<Config()>(),
+		singleton<SessionPool(Config)>(),
 		singleton<UserPool()>(),
 		singleton<SessionRepository(SessionPool)>(),
 		singleton<UserRepository(UserPool)>(),
 		singleton<ExampleController(SessionRepository,UserRepository)>()
 	),
  
+	view_path("/view"),
 	static_content("/htdocs/","/etc/mime.types")
 ); 
  
@@ -291,7 +310,6 @@ void server()
 	Http2SslCtx sslCtx;
 	sslCtx.load_cert_pem("pem/server.pem");
 	//sslCtx.enableHttp2();
-	templates().load("/view");
 
 	WebServer server(sslCtx);
 
