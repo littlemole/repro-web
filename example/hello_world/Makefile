@@ -98,25 +98,15 @@ clean: clean_obj
 release : all
 
 update-dockerfile:
-	CXX=$(CXX) BACKEND=$(BACKEND) BUILDCHAIN=$(BUILDCHAIN) /bin/sed -i "s/FROM .*/FROM ${BASE_IMAGE}/" Dockerfile
+	/bin/sed -i "s/FROM .*/FROM ${BASE_IMAGE}/" Dockerfile
 
-image: update-dockerfile ## build docker test image
-	docker build -t $(IMAGE) . -fDockerfile  --build-arg CXX=$(CXX) --build-arg BACKEND=$(BACKEND) --build-arg BUILDCHAIN=$(BUILDCHAIN)
+build: update-dockerfile ## run the docker image and open a shell
+	CXX=$(CXX) BACKEND=$(BACKEND) BUILDCHAIN=$(BUILDCHAIN) docker-compose build
 
-clean-image: update-dockerfile ## rebuild the docker test image from scratch
-	docker build -t $(IMAGE) . --no-cache -fDockerfile --build-arg CXX=$(CXX) --build-arg BACKEND=$(BACKEND) --build-arg BUILDCHAIN=$(BUILDCHAIN)
+up: update-dockerfile ## run the docker image and open a shell
+	CXX=$(CXX) BACKEND=$(BACKEND) BUILDCHAIN=$(BUILDCHAIN) docker-compose up -d
 
-run: rmc update-dockerfile image ## run the docker image and open a shell
-	docker run --name $(CONTAINER) -d -p "9876:9876" $(IMAGE) 
-
-bash: rmc update-dockerfile image ## run the docker image and open a shell
-	docker run --name $(CONTAINER) -p "9876:9876" -ti $(IMAGE) bash
-
-stop: ## stop running docker image, if any
-	-docker stop $(CONTAINER)
+down: ## stop running docker image, if any
+	CXX=$(CXX) BACKEND=$(BACKEND) BUILDCHAIN=$(BUILDCHAIN) docker-compose stop
 	
-rmc: stop ## remove docker container, if any
-	-docker rm $(CONTAINER)
-
-rmi : ## remove existing docker image, if any
-	-docker rmi $(IMAGE)
+.PHONY: build up down update-dockerfile

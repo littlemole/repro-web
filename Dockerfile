@@ -53,6 +53,7 @@ RUN /usr/local/bin/install.sh repro
 RUN /usr/local/bin/install.sh prio 
 RUN /usr/local/bin/install.sh repro-curl
 
+RUN echo "dummy"
 RUN /usr/local/bin/install.sh diy 
 RUN /usr/local/bin/install.sh prio-http 
 

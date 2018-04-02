@@ -37,8 +37,8 @@ OPTIONS = -g -fpic -Wno-write-strings -pthread -D_REENTRANT $(DEFAULT_OPTS) $(PK
 CPPFLAGS = -Wall -I../include $(DEBUG) $(OPTIONS) $(PROMISE_IMPL)
 
 # target
-LIB = -lpriowebd -lpriohttpd  -lreprocurld -lreproredisd -lreprosqlited -lpriocppd
-release : override LIB = -lprioweb -lpriohttp  -lreprocurl -lreproredis -lreprosqlite -lpriocpp
+LIB = -lreprowebd -lpriohttpd  -lreprocurld -lreproredisd -lreprosqlited -lpriocppd
+release : override LIB = -lreproweb -lpriohttp  -lreprocurl -lreproredis -lreprosqlite -lpriocpp
 
 TEST_SRC   = .
 TEST_BUILD = ./build
@@ -86,15 +86,18 @@ clean:
 release : all
 
 update-dockerfile:
-	CXX=$(CXX) BACKEND=$(BACKEND) BUILDCHAIN=$(BUILDCHAIN) /bin/sed -i "s/FROM .*/FROM ${BASE_IMAGE}/" Dockerfile
+	/bin/sed -i "s/FROM .*/FROM ${BASE_IMAGE}/" Dockerfile
 
 build: update-dockerfile ## run the docker image and open a shell
 	CXX=$(CXX) BACKEND=$(BACKEND) BUILDCHAIN=$(BUILDCHAIN) docker-compose build
 
-run: update-dockerfile ## run the docker image and open a shell
+up: update-dockerfile ## run the docker image and open a shell
 	CXX=$(CXX) BACKEND=$(BACKEND) BUILDCHAIN=$(BUILDCHAIN) docker-compose up -d
 
 stop: ## stop running docker image, if any
 	CXX=$(CXX) BACKEND=$(BACKEND) BUILDCHAIN=$(BUILDCHAIN) docker-compose stop
+
+down: ## stop running docker image, if any
+	CXX=$(CXX) BACKEND=$(BACKEND) BUILDCHAIN=$(BUILDCHAIN) docker-compose down
 	
 .PHONY: build

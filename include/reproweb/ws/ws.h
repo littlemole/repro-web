@@ -14,33 +14,27 @@ class ws_controller
 {
 public:
 
-	ws_controller(const std::string& path)
-	{
-		frontController()
-		.registerHandler(
-			"GET",
-			path,
-			[this](prio::Request& req, prio::Response& res)
-			{
-				handshake(req,res);
-			}
-		);
-	}
+	ws_controller( const std::string& path)
+	  : path_(path)
+	{}
 
-	ws_controller(FrontController& fc, const std::string& path)
+	void ctx_register(diy::Context* ctx)
 	{
-		fc.registerHandler(
+		auto fc = ctx->resolve<FrontController>();
+
+		fc->registerHandler(
 			"GET",
-			path,
-			[this](prio::Request& req, prio::Response& res)
+			path_,
+			[](prio::Request& req, prio::Response& res)
 			{
 				handshake(req, res);
 			}
 		);
 	}
+
 private:
 
-	void handshake(prio::Request& req, prio::Response& res)
+	static void handshake(prio::Request& req, prio::Response& res)
 	{
 		reproweb::WsConnection::Ptr ws = reproweb::WsConnection::create();
 
@@ -79,6 +73,8 @@ private:
 
 	    ws->run();
 	};
+
+	std::string path_;
 };
 
 

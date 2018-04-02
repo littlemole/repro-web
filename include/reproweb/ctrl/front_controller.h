@@ -2,7 +2,7 @@
 #define _MOL_DEF_GUARD_DEFINE_MOD_HTTP_REQUEST_PROCESSOR_DEF_GUARD_
 
 #include "reproweb/ctrl/handler_info.h"
-
+#include "diycpp/ctx.h"
 
 namespace reproweb  {
 
@@ -12,7 +12,7 @@ class FrontController
 {
 public:
 
-    FrontController();
+    FrontController(std::shared_ptr<diy::Context> ctx);
     
     FrontController& registerHandler( const std::string& method, const std::string& path, http_handler_t handler);
     FrontController& registerFilter( const std::string& method, const std::string& path, http_filter_t filter, int prio = 0);
@@ -37,6 +37,15 @@ public:
     
     void handle_exception(const std::exception& ex, prio::Request& req, prio::Response& res);
 
+
+    auto handle_ex(prio::Request& req, prio::Response& res)
+    {
+        return [this,&req,&res]( const std::exception& ex)
+        {
+            handle_exception(ex,req,res);
+        };
+    }
+
 private:
 
     std::vector<std::unique_ptr<HandlerInfo>> handlers_;
@@ -59,6 +68,8 @@ private:
 		prio::Request& req, 
 		prio::Response& res
 	);
+
+    std::shared_ptr<diy::Context> ctx_;
 };
 
 class static_content
@@ -69,19 +80,22 @@ public:
 
     ~static_content();
 
+    void ctx_register(diy::Context* ctx)
+	{
+        register_static_handler(ctx);
+	}
+
 private:
+
+    std::string htdocs_;
+    std::string mime_;
+
+    void register_static_handler(diy::Context* ctx);
 
     static std::string get_mime( const std::map<std::string,std::string>& mime_, const std::string& fp );
 };
 
 
-inline auto handle_ex(prio::Request& req, prio::Response& res)
-{
-	return [&req,&res]( const std::exception& ex)
-	{
-		frontController().handle_exception(ex,req,res);
-	};
-}
 
 
 } // end namespace mol

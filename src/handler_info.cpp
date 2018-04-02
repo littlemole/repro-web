@@ -60,24 +60,10 @@ bool HandlerInfo::match(const std::string& m, const std::string& p, prio::pathar
     result = args;
     return true;
 }    
-/*
-#ifdef _RESUMABLE_FUNCTIONS_SUPPORTED
 
-std::future<void> handle_handler(http_handler_t handler,Request& req, Response& res)
-{
-
-}
-
-#endif
-*/
 void HandlerInfo::invoke(prio::Request& req, prio::Response& res)
 {
-#ifndef _RESUMABLE_FUNCTIONS_SUPPORTEDx
 	handler_( req, res );
-#else
-	handle_handler(handler_, req, res);
-#endif
-
 }
 
 

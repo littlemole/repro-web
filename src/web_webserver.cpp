@@ -13,39 +13,49 @@ namespace reproweb  {
 
 
 
-WebServer::WebServer()
-    : server_( new prio::http_server )
+WebServer::WebServer(diy::Context& ctx)
+    : ctx_(ctx)
 {
-}
 
-WebServer::WebServer(prio::SslCtx& ctx)
-    : server_( new prio::http_server(ctx) )
-{
+#ifndef _WIN32        
+        signal(SIGPIPE).then( [](int s) {} );
+#endif        
+        signal(SIGINT).then( [this](int s) 
+        { 
+            shutdown();
+            nextTick([]
+            {
+                theLoop().exit(); 
+            });
+        });    
 }
 
 WebServer::~WebServer()
 {
-}
+} 
 
-int WebServer::run(int port)
+int WebServer::listen(int port)
 {
     int r = 0;
     try
     {
-        server_
-        ->bind(port)
-        .then( [](prio::Request& req, prio::Response& res)
+        prio::http_server* server = new prio::http_server;
+        
+        auto fc = diy::inject<FrontController>(ctx_);
+        server->bind(port)
+        .then( [fc](prio::Request& req, prio::Response& res)
         {
-        	reproweb::frontController().request_handler(req,res);
+        	fc->request_handler(req,res);
         })
 		.otherwise([](const std::exception& ex)
         {
+
 #ifdef MOL_PROMISE_DEBUG
         	std::cout << "ex:!" << ex.what() << std::endl;
 #endif
         });
   
-        theLoop().run();
+        servers_.push_back(std::unique_ptr<prio::http_server>(server));
     }
     catch( repro::Ex& ex)
     {
@@ -56,25 +66,47 @@ int WebServer::run(int port)
 }
 
 
+int WebServer::listen(prio::SslCtx& ssl, int port)
+{
+    int r = 0;
+    try
+    {
+        prio::http_server* server = new prio::http_server(ssl);
+        
+        auto fc = diy::inject<FrontController>(ctx_);
+        server->bind(port)
+        .then( [fc](prio::Request& req, prio::Response& res)
+        {
+        	fc->request_handler(req,res);
+        })
+		.otherwise([](const std::exception& ex)
+        {
+
+#ifdef MOL_PROMISE_DEBUG
+        	std::cout << "ex:!" << ex.what() << std::endl;
+#endif
+        });
+  
+        servers_.push_back(std::unique_ptr<prio::http_server>(server));
+    }
+    catch( repro::Ex& ex)
+    {
+        std::cout << "ex: " << ex.msg << std::endl;
+        r = 1;
+    }  
+    return r;
+}
+
 
 void WebServer::shutdown()
 {
-    server_->shutdown();
+    for( auto& server : servers_)
+    {
+        server->shutdown();
+    }
 }
 
 
-reproweb::WebServer& webServer()
-{
-    static reproweb::WebServer s;
-    return s;
-}
-
-
-EventBus& eventBus()
-{
-	static EventBus bus;
-	return bus;
-}
 
 
 } // end namespace csgi

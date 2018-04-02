@@ -33,24 +33,14 @@ public:
 
 	void load(const std::string& path);
 
+	std::string render(const std::string& tpl, Json::Value val);
+	std::string render(const std::string& tpl, const std::string& json);
+
 private:
 	std::string path_;
 	std::map<std::string,std::string> templates_;
 };
 
-TplStore& templates();
-
-std::string render(const std::string& tpl, Json::Value val);
-std::string render(const std::string& tpl, const std::string& json);
-
-class view_path
-{
-public:
-	view_path(const std::string& path)
-	{
-		templates().load(path);
-	}
-};
 
 }
 

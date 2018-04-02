@@ -6,7 +6,7 @@
 -->
 <html>
 	<head>
-		<title>Login</title>
+		<title>register user</title>
 		<meta charset="utf-8" />
 		<meta name="viewport" content="width=device-width, initial-scale=1" />
 		<!--[if lte IE 8]><script src="assets/js/ie/html5shiv.js"></script><![endif]-->
@@ -18,34 +18,40 @@
 		<!-- Header -->
 			<section id="header">
 				<header>
-					<h1>Login</h1>
-					<p>if you do not have a login yet you can register <a href="/register.html">here</a></p>
+					<h1>register a new user</h1>
 				</header>
 				<footer>
-					<a href="#banner" class="button style2 scrolly-middle">Login here</a>
+					<a href="#banner" class="button style2 scrolly-middle">register here</a>
 				</footer>
 			</section>
 
 		<!-- Banner -->
 			<section id="banner">
 				<header>
-					<h2>login</h2>
+					<h2>new user registration</h2>
 				</header>
-				<p>please specify login and password. if you do not have a login yet you can register <a href="/register.html">here</a></p>
-				<form action="/login" method="POST">
+				<p>please fill out all fields</p>
+				<p><b style="color:red">{{errorMsg}}</b></p>
+				<form action="/register" method="POST">
 					<table style="width:50%;margin:5px auto;">
+						<tr>
+							<td>name</td>
+							<td><input type="text" name="username"></td>
+						</tr>
 						<tr>
 							<td>login</td>
 							<td><input type="text" name="login"></td>
+						</tr>
+						<tr>
+							<td>avatar_url</td>
+							<td><input type="text" name="avatar_url"></td>
 						</tr>
 						<tr>
 							<td>password</td>
 							<td><input type="password" name="pwd"></td>
 						</tr>
 						<tr>
-							<td colspan=2>
-								<input type="submit" value="login">
-							</td>						
+							<td colspan=2><input type="submit" value="register"></td>
 						</tr>
 					</table>
 				</form>

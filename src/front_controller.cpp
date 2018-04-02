@@ -22,7 +22,8 @@ namespace reproweb  {
 
 ////////////////////////////////////////////////////////////////////////////
 
-FrontController::FrontController() 
+FrontController::FrontController(std::shared_ptr<diy::Context> ctx)
+  : ctx_(ctx) 
 {}
 
 void  FrontController::handle_exception(const std::exception& ex, prio::Request& req, prio::Response& res)
@@ -215,7 +216,7 @@ void FrontController::request_handler( prio::Request& req, prio::Response& res )
     std::string method = req.path.method();
     std::string path   = req.path.path();
 
-    std::shared_ptr<diy::Context> ctx = std::make_shared<diy::Context>( &(diy::context()));
+    std::shared_ptr<diy::Context> ctx = std::make_shared<diy::Context>( ctx_.get() );
     req.attributes.set("ctx", ctx);
 
 	auto handler = find_handler(path, method, req, res);
@@ -228,13 +229,13 @@ void FrontController::request_handler( prio::Request& req, prio::Response& res )
 	handle_request(handler, req, res, method, path);
 }
 
-
+/*
 FrontController& frontController()
 {
     static FrontController frontController;
     return frontController;
 }
-
+*/
 
 ////////////////////////////////////////////////////////////////////////////
 
@@ -258,20 +259,25 @@ std::string static_content::get_mime( const std::map<std::string,std::string>& m
 
 
 static_content::static_content(const std::string& htdocs_path,const std::string& mime_file_path)
+	: htdocs_(htdocs_path), mime_(mime_file_path)
 {   
-	std::map<std::string,std::string> mime_;
+} 
+   
+void static_content::register_static_handler(diy::Context* ctx)
+{
+	std::map<std::string,std::string> map_;
     char* cwd = getcwd(0,0);
     std::string path_ = cwd;
-    path_ += htdocs_path;
-    free(cwd);
+    path_ += htdocs_;
+    free(cwd); 
 
     std::ifstream ifs;
-    ifs.open(mime_file_path);
+    ifs.open(mime_);
     while(ifs)
     {
     	std::string line;
     	std::getline(ifs,line);
-    	line = prio::trim(line);
+    	line = prio::trim(line); 
     	if(line.empty()) continue;
 
     	if(line[0] == '#') continue;
@@ -285,19 +291,19 @@ static_content::static_content(const std::string& htdocs_path,const std::string&
     		auto v = prio::split(exts,' ');
     		for ( auto e : v )
     		{
-    			mime_[e] = mime;
+    			map_[e] = mime;
     		}
     	}
     }
 	ifs.close();
 
-    http_handler_t handler = [path_,mime_](prio::Request& req, prio::Response& res)
+    http_handler_t handler = [path_,map_](prio::Request& req, prio::Response& res)
     {
         std::regex e ("\\.\\.");
         std::string path = std::regex_replace(req.path.path(),e,"");
         std::string fp = path_ +  path;
 
-    	res.contentType(get_mime(mime_,fp));
+    	res.contentType(static_content::get_mime(map_,fp));
 
     	res.header("Access-Control-Allow-Origin", "*");
 
@@ -310,7 +316,8 @@ static_content::static_content(const std::string& htdocs_path,const std::string&
         });
     };
 
-    frontController().registerStaticHandler("GET","/.*",handler);
+	auto fc = diy::inject<FrontController>(*ctx);
+    fc->registerStaticHandler("GET","/.*",handler);
 }
 
 static_content::~static_content() 

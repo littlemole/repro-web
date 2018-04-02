@@ -36,16 +36,6 @@ inline Json::Value parse(const std::string& txt)
 		throw JsonParseEx(errs);
 	}
     return json;
-
-	/*
-    Json::Reader reader;
-    bool parsingSuccessful = reader.parse( txt, json );
-    if(!parsingSuccessful)
-    {
-        throw JsonParseEx();
-	}
-    return json;
-	*/
 }
 
 //////////////////////////////////////////////////////////////
@@ -54,11 +44,7 @@ inline const std::string stringify(Json::Value value)
 {
 	Json::StreamWriterBuilder wbuilder;
 	return Json::writeString(wbuilder, value);
-	
-	/*
-    Json::StyledWriter writer;
-	return writer.write( value );    
-	*/
+
 }
 
 
@@ -130,8 +116,6 @@ private:
 	std::map<std::string,std::map<std::string,subscription>> subscriptions_;
 };
 
-
-EventBus& eventBus();
 
 
 

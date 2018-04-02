@@ -104,25 +104,20 @@ void TplStore::load(const std::string& path)
 }
 
 
-TplStore& templates()
-{
-	static TplStore store;
-	return store;
-}
 
-std::string render(const std::string& tpl, Json::Value val)
+std::string TplStore::render(const std::string& tpl, Json::Value val)
 {
 	mustache m = {
-		templates().get(tpl)
+		get(tpl)
 	};
 
 	return m.render(val);
 }
 
-std::string render(const std::string& tpl, const std::string& json)
+std::string TplStore::render(const std::string& tpl, const std::string& json)
 {
 	mustache m = {
-		templates().get(tpl)
+		get(tpl)
 	};
 
 	Json::Value val = reproweb::JSON::parse(json);

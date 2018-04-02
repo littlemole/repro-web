@@ -30,14 +30,14 @@
 #include <openssl/applink.c>
 #endif
 
-
+ 
 using namespace reproweb;
 using namespace repro;
 using namespace prio;
 using namespace cryptoneat;
 using namespace diy;
 
-DIY_DEFINE_CONTEXT()
+//DIY_DEFINE_CONTEXT()
 
 class BasicTest : public ::testing::Test {
  protected:
@@ -144,7 +144,7 @@ private:
 	std::shared_ptr<Logger> logger_;
 };
 
-
+/*
 http_controller routes(
 
 	GET ("/path/a",&TestController::handlerA)
@@ -154,18 +154,31 @@ http_controller routes(
 	POST("/path/b",&TestController::handlerB)
 #endif
 );
+*/
+singleton<TestController(Logger)> TestControllerComponent;
 
-singleton<TestController(Logger)> TestControllerComponent(
-	constructor<TestController(Logger)>()
-);
+
+
 
 
 TEST_F(BasicTest, SimpleDI) 
 {
 	std::string result;
 
+	WebApplicationContext ctx {
+
+		LoggerComponent,
+		TestControllerComponent,
+
+		GET ("/path/a",&TestController::handlerA)
+#ifdef _RESUMABLE_FUNCTIONS_SUPPORTED
+		,
+		POST("/path/b",&TestController::handlerB)
+#endif		
+	};
+
 	{
-		reproweb::WebServer server;
+		reproweb::WebServer server(ctx);
 
 		nextTick()
 		.then( [&result,&server]()
@@ -186,7 +199,8 @@ TEST_F(BasicTest, SimpleDI)
 			});
 		});
 
-		server.run(8765);
+		server.listen(8765);
+		theLoop().run();
 	}
     EXPECT_EQ("HELO WORL",result);
     MOL_TEST_ASSERT_CNTS(0,0);
@@ -197,12 +211,26 @@ TEST_F(BasicTest, SimpleSSL) {
 
 	std::string result;
 
+
+	WebApplicationContext ctx {
+
+		LoggerComponent,
+		TestControllerComponent,
+
+		GET ("/path/a",&TestController::handlerA)
+
+#ifdef _RESUMABLE_FUNCTIONS_SUPPORTED
+		,
+		POST("/path/b",&TestController::handlerB)
+#endif		
+	};
+
 	{
 		prio::SslCtx server_ctx;
 		server_ctx.load_cert_pem("pem/server.pem");
 		prio::SslCtx client_ctx;
 
-		reproweb::WebServer server(server_ctx);
+		reproweb::WebServer server(ctx);
 
 		nextTick()
 		.then( [&result,&client_ctx,&server]()
@@ -222,7 +250,9 @@ TEST_F(BasicTest, SimpleSSL) {
 			});
 		});
 		
-		server.run(8765);
+		server.listen(server_ctx,8765);
+		theLoop().run();
+
 	}
     EXPECT_EQ("HELO WORL",result);
     MOL_TEST_ASSERT_CNTS(0,0);
@@ -242,17 +272,19 @@ TEST_F(BasicTest, EventBus)
 {
 	std::string result;
 
-	eventBus().subscribe( "test", [&result](Json::Value value)
+	EventBus eventBus;
+
+	eventBus.subscribe( "test", [&result](Json::Value value)
 	{
 		result = value["event"].asString();
 		theLoop().exit();
 	});
 
-	timeout( []()
+	timeout( [&eventBus]()
 	{
 		Json::Value value(Json::objectValue);
 		value["event"] = "TEST";
-		eventBus().notify("test", value);
+		eventBus.notify("test", value);
 	},0,100);
 
 	theLoop().run();
@@ -266,28 +298,28 @@ TEST_F(BasicTest, EventBusMore)
 {
 	int result = 0;
 
-	eventBus().clear();
+	EventBus eventBus;
 
-	eventBus().subscribe( "test", [&result](Json::Value value)
+	eventBus.subscribe( "test", [&result](Json::Value value)
 	{
 		result++;
 	});
 
-	eventBus().subscribe( "test", [&result](Json::Value value)
+	eventBus.subscribe( "test", [&result](Json::Value value)
 	{
 		result++;
 	});
 
-	eventBus().subscribe( "test2", [&result](Json::Value value)
+	eventBus.subscribe( "test2", [&result](Json::Value value)
 	{
 		result = -1;
 	});
 
-	timeout( []()
+	timeout( [&eventBus]()
 	{
 		Json::Value value(Json::objectValue);
 		value["event"] = "TEST";
-		eventBus().notify("test", value);
+		eventBus.notify("test", value);
 		timeout([]()
 		{
 			theLoop().exit();
@@ -306,30 +338,30 @@ TEST_F(BasicTest, EventBusMoreButLess)
 {
 	int result = 0;
 
-	eventBus().clear();
+	EventBus eventBus;
 
-	std::string id = eventBus().subscribe( "test", [&result](Json::Value value)
+	std::string id = eventBus.subscribe( "test", [&result](Json::Value value)
 	{
 		result++;
 	});
 
-	eventBus().subscribe( "test", [&result](Json::Value value)
+	eventBus.subscribe( "test", [&result](Json::Value value)
 	{
 		result++;
 	});
 
-	eventBus().subscribe( "test2", [&result](Json::Value value)
+	eventBus.subscribe( "test2", [&result](Json::Value value)
 	{
 		result = -1;
 	});
 
-	eventBus().unsubscribe("test",id);
+	eventBus.unsubscribe("test",id);
 
-	timeout( []()
+	timeout( [&eventBus]()
 	{
 		Json::Value value(Json::objectValue);
 		value["event"] = "TEST";
-		eventBus().notify("test", value);
+		eventBus.notify("test", value);
 		timeout([]()
 		{
 			theLoop().exit();
@@ -453,12 +485,25 @@ TEST_F(BasicTest, coroutine)
 {
 	std::string result;
 
+	WebApplicationContext ctx {
+
+		GET ("/path/a",&TestController::handlerA),
+
+#ifdef _RESUMABLE_FUNCTIONS_SUPPORTED
+		POST("/path/b",&TestController::handlerB),
+#endif		
+		LoggerComponent,
+		TestControllerComponent
+	};
+
 	{
-		reproweb::WebServer server;
+		reproweb::WebServer server(ctx);
 
 		coroutine_example(server,result);
 
-		server.run( 8765);
+		server.listen(8765);
+		theLoop().run();
+
 	}
 	EXPECT_EQ("molws", result);
 	MOL_TEST_ASSERT_CNTS(0, 0);
@@ -535,15 +580,29 @@ provider<WebSocketController()> WebSocketControllerComponent;
 TEST_F(BasicTest, SimpleHttp) {
 
 	std::string result;
+
+
+	WebApplicationContext ctx {
+
+		LoggerComponent,
+		TestControllerComponent,
+		WebSocketControllerComponent,
+
+		ws_controller<WebSocketController>( "/ws"),
+
+		GET ("/path/a",&TestController::handlerA),
+
+#ifdef _RESUMABLE_FUNCTIONS_SUPPORTED
+		POST("/path/b",&TestController::handlerB),
+#endif		
+	};	
+
 	{
-	//	context().registerValue(std::shared_ptr<Loop>(&theLoop(),[](Loop*){}));
 
-	//	ctx_value loopComponent();
-
-		reproweb::WebServer server;
+		reproweb::WebServer server(ctx);
 
 
-		ws_controller<WebSocketController> ws("/ws");
+		//ws_controller<WebSocketController> ws(inject<FrontController>(ctx),"/ws");
 
 		WsConnection::Ptr client= WsConnection::create();
 
@@ -580,9 +639,8 @@ TEST_F(BasicTest, SimpleHttp) {
 
 		});
 
-
-
-		server.run(8765);
+		server.listen(8765);
+		theLoop().run();
 	}
 
 	EXPECT_EQ(1,1);
@@ -592,15 +650,31 @@ TEST_F(BasicTest, SimpleHttp) {
 TEST_F(BasicTest, SimpleHttps) {
 
 	std::string result;
+
+
+	WebApplicationContext ctx {
+
+		ws_controller<WebSocketController>( "/ws"),
+
+		GET ("/path/a",&TestController::handlerA),
+
+#ifdef _RESUMABLE_FUNCTIONS_SUPPORTED
+		POST("/path/b",&TestController::handlerB),
+#endif		
+		LoggerComponent,
+		TestControllerComponent,
+		WebSocketControllerComponent
+	};
+
 	{
 		prio::SslCtx server_ctx;
 		server_ctx.load_cert_pem("pem/server.pem");
 		prio::SslCtx client_ctx;
 
-		reproweb::WebServer server(server_ctx);
+		reproweb::WebServer server(ctx);
 
 
-		ws_controller<WebSocketController> ws("/ws");
+		//ws_controller<WebSocketController> ws(inject<FrontController>(ctx),"/ws");
 
 		WsConnection::Ptr client;
 
@@ -636,7 +710,9 @@ TEST_F(BasicTest, SimpleHttps) {
 
 		},0,500);
 
-		server.run(8766);
+		server.listen(server_ctx,8766);
+		theLoop().run();
+
 	}
 
 	EXPECT_EQ(1,1);
