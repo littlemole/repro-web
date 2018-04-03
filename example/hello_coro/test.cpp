@@ -15,7 +15,7 @@ using namespace reproweb;
 class AppConfig : public Config
 {
 public:
-	AppConfig(std::shared_ptr<FrontController> fc)
+	AppConfig()
 	  : Config("config.json")
 	{
 		const char* redis = getenv("REDIS_HOST");
@@ -43,16 +43,6 @@ struct UserPool : public reprosqlite::SqlitePool
 	  : SqlitePool(config->getString("sqlite")) 
 	{}
 };
-
-class ssl_ctx : public Http2SslCtx
-{
-public:
-	ssl_ctx(std::shared_ptr<Config> config)
-	{
-		load_cert_pem(config->getString("cert"));
-	}
-};
-
 
 
 class Exceptions
@@ -110,9 +100,13 @@ int main(int argc, char **argv)
 		POST ( "/login",		&ExampleController::login),
 		POST ( "/register",		&ExampleController::register_user),
 
+		ex_handler(&Exceptions::on_auth_failed),
+		ex_handler(&Exceptions::on_registration_failed),
+		ex_handler(&Exceptions::on_std_ex),
+
 		static_content("/htdocs/","/etc/mime.types"),
 
-		singleton<AppConfig(FrontController)>(),
+		singleton<AppConfig()>(),
 		singleton<SessionPool(AppConfig)>(),
 		singleton<UserPool(AppConfig)>(),
 
@@ -122,7 +116,6 @@ int main(int argc, char **argv)
 		singleton<View(AppConfig)>(),
 		singleton<ExampleController(View,SessionRepository,UserRepository)>(),
 
-		singleton<ssl_ctx(AppConfig)>(),
 		singleton<Exceptions()>()
 	};	
 

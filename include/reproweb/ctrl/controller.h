@@ -212,39 +212,29 @@ completion_filter_router<F> completion_filter(const std::string& m, const std::s
 
 
 
-template<class T>
+template<class F>
 class exception_handler
 {
 public:
 
-	template<class ... VArgs>
-	exception_handler(FrontController& fc, VArgs ... vargs)
-		: frontController_(fc)
+	exception_handler(F f)
+		: fun_(f)
+	{}
+
+	void ctx_register(diy::Context* ctx)
 	{
-		registerHandlers(vargs...);
+		auto fc = ctx->resolve<FrontController>();
+		registerExHandler(*fc,fun_);
 	}
 
 private:
 
-	FrontController& frontController_;
-
-	template<class F, class ... VArgs>
-	void registerHandlers(F f, VArgs ... vargs)
-	{
-		registerExHandler(f);
-		registerHandlers(vargs...);
-	}
-
-	void registerHandlers()
-	{
-		// terminator, do nothing
-	}
-
+	F fun_;
 
 	template<class C,class E>
-	void registerExHandler(void (C::*fun)( const E& ex, prio::Request&,  prio::Response&))
+	void registerExHandler(FrontController& fc, void (C::*fun)( const E& ex, prio::Request&,  prio::Response&))
 	{
-		frontController_.registerExceptionHandler<E>( [fun]( const E& ex, prio::Request& req,  prio::Response& res)
+		fc.registerExceptionHandler<E>( [fun]( const E& ex, prio::Request& req,  prio::Response& res)
 		{
 			auto ptr = req.attributes.attr<std::shared_ptr<diy::Context>>("ctx")->resolve<C>();
 			(*ptr.*fun)(ex,req,res);
@@ -253,9 +243,9 @@ private:
 
 
 	template<class C, class E>
-	void registerExHandler(repro::Future<> (C::*fun)(const E& ex, prio::Request&, prio::Response&))
+	void registerExHandler(FrontController& fc, repro::Future<> (C::*fun)(const E& ex, prio::Request&, prio::Response&))
 	{
-		frontController_.registerExceptionHandler<E>([fun](const E& ex, prio::Request& req, prio::Response& res)
+		fc.registerExceptionHandler<E>([fun](const E& ex, prio::Request& req, prio::Response& res)
 		{
 			auto ptr = req.attributes.attr<std::shared_ptr<diy::Context>>("ctx")->resolve<C>();
 			(*ptr.*fun)(ex, req, res);
@@ -263,18 +253,12 @@ private:
 	}
 };
 
-template<class C, class E>
-exception_handler<C> ex_handler(void (C::*fun)(const E& ex, prio::Request&, prio::Response&), FrontController& fc )
+template<class F>
+exception_handler<F> ex_handler(F fun)
 {
-	return exception_handler<C>(fc, fun);
+	return exception_handler<F>(fun);
 }
 
-
-template<class C, class E>
-exception_handler<C> ex_handler(repro::Future<>(C::*fun)(const E& ex, prio::Request&, prio::Response&), FrontController& fc )
-{
-	return exception_handler<C>(fc, fun);
-}
 
 class WebApplicationContext : public diy::Context
 {
