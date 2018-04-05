@@ -19,34 +19,55 @@ public:
 
 	Future<Session> get_user_session( std::string sid)
 	{
-		reproredis::Reply reply = co_await redis->cmd("GET", sid);
-
-		if(reply.isError() || reply.isNil())
+		try
 		{
-			throw repro::Ex("invalid session");
+			reproredis::Reply reply = co_await redis->cmd("GET", sid);
+
+			if(reply.isError() || reply.isNil())
+			{
+				throw AuthEx("invalid session");
+			}
+
+			std::string payload = reply.asString();
+			Json::Value json = reproweb::JSON::parse(payload);
+
+			co_return json;
 		}
-
-		std::string payload = reply.asString();
-		Json::Value json = reproweb::JSON::parse(payload);
-
-		co_return json;
+		catch(const std::exception& ex)
+		{
+			throw AuthEx(ex.what());
+		}
 	}
 
 	Future<Session> write_user_session(User user)
 	{
-		Session session(user.toJson());
+		try
+		{
+			Session session(user.toJson());
 
-		reproredis::Reply reply = co_await redis->cmd("SET", session.sid(), session.profile());
-		co_await redis->cmd("EXPIRE", session.sid(), 60);
+			reproredis::Reply reply = co_await redis->cmd("SET", session.sid(), session.profile());
+			co_await redis->cmd("EXPIRE", session.sid(), 60);
 
-		co_return session;
+			co_return session;
+		}
+		catch(const std::exception& ex)
+		{
+			throw AuthEx(ex.what());
+		}
 	}
 
 	Future<> remove_user_session(const std::string& sid)
 	{
-		reproredis::Reply reply = co_await redis->cmd("DEL", sid);
+		try
+		{
+			reproredis::Reply reply = co_await redis->cmd("DEL", sid);
 
-		co_return;
+			co_return;
+		}
+		catch(const std::exception& ex)
+		{
+			throw AuthEx(ex.what());
+		}			
 	}
 
 private:
@@ -71,28 +92,36 @@ public:
 		const std::string& pwd, 
 		const std::string& avatar_url )
 	{
-		if(username.empty() || login.empty() || pwd.empty())
-		{
-			throw RegistrationEx("username, login and password may not be empty");
-		}
-
-		cryptoneat::Password pass;
-		std::string hash = pass.hash(pwd);
-
-		User result(username,login,hash,avatar_url);
-		 
 		try
 		{
-			reprosqlite::Result r = co_await sqlite->query(
-				"INSERT INTO users (username,login,pwd,avatar_url) VALUES ( ? , ? , ? , ? )",
-				username,login,hash,avatar_url
-			);
+			if(username.empty() || login.empty() || pwd.empty())
+			{
+				throw RegistrationEx("username, login and password may not be empty");
+			}
+
+			cryptoneat::Password pass;
+			std::string hash = pass.hash(pwd);
+
+			User result(username,login,hash,avatar_url);
+
+			try
+			{		 
+				reprosqlite::Result r = co_await sqlite->query(
+					"INSERT INTO users (username,login,pwd,avatar_url) VALUES ( ? , ? , ? , ? )",
+					username,login,hash,avatar_url
+				);
+
+			}
+			catch(const std::exception& ex)
+			{
+				throw RegistrationEx("login is already taken");
+			}
 
 			co_return result;
 		}
 		catch(const std::exception& ex)
 		{
-			throw RegistrationEx("login is already taken");
+			throw RegistrationEx(ex.what());
 		}
 	}
 
@@ -118,7 +147,7 @@ public:
 		}
 		catch(const std::exception& ex)
 		{
-			throw AuthEx("unknown user credentials (login/password combination).");
+			throw LoginEx("unknown user credentials (login/password combination).");
 		}
 	}
 

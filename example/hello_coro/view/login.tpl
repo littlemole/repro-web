@@ -33,7 +33,7 @@
 				</header>
 				<p>please specify login and password. if you do not have a login yet you can register <a href="/register">here</a></p>
 				<p><b style="color:red">{{errorMsg}}</b></p>
-				<form action="/login" method="POST">
+				<form action="/login#banner" method="POST">
 					<table style="width:50%;margin:5px auto;">
 						<tr>
 							<td>login</td>

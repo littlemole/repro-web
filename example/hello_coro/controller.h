@@ -22,21 +22,9 @@ public:
 	reproweb::Async index( Request& req, Response& res)
 	{
 		const std::string session_id = get_session_id(req.headers.cookies());
-		if(session_id.empty())
-		{
-			view_->redirect_to_login(res);
-			co_return;
-		}
 
-		try
-		{
-			Session session = co_await sessionRepository->get_user_session(session_id);
-			view_->render_index(res,session.profile());
-		}
-		catch(const std::exception& ex)
-		{
-			view_->redirect_to_login(res);
-		}		
+		Session session = co_await sessionRepository->get_user_session(session_id);
+		view_->render_index(res,session.profile());
 	}
 
 	void show_login( Request& req, Response& res)
@@ -51,38 +39,26 @@ public:
 
 	reproweb::Async login( Request& req, Response& res)
 	{
-		try
-		{
-			QueryParams qp(req.body());
-			std::string login = qp.get("login");
-			std::string pwd   = qp.get("pwd");
+		QueryParams qp(req.body());
+		std::string login = qp.get("login");
+		std::string pwd   = qp.get("pwd");
 
-			User user = co_await userRepository->get_user(login);
-			cryptoneat::Password pass;
-			bool verified = pass.verify(pwd, user.hash() );
+		User user = co_await userRepository->get_user(login);
+		cryptoneat::Password pass;
+		bool verified = pass.verify(pwd, user.hash() );
 
-			std::cout << "valid pwd: " << verified << std::endl;
+		std::cout << "valid pwd: " << verified << std::endl;
 
-			if(!verified) throw repro::Ex("invalid login/password combination");
+		if(!verified) throw repro::Ex("invalid login/password combination");
 
-			Session session = co_await sessionRepository->write_user_session(user);
+		Session session = co_await sessionRepository->write_user_session(user);
 
-			view_->redirect_to_index(res,session.sid());
-		}
-		catch(const std::exception& ex)
-		{
-			view_->render_login(res,ex.what());
-		}
+		view_->redirect_to_index(res,session.sid());
 	}
 
 	reproweb::Async logout( Request& req, Response& res)
 	{
 		const std::string session_id = get_session_id(req.headers.cookies());
-		if(session_id.empty())
-		{
-			view_->redirect_to_login(res);
-			co_return;
-		}
 
 		co_await sessionRepository->remove_user_session(session_id);
 
@@ -91,26 +67,19 @@ public:
 
 	reproweb::Async register_user( Request& req, Response& res)
 	{
-		try
-		{
-			QueryParams qp(req.body());
-			std::string username   = qp.get("username");
-			std::string login      = qp.get("login");
-			std::string pwd        = qp.get("pwd");
-			std::string avatar_url = qp.get("avatar_url");
+		QueryParams qp(req.body());
+		std::string username   = qp.get("username");
+		std::string login      = qp.get("login");
+		std::string pwd        = qp.get("pwd");
+		std::string avatar_url = qp.get("avatar_url");
 
-			User user = co_await userRepository->register_user(username,login,pwd,avatar_url);
+		User user = co_await userRepository->register_user(username,login,pwd,avatar_url);
 
-			std::cout << "NEW USER SUCESS: " << user.username() << std::endl;
-			
-			Session session = co_await sessionRepository->write_user_session(user);
+		std::cout << "NEW USER SUCESS: " << user.username() << std::endl;
+		
+		Session session = co_await sessionRepository->write_user_session(user);
 
-			view_->redirect_to_index(res,session.sid());
-		}
-		catch(const std::exception& ex)
-		{
-			view_->render_registration(res,ex.what());
-		}		
+		view_->redirect_to_index(res,session.sid());
 	}
 
 private:
@@ -123,11 +92,50 @@ private:
 	{
 		if(!cookies.exists("repro_web_sid"))
 		{
-			return "";
+			throw AuthEx("no session found");
 		}
 
 		return cookies.get("repro_web_sid").value();
 	}
 };
+
+
+class Exceptions
+{
+public:
+
+	Exceptions(std::shared_ptr<View> view)
+		: view_(view)
+	{}
+
+	void on_auth_failed(const AuthEx& ex,Request& req, Response& res)
+	{
+		std::cout << ex.what() << std::endl;
+		view_->redirect_to_login(res);
+	}
+
+	void on_login_failed(const LoginEx& ex,Request& req, Response& res)
+	{
+		std::cout << ex.what() << std::endl;
+		view_->render_login(res,ex.what());
+	}
+
+	void on_registration_failed(const RegistrationEx& ex,Request& req, Response& res)
+	{
+		std::cout << ex.what() << std::endl;
+		view_->render_registration(res,ex.what());
+	}
+
+	void on_std_ex(const std::exception& ex,Request& req, Response& res)
+	{
+		std::cout << ex.what() << std::endl;
+		view_->redirect_to_login(res);
+	}
+
+private:
+
+	std::shared_ptr<View> view_;
+};
+
 
 #endif

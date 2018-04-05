@@ -45,45 +45,6 @@ struct UserPool : public reprosqlite::SqlitePool
 };
 
 
-class Exceptions
-{
-public:
-
-	void on_auth_failed(const AuthEx& ex,Request& req, Response& res)
-	{
-		std::cout << ex.what() << std::endl;
-		redirect_to_login(res);
-	}
-
-	void on_registration_failed(const RegistrationEx& ex,Request& req, Response& res)
-	{
-		std::cout << ex.what() << std::endl;
-		redirect_to_registration(res);
-	}
-
-	void on_std_ex(const std::exception& ex,Request& req, Response& res)
-	{
-		std::cout << ex.what() << std::endl;
-		redirect_to_login(res);
-	}
-
-private:
-
-	static void redirect_to_login(Response& res)
-	{
-		res
-		.redirect("https://localhost:9876/login.html")
-		.flush();
-	}
-
-	static void redirect_to_registration(Response& res)
-	{
-		res
-		.redirect("https://localhost:9876/register.html")
-		.flush();
-	}	
-};
-
 
 
 int main(int argc, char **argv)
@@ -101,6 +62,7 @@ int main(int argc, char **argv)
 		POST ( "/register",		&ExampleController::register_user),
 
 		ex_handler(&Exceptions::on_auth_failed),
+		ex_handler(&Exceptions::on_login_failed),
 		ex_handler(&Exceptions::on_registration_failed),
 		ex_handler(&Exceptions::on_std_ex),
 
@@ -116,7 +78,7 @@ int main(int argc, char **argv)
 		singleton<View(AppConfig)>(),
 		singleton<ExampleController(View,SessionRepository,UserRepository)>(),
 
-		singleton<Exceptions()>()
+		singleton<Exceptions(View)>()
 	};	
 
 	Http2SslCtx sslCtx;

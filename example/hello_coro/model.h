@@ -16,6 +16,12 @@ public:
 	AuthEx(const std::string& s) : Ex(s) {}
 };
 
+class LoginEx : public repro::Ex 
+{
+public:
+	LoginEx() {}
+	LoginEx(const std::string& s) : Ex(s) {}
+};
 
 class RegistrationEx : public repro::Ex 
 {
@@ -36,7 +42,7 @@ public:
 		const std::string& hash,
 		const std::string& avatar_url
 	)
-		: name_(name),
+	  :  name_(name),
 		 login_(login),
 		 hash_(hash),
 		 avatar_url_(avatar_url)

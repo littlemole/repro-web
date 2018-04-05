@@ -56,7 +56,7 @@ public:
 	{
 		res
 		.cookie(prio::Cookie("repro_web_sid", sid))
-		.redirect("https://localhost:9876/")
+		.redirect("https://localhost:9876/#")
 		.flush();
 	}
 
@@ -64,13 +64,6 @@ public:
 	{
 		res
 		.redirect("https://localhost:9876/login")
-		.flush();
-	}	
-
-	void redirect_to_registration(Response& res)
-	{
-		res
-		.redirect("https://localhost:9876/register")
 		.flush();
 	}	
 
