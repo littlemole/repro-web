@@ -92,6 +92,10 @@ rmc: stop ## remove docker container, if any
 rmi : ## remove existing docker image, if any
 	-docker rmi $(IMAGE)
 
+deb :
+	sed -i "s/FROM ##PLACEHOLDER##/FROM ${IMAGE}/" Dockerfile.deb	
+	docker build -t "$(IMAGE).deb" . -fDockerfile.deb   --build-arg CXX=$(CXX) --build-arg BACKEND=$(BACKEND) --build-arg BUILDCHAIN=$(BUILDCHAIN)
+	docker run -ti --name "${CONTAINER}.deb" "${IMAGE}.deb"
 
 # self documenting makefile, see 
 # https://marmelab.com/blog/2016/02/29/auto-documented-makefile.html

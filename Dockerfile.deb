@@ -1,0 +1,16 @@
+# This is a comment
+FROM ##PLACEHOLDER##
+MAINTAINER me <little.mole@oha7.org>
+
+ARG CXX=g++
+ENV CXX=${CXX}
+
+ARG BACKEND=
+ENV BACKEND=${BACKEND}
+
+ARG BUILDCHAIN=make
+ENV BUILDCHAIN=${BUILDCHAIN}
+
+ADD docker/run.sh /usr/local/bin/run.sh
+
+CMD /usr/local/bin/run.sh
