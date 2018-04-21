@@ -93,7 +93,8 @@ rmi : ## remove existing docker image, if any
 	-docker rmi $(IMAGE)
 
 deb :
-	sed -i "s/FROM ##PLACEHOLDER##/FROM ${IMAGE}/" Dockerfile.deb	
+	
+	sed -i "s~FROM .*~FROM ${IMAGE}~" Dockerfile.deb	
 	docker build -t "$(IMAGE).deb" . -fDockerfile.deb   --build-arg CXX=$(CXX) --build-arg BACKEND=$(BACKEND) --build-arg BUILDCHAIN=$(BUILDCHAIN)
 	docker run -ti --name "${CONTAINER}.deb" "${IMAGE}.deb"
 

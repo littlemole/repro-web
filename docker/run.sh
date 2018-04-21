@@ -1,11 +1,16 @@
 #!/bin/bash
 
-/usr/local/bin/install.sh cryptoneat
-/usr/local/bin/install.sh repro
-/usr/local/bin/install.sh prio
-/usr/local/bin/install.sh repro-curl
-/usr/local/bin/install.sh diy
-/usr/local/bin/install.sh prio-http
-/usr/local/bin/install.sh reproweb
+export DESTDIR=/tmp
+mkdir -p $DESTDIR/usr/local/lib
+mkdir -p $DESTDIR/usr/local/include
+mkdir -p $DESTDIR/usr/local/lib/pkgconfig
+
+/usr/local/bin/build.sh cryptoneat
+/usr/local/bin/build.sh repro
+/usr/local/bin/build.sh prio
+/usr/local/bin/build.sh repro-curl
+/usr/local/bin/build.sh diy
+/usr/local/bin/build.sh prio-http
+/usr/local/bin/build.sh reproweb
 
 bash -i

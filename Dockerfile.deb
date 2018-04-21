@@ -1,5 +1,5 @@
 # This is a comment
-FROM ##PLACEHOLDER##
+FROM littlemole/reproweb_gpp_libevent_make
 MAINTAINER me <little.mole@oha7.org>
 
 ARG CXX=g++
