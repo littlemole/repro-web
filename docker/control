@@ -1,0 +1,7 @@
+Package: reproweb
+Version: 0.0.1
+Section: web
+Priority: optional
+Architecture: x64
+Maintainer: little.mole@oha7.org
+Description: c++ reactive promise web dev

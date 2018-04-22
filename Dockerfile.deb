@@ -13,4 +13,6 @@ ENV BUILDCHAIN=${BUILDCHAIN}
 
 ADD docker/run.sh /usr/local/bin/run.sh
 
+ENV TARGET=reproweb_gpp_libevent_make
+
 CMD /usr/local/bin/run.sh

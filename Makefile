@@ -92,10 +92,22 @@ rmc: stop ## remove docker container, if any
 rmi : ## remove existing docker image, if any
 	-docker rmi $(IMAGE)
 
+
 deb :
-	
+	echo "$(IMAGE).deb"
+	-docker rm "${CONTAINER}.deb"	
+	-docker rmi "$(IMAGE).deb"
 	sed -i "s~FROM .*~FROM ${IMAGE}~" Dockerfile.deb	
+	sed -i "s~TARGET=.*~TARGET=${CONTAINER}~" Dockerfile.deb	
 	docker build -t "$(IMAGE).deb" . -fDockerfile.deb   --build-arg CXX=$(CXX) --build-arg BACKEND=$(BACKEND) --build-arg BUILDCHAIN=$(BUILDCHAIN)
+	docker run -ti --name "${CONTAINER}.deb" "${IMAGE}.deb"
+
+clean-deb :
+	-docker rm "${CONTAINER}.deb"
+	-docker rmi "$(IMAGE).deb"
+	sed -i "s~FROM .*~FROM ${IMAGE}~" Dockerfile.deb	
+	sed -i "s~TARGET=.*~TARGET=${CONTAINER}~" Dockerfile.deb	
+	docker build --no-cache -t "$(IMAGE).deb" . -fDockerfile.deb   --build-arg CXX=$(CXX) --build-arg BACKEND=$(BACKEND) --build-arg BUILDCHAIN=$(BUILDCHAIN)
 	docker run -ti --name "${CONTAINER}.deb" "${IMAGE}.deb"
 
 # self documenting makefile, see 
