@@ -173,6 +173,9 @@ Future<WsConnection::Ptr> WsConnection::connect(std::string urlStr)
 		<< "Sec-WebSocket-Key: " << key << "\r\n"
 		<< "Sec-WebSocket-Version: " << ver << "\r\n\r\n";
 
+		auto& t = client->timeouts();
+		t.rw_timeout_s = 3600 * 1000;
+
 		return client->write(oss.str());
 	})
 	.then([](Connection::Ptr client)

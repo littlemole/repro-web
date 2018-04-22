@@ -4,7 +4,83 @@
 #include "model.h"
 #include "view.h"
 #include "repo.h"
+#include <regex>
 
+class ValidationEx : public repro::Ex 
+{
+public:
+	ValidationEx() {}
+	ValidationEx(const std::string& s) : Ex(s) {}
+};
+
+
+class validator
+{
+public:
+	validator(const std::regex & r)
+		: r_(r)
+	{}
+
+	std::string getString(const std::string& tainted)
+	{
+		std::smatch match;
+		 if ( !std::regex_match(tainted,match,r_) )
+		 {
+			 throw ValidationEx("validation failed");
+		 }
+
+		 return match[0];
+	}
+
+	int getInteger(const std::string& tainted)
+	{
+		std::smatch match;
+		if ( !std::regex_match(tainted,match,r_) )
+		{
+			throw ValidationEx("validation failed");
+		}
+
+		std::istringstream iss(match[0]);
+		int i;
+		iss >> i;		 
+		return i;
+	}
+
+	double getDouble(const std::string& tainted)
+	{
+		std::smatch match;
+		if ( !std::regex_match(tainted,match,r_) )
+		{
+			throw ValidationEx("validation failed");
+		}
+
+		std::istringstream iss(match[0]);
+		double d;
+		iss >> d;		 
+		return d;
+	}
+
+private:
+	std::regex r_;	
+};
+
+inline std::string valid(const std::string& s, const std::regex& r)
+{
+	validator v(r);
+	return v.getString(s);
+}
+
+inline std::string valid_int(const std::string& s)
+{
+	validator v(std::regex("[0-9]*"));
+	return v.getString(s);
+}
+
+inline std::string valid_double(const std::string& s)
+{
+	validator v(std::regex("[0-9\\.]*"));
+	return v.getString(s);
+}
 
 class ExampleController
 {
@@ -95,7 +171,10 @@ private:
 			throw AuthEx("no session found");
 		}
 
-		return cookies.get("repro_web_sid").value();
+		return valid(
+			cookies.get("repro_web_sid").value(), 
+			std::regex("repro_web_sid::[0-9a-f]*")
+		);
 	}
 };
 

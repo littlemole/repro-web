@@ -16,10 +16,13 @@ public:
 
 	ws_controller( const std::string& path)
 	  : path_(path)
-	{}
+	{
+		std::cout << "declare WS " << path_ << std::endl;		
+	}
 
 	void ctx_register(diy::Context* ctx)
 	{
+		std::cout << "register WS " << path_ << std::endl;
 		auto fc = ctx->resolve<FrontController>();
 
 		fc->registerHandler(
