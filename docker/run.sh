@@ -1,6 +1,7 @@
 #!/bin/bash
 
 export DESTDIR=/tmp/debian
+export SKIPTESTS="true"
 mkdir -p $DESTDIR/usr/local/lib
 mkdir -p $DESTDIR/usr/local/include
 mkdir -p $DESTDIR/usr/local/lib/pkgconfig
@@ -17,10 +18,11 @@ cp /usr/local/src/reproweb/docker/control $DESTDIR/DEBIAN/
 /usr/local/bin/build.sh reproweb
 
 cp /usr/local/src/reproweb/docker/control $DESTDIR/DEBIAN/
-cd $DESTDIR
+cd /tmp
 
 dpkg --build debian
 
 mv debian.deb $TARGET.deb
 
-bash -i
+cp $TARGET.deb /deb/
+

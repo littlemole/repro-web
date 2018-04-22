@@ -100,7 +100,7 @@ deb :
 	sed -i "s~FROM .*~FROM ${IMAGE}~" Dockerfile.deb	
 	sed -i "s~TARGET=.*~TARGET=${CONTAINER}~" Dockerfile.deb	
 	docker build -t "$(IMAGE).deb" . -fDockerfile.deb   --build-arg CXX=$(CXX) --build-arg BACKEND=$(BACKEND) --build-arg BUILDCHAIN=$(BUILDCHAIN)
-	docker run -ti --name "${CONTAINER}.deb" "${IMAGE}.deb"
+	docker run -ti --name "${CONTAINER}.deb" -v "$(PWD)/deb:/deb" "${IMAGE}.deb"
 
 clean-deb :
 	-docker rm "${CONTAINER}.deb"
@@ -108,7 +108,7 @@ clean-deb :
 	sed -i "s~FROM .*~FROM ${IMAGE}~" Dockerfile.deb	
 	sed -i "s~TARGET=.*~TARGET=${CONTAINER}~" Dockerfile.deb	
 	docker build --no-cache -t "$(IMAGE).deb" . -fDockerfile.deb   --build-arg CXX=$(CXX) --build-arg BACKEND=$(BACKEND) --build-arg BUILDCHAIN=$(BUILDCHAIN)
-	docker run -ti --name "${CONTAINER}.deb" "${IMAGE}.deb"
+	docker run -ti --name "${CONTAINER}.deb" -v "$(PWD)/deb:/deb" "${IMAGE}.deb"
 
 # self documenting makefile, see 
 # https://marmelab.com/blog/2016/02/29/auto-documented-makefile.html
@@ -125,4 +125,4 @@ help:
 	@echo "available targets:"
 	@grep -E -h '^[a-zA-Z_-]+:.*?## .*$$' $(MAKEFILE_LIST) | awk 'BEGIN {FS = ":.*?## "}; {printf "\033[36m%-20s\033[0m %s\n", $$1, $$2}'
 
-.PHONY: build help rmi rmc stop bash image clean-image release remove install test clean test-build
+.PHONY: deb build help rmi rmc stop bash image clean-image release remove install test clean test-build
