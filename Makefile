@@ -94,6 +94,7 @@ rmi : ## remove existing docker image, if any
 
 
 deb :
+	mkdir -p deb
 	echo "$(IMAGE).deb"
 	-docker rm "${CONTAINER}.deb"	
 	-docker rmi "$(IMAGE).deb"
@@ -103,6 +104,7 @@ deb :
 	docker run -ti --name "${CONTAINER}.deb" -v "$(PWD)/deb:/deb" "${IMAGE}.deb"
 
 clean-deb :
+	mkdir -p deb
 	-docker rm "${CONTAINER}.deb"
 	-docker rmi "$(IMAGE).deb"
 	sed -i "s~FROM .*~FROM ${IMAGE}~" Dockerfile.deb	
