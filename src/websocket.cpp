@@ -148,6 +148,7 @@ Future<WsConnection::Ptr> WsConnection::connect(std::string urlStr)
 	}
 	else if ( url.getProto() == "wss" && ctx_ )
 	{
+		std::cout << "SSL Connect " << url.getHost() << ":" << url.getPort() << std::endl;
 		f = SslConnection::connect( url.getHost(),url.getPort(),*ctx_);
 	}
 	else
@@ -169,13 +170,16 @@ Future<WsConnection::Ptr> WsConnection::connect(std::string urlStr)
 		std::ostringstream oss;
 		oss << "GET " << url.getPath() << " HTTP/1.1\r\n"
 		<< "Upgrade: websocket\r\n"
-		<< "Connection: Upgrade\r\n"
+		<< "Connection: Keep-Alive,Upgrade\r\n"
+		<< "User-Agent: molws\r\n"
+		<< "Host: " << url.getHost() << "\r\n"
 		<< "Sec-WebSocket-Key: " << key << "\r\n"
 		<< "Sec-WebSocket-Version: " << ver << "\r\n\r\n";
 
 		auto& t = client->timeouts();
 		t.rw_timeout_s = 3600 * 1000;
 
+		std::cout << "WS REQ: " << oss.str() << std::endl;
 		return client->write(oss.str());
 	})
 	.then([](Connection::Ptr client)
@@ -184,6 +188,7 @@ Future<WsConnection::Ptr> WsConnection::connect(std::string urlStr)
 	})
 	.then([this,p](Connection::Ptr client, std::string data)
 	{
+		std::cout << "WS DATA: " << data << std::endl;
 		//TODO: check ws handshake response
 		auto tmp = p;
 		tmp.resolve(this->shared_from_this());
