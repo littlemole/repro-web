@@ -1,5 +1,5 @@
 # This is a comment
-FROM littlemole/reproweb_clangpp-5.0_libevent_make
+FROM littlemole/reproweb_clangpp_libevent_make
 MAINTAINER me <little.mole@oha7.org>
 
 RUN DEBIAN_FRONTEND=noninteractive apt-get install -y libhiredis-dev libsqlite3-dev

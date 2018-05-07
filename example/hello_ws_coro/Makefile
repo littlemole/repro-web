@@ -1,4 +1,4 @@
-CXX = clang++-5.0
+CXX = clang++
 BACKEND=libevent
 BUILDCHAIN = make
 
