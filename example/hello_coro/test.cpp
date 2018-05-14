@@ -24,6 +24,8 @@ public:
 			std::ostringstream oss;
 			oss << "redis://" << redis << ":6379";
 
+			std::cout << "REDIS_URL: " << oss.str() << std::endl;
+
 			get("redis") = oss.str();
 		}
 
@@ -87,23 +89,24 @@ int main(int argc, char **argv)
 
 	WebServer server(ctx);
 	server.listen(sslCtx,9876);
+
+	timeout([&ctx]()
+	{
+		std::shared_ptr<SessionPool> redis = inject<SessionPool>(ctx);
+		redis->cmd("INFO")
+		.then( [](reproredis::RedisResult::Ptr r)
+		{
+			std::cout << r->str() << std::endl;
+		})
+		.otherwise([](const std::exception& ex)
+		{
+			std::cout << ex.what() << std::endl;
+		});
+	}
+	,0,10);
      
 	theLoop().run();
 
 	MOL_TEST_PRINT_CNTS();	
     return 0;
 }
-
-/*
-Application defines (
-	exceptions(
-		ex_handler(&Exceptions::on_auth_failed),
-		ex_handler(&Exceptions::on_registration_failed),
-		ex_handler(&Exceptions::on_std_ex)
-	),
-
-	view_path("/view"),
-
-	static_content("/htdocs/","/etc/mime.types")
-);
-*/

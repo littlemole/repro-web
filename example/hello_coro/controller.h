@@ -99,6 +99,8 @@ public:
 	{
 		const std::string session_id = get_session_id(req.headers.cookies());
 
+		std::cout << "SID: " << session_id << std::endl;
+
 		Session session = co_await sessionRepository->get_user_session(session_id);
 		view_->render_index(res,session.profile());
 	}
@@ -171,6 +173,7 @@ private:
 			throw AuthEx("no session found");
 		}
 
+		return cookies.get("repro_web_sid").value();
 		return valid(
 			cookies.get("repro_web_sid").value(), 
 			std::regex("repro_web_sid::[0-9a-f]*")

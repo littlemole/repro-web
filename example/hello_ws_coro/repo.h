@@ -21,14 +21,14 @@ public:
 	{
 		try
 		{
-			reproredis::Reply reply = co_await redis->cmd("GET", sid);
+			reproredis::RedisResult::Ptr reply = co_await redis->cmd("GET", sid);
 
-			if(reply.isError() || reply.isNil())
+			if(reply->isError() || reply->isNill())
 			{
 				throw AuthEx("invalid session");
 			}
 
-			std::string payload = reply.asString();
+			std::string payload = reply->str();
 			Json::Value json = reproweb::JSON::parse(payload);
 
 			(void) co_await redis->cmd("EXPIRE", sid, 180);
@@ -47,7 +47,7 @@ public:
 		{
 			Session session(user.toJson());
 
-			reproredis::Reply reply = co_await redis->cmd("SET", session.sid(), session.profile());
+			reproredis::RedisResult::Ptr reply = co_await redis->cmd("SET", session.sid(), session.profile());
 			(void) co_await redis->cmd("EXPIRE", session.sid(), 180);
 
 			co_return session;
@@ -62,7 +62,7 @@ public:
 	{
 		try
 		{
-			reproredis::Reply reply = co_await redis->cmd("DEL", sid);
+			reproredis::RedisResult::Ptr reply = co_await redis->cmd("DEL", sid);
 
 			co_return;
 		}

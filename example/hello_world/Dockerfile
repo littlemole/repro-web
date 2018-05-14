@@ -21,6 +21,6 @@ ADD . /usr/local/src/reproweb-example
 
 RUN cd /usr/local/src/reproweb-example && (if [ "$BUILDCHAIN" != "cmake" ] ; then make -e; else (mkdir -p build && cd build && cmake .. && make) fi)
 
-CMD bash -c "/etc/init.d/redis-server start && cd /usr/local/src/reproweb-example && build/test.bin"
+CMD bash -c "/etc/init.d/redis-server start && cd /usr/local/src/reproweb-example && build/hello_world.bin"
 
 

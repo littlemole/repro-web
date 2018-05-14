@@ -22,15 +22,15 @@ public:
 		auto p = repro::promise<Session>();
 
 		redis->cmd("GET", sid)
-		.then([p,sid](reproredis::Reply reply)
+		.then([p,sid](reproredis::RedisResult::Ptr reply)
 		{
-			if(reply.isError() || reply.isNil())
+			if(reply->isError() || reply->isNill())
 			{
 				p.reject(repro::Ex("invalid session"));
 				return;
 			}
 
-			std::string payload = reply.asString();
+			std::string payload = reply->str();
 			Json::Value json = reproweb::JSON::parse(payload);
 			
 			p.resolve( Session(sid,json) );
@@ -47,11 +47,11 @@ public:
 		Session session(user.toJson());
 
 		redis->cmd("SET", session.sid(), session.profile() )
-		.then([p,this,session](reproredis::Reply reply)
+		.then([p,this,session](reproredis::RedisResult::Ptr reply)
 		{
 			return redis->cmd("EXPIRE", session.sid(), 60);
 		})
-		.then([p,session](reproredis::Reply reply)
+		.then([p,session](reproredis::RedisResult::Ptr reply)
 		{
 			p.resolve(session);
 		})
@@ -65,7 +65,7 @@ public:
 		auto p = repro::promise<>();
 
 		redis->cmd("DEL", sid)
-		.then([p](reproredis::Reply reply)
+		.then([p](reproredis::RedisResult::Ptr reply)
 		{
 			p.resolve();
 		})

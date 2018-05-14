@@ -19,19 +19,95 @@ public:
 
 	Future<Session> get_user_session( std::string sid)
 	{
+		auto p = repro::promise<Session>();
+
+		redis->cmd("GET", sid) 
+		.then([p,sid](reproredis::RedisResult::Ptr reply)
+		{
+			if(reply->isError() || reply->isNill())
+			{
+				p.reject(repro::Ex("invalid session"));
+				return;
+			}
+
+			std::string payload = reply->str();
+			Json::Value json = reproweb::JSON::parse(payload);
+			
+			p.resolve( Session(sid,json) );
+		})
+		.otherwise(reject(p));
+
+		return p.future();
+	}
+
+	Future<Session> write_user_session(User user)
+	{
+		auto p = repro::promise<Session>();
+
+		Session session(user.toJson());
+
+		redis->cmd("SET", session.sid(), session.profile() )
+		.then([p,this,session](reproredis::RedisResult::Ptr reply)
+		{
+			return redis->cmd("EXPIRE", session.sid(), 60);
+		})
+		.then([p,session](reproredis::RedisResult::Ptr reply)
+		{
+			p.resolve(session);
+		})
+		.otherwise(reject(p));
+
+		return p.future();
+	}
+
+	Future<> remove_user_session(const std::string& sid)
+	{
+		auto p = repro::promise<>();
+
+		redis->cmd("DEL", sid)
+		.then([p](reproredis::RedisResult::Ptr reply)
+		{
+			p.resolve();
+		})
+		.otherwise(reject(p));
+
+		return p.future();
+	}
+
+private:
+
+	std::shared_ptr<reproredis::RedisPool> redis;
+};
+
+
+/*
+class SessionRepository
+{
+public:
+
+	SessionRepository(std::shared_ptr<reproredis::RedisPool> redisPool)
+		: redis(redisPool)
+	{}
+
+	Future<Session> get_user_session( std::string sid)
+	{
 		try
 		{
-			reproredis::Reply reply = co_await redis->cmd("GET", sid);
+			std::cout << "got sid: " << sid << std::endl;
+			reproredis::RedisResult::Ptr reply = co_await redis->cmd("GET", sid);
 
-			if(reply.isError() || reply.isNil())
+			std::cout << reply->isError() << " " << reply->str() << std::endl;
+
+			if(reply->isError() || reply->isNill())
 			{
 				throw AuthEx("invalid session");
 			}
 
-			std::string payload = reply.asString();
+			std::string payload = reply->str();
 			Json::Value json = reproweb::JSON::parse(payload);
 
-			co_await redis->cmd("EXPIRE", session.sid(), 180);
+			reproredis::RedisResult::Ptr reply2 = co_await redis->cmd("EXPIRE", sid, 180);
+			std::cout << reply2->isError() << " " << reply2->str() << std::endl;
 
 			co_return Session(sid,json);
 		}
@@ -47,13 +123,19 @@ public:
 		{
 			Session session(user.toJson());
 
-			reproredis::Reply reply = co_await redis->cmd("SET", session.sid(), session.profile());
-			co_await redis->cmd("EXPIRE", session.sid(), 180);
+			std::cout << "new sid: " << session.sid() << std::endl;
+
+			reproredis::RedisResult::Ptr reply = co_await redis->cmd("SET", session.sid(), session.profile());
+			std::cout  << reply->isError() << " " << reply->str() << std::endl;
+
+			reproredis::RedisResult::Ptr reply2 = co_await redis->cmd("EXPIRE", session.sid(), 180);
+			std::cout << reply2->isError() << " " << reply2->str() << std::endl;
 
 			co_return session;
 		}
 		catch(const std::exception& ex)
 		{
+			std::cout << "new sid failed: " << ex.what() << std::endl;
 			throw AuthEx(ex.what());
 		}
 	}
@@ -62,7 +144,7 @@ public:
 	{
 		try
 		{
-			reproredis::Reply reply = co_await redis->cmd("DEL", sid);
+			reproredis::RedisResult::Ptr reply = co_await redis->cmd("DEL", sid);
 
 			co_return;
 		}
@@ -76,7 +158,7 @@ private:
 
 	std::shared_ptr<reproredis::RedisPool> redis;
 };
-
+*/
 
 
 
