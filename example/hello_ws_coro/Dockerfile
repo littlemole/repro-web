@@ -2,7 +2,7 @@
 FROM littlemole/reproweb_clangpp_libevent_make
 MAINTAINER me <little.mole@oha7.org>
 
-RUN DEBIAN_FRONTEND=noninteractive apt-get install -y libhiredis-dev redis-server libsqlite3-dev
+RUN DEBIAN_FRONTEND=noninteractive apt-get install -y redis-server libsqlite3-dev
 
 ARG CXX=g++
 ENV CXX=${CXX}
