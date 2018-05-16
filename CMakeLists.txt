@@ -96,7 +96,7 @@ message("+++++++++++++++++")
 		find_library(PRIOCPPD_LIBRARY NAMES priocppd)
 		find_library(PRIOHTTP_LIBRARY NAMES priohttp)
 		find_library(PRIOHTTPD_LIBRARY NAMES priohttpd)
-		find_library(NG2HTTP_LIBRARY NAMES nghttp2)
+		find_library(NG2HTTP_LIBRARY NAMES libnghttp2)
 		find_library(LIBEVENT_LIBRARY NAMES event)
 		find_library(CRYPTONEAT_LIBRARY NAMES cryptoneat)
 		find_library(CRYPTONEATD_LIBRARY NAMES cryptoneatd)
@@ -118,9 +118,6 @@ message("+++++++++++++++++")
 		)
 	endif()
 
-message("+++++++++++++++++")
-message("LIBS: ${LIBS}")
-message("+++++++++++++++++")
 
  ELSEIF (UNIX)
 
@@ -143,13 +140,17 @@ message("+++++++++++++++++")
 		debug priocppd optimized priocpp 
 		debug priohttpd optimized priohttp 
 		debug cryptoneatd optimized cryptoneat 
-		${GTEST_LIBRARIES} ${OPENSSL_LIBRARIES} ${NG2HTTP_LIBRARY} ${CURL_LIBRARIES} ${JSONCPP_LIBRARIES} ${STDLIB}  
+		${GTEST_LIBRARIES} ${OPENSSL_LIBRARIES} ${NGHTTP2_LIBRARIES} ${CURL_LIBRARIES} ${JSONCPP_LIBRARIES} ${STDLIB}  
+		z
 	)
 
     set(LIBS debug ${CMAKE_PROJECT_NAME} optimized ${CMAKE_PROJECT_NAME} ${LIBS} )
 
 ENDIF ()
 
+message("+++++++++++++++++")
+message("LIBS: ${LIBS}")
+message("+++++++++++++++++")
 
 
 ############################################
@@ -218,6 +219,7 @@ target_link_libraries(Tests ${LIBS} ${BACKEND} ${OSLIBS} )
 add_test(NAME AllTests COMMAND Tests)
 
 file(COPY pem DESTINATION .)
+file(COPY config.json DESTINATION .)
  
 ############################################
 # install rules
