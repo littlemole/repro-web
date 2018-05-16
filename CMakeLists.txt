@@ -1,19 +1,34 @@
 ############################################
+# preamble
+############################################
 cmake_minimum_required(VERSION 2.8.9)
 cmake_policy(SET CMP0054 NEW)
 project(reproweb)
 include(CTest)
 
+############################################
+# c++ std
+############################################
+
 set(CMAKE_CXX_STANDARD 14)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
 set(CMAKE_CXX_EXTENSIONS OFF)
 
-set(INSTALL_DEBUG "On")
-set(INSTALL_RELEASE "On")
+############################################
+# debug mode produces libs with d suffix
+############################################
+
+if(NOT CMAKE_DEBUG_POSTFIX)
+  set(CMAKE_DEBUG_POSTFIX d)
+endif()
+
+############################################
+# basic dependecies
+############################################
 
 find_package(GTest REQUIRED)
 find_package(OpenSSL REQUIRED)
-find_package(ZLIB REQUIRED)
+
 
 ############################################
 # clang support
@@ -23,54 +38,91 @@ set(LINKERFLAGS "")
 set(STDLIB "")
 set(FLAGS "")
 
+
 if ("${CMAKE_CXX_COMPILER_ID}" STREQUAL "Clang")
     set(STDLIB "c++abi")
     set(LINKERFLAGS "-stdlib=libc++ -fcoroutines-ts  -std=c++14")
     set(FLAGS "-stdlib=libc++ -fcoroutines-ts -D_RESUMABLE_FUNCTIONS_SUPPORTED")
 endif()
 
-set( CMAKE_EXE_LINKER_FLAGS  "${CMAKE_EXE_LINKER_FLAGS} ${LINKERFLAGS}" )
-
-
 ############################################
-# OS support
+# OS support (Linux/Windows)
 ############################################
-
 
 IF (WIN32)
 
+if(NOT CMAKE_BUILD_TYPE)
+  set(CMAKE_BUILD_TYPE "Debug" CACHE STRING "Choose the type of build, options are: Debug Release RelWithDebInfo MinSizeRel." FORCE)
+endif()
+
+message("+++++++++++++++++")
+message("${CMAKE_BUILD_TYPE}")
+message("+++++++++++++++++")
+
 	set(OSLIBS "Ws2_32" "Rpcrt4")
-
-	find_library(PRIOCPP_LIBRARY NAMES priocpp)
-	find_library(PRIOCPPD_LIBRARY NAMES priocppd)
-	find_library(PRIOHTTP_LIBRARY NAMES priohttp)
-	find_library(PRIOHTTPD_LIBRARY NAMES priohttpd)
-	find_library(NG2HTTP_LIBRARY NAMES nghttp2)
-	find_library(LIBEVENT_LIBRARY NAMES event)
-    find_library(CRYPTONEAT_LIBRARY NAMES cryptoneat)
-    find_library(CRYPTONEATD_LIBRARY NAMES cryptoneatd)
-	find_library(JSONCPP_LIBRARY NAMES jsoncpp)
-    find_library(CURL_LIBRARY NAMES libcurl)
-    find_library(REPROCURL_LIBRARY NAMES reprocurl)
-    find_library(REPROCURLD_LIBRARY NAMES reprocurld)
-
 	set(BUILDFLAGS "-await ${FLAGS}")
-	set(DEBUGFLAGS -DMOL_PROMISE_DEBUG)
 
-	set(LIBS ${JSONCPP_LIBRARY} ${GTEST_LIBRARIES} ${OPENSSL_LIBRARIES} ${NG2HTTP_LIBRARY} ${CURL_LIBRARY} ${ZLIB_LIBRARIES} ${STDLIB} ${OSLIBS})
+	find_library(LIBEVENT_LIBRARY NAMES event)
+	find_library(CURL_LIBRARY NAMES libcurl)
+	find_library(NG2HTTP_LIBRARY NAMES nghttp2)
+	set(LIBS ${NG2HTTP_LIBRARY} ${CURL_LIBRARY}  ${GTEST_LIBRARIES} ${OPENSSL_LIBRARIES} ${STDLIB}  )
 
-	if( "${CMAKE_BUILD_TYPE}" STREQUAL "Release")
-		set(INSTALL_DEBUG "Off")
-		set(LIBS ${CMAKE_PROJECT_NAME} ${PRIOHTTP_LIBRARY} ${REPROCURL_LIBRARY} ${PRIOCPP_LIBRARY} ${CRYPTONEAT_LIBRARY} ${LIBS})
-		set(DEBUGFLAGS " ")
-	else()
-		set(INSTALL_RELEASE "Off")
-		set(LIBS ${CMAKE_PROJECT_NAME}d ${PRIOHTTPD_LIBRARY} ${REPROCURLD_LIBRARY} ${PRIOCPPD_LIBRARY} ${CRYPTONEATD_LIBRARY} ${LIBS})
-		set(DEBUGFLAGS "-DMOL_PROMISE_DEBUG ")
+	if(${CMAKE_BUILD_TYPE} MATCHES "Release")
+		find_library(PRIOCPP_LIBRARY NAMES priocpp)
+
+		find_library(PRIOCPP_LIBRARY NAMES priocpp)
+		find_library(PRIOHTTP_LIBRARY NAMES priohttp)
+		find_library(NG2HTTP_LIBRARY NAMES nghttp2)
+		find_library(LIBEVENT_LIBRARY NAMES event)
+		find_library(CRYPTONEAT_LIBRARY NAMES cryptoneat)
+		find_library(JSONCPP_LIBRARY NAMES jsoncpp)
+		find_library(CURL_LIBRARY NAMES libcurl)
+		find_library(REPROCURL_LIBRARY NAMES reprocurl)
+
+		set(LIBS ${LIBS} debug ${CMAKE_PROJECT_NAME} optimized ${CMAKE_PROJECT_NAME} 
+			${PRIOCPP_LIBRARY} 
+			${PRIOHTPP_LIBRARY} 
+			${CRYPTONEAT_LIBRARY} 
+			${NG2HTTP_LIBRARY} 
+			${JSONCPP_LIBRARY} 
+			${CURL_LIBRARY} 
+			${REPROCURL_LIBRARY} 
+		)
+    else()
+    	find_library(PRIOCPP_LIBRARY NAMES priocpp.lib)
+    	find_library(PRIOCPPD_LIBRARY NAMES priocppd.lib)
+
+		find_library(PRIOCPP_LIBRARY NAMES priocpp)
+		find_library(PRIOCPPD_LIBRARY NAMES priocppd)
+		find_library(PRIOHTTP_LIBRARY NAMES priohttp)
+		find_library(PRIOHTTPD_LIBRARY NAMES priohttpd)
+		find_library(NG2HTTP_LIBRARY NAMES nghttp2)
+		find_library(LIBEVENT_LIBRARY NAMES event)
+		find_library(CRYPTONEAT_LIBRARY NAMES cryptoneat)
+		find_library(CRYPTONEATD_LIBRARY NAMES cryptoneatd)
+		find_library(JSONCPP_LIBRARY NAMES jsoncpp)
+		find_library(CURL_LIBRARY NAMES libcurl)
+		find_library(REPROCURL_LIBRARY NAMES reprocurl)
+		find_library(REPROCURLD_LIBRARY NAMES reprocurld)
+
+
+		set(LIBS ${LIBS} debug ${CMAKE_PROJECT_NAME} optimized ${CMAKE_PROJECT_NAME} debug ${PRIOCPPD_LIBRARY} optimized  ${PRIOCPP_LIBRARY} 
+
+			debug ${PRIOCPPD_LIBRARY} optimized ${PRIOCPP_LIBRARY} 
+			debug ${PRIOHTPPD_LIBRARY} optimized ${PRIOHTPP_LIBRARY} 
+			debug ${CRYPTONEATD_LIBRARY} optimized ${CRYPTONEAT_LIBRARY} 
+			debug ${REPROCURLD_LIBRARY} optimized ${REPROCURL_LIBRARY}
+			${NG2HTTP_LIBRARY}
+			${JSONCPP_LIBRARY} 
+			${CURL_LIBRARY} 
+		)
 	endif()
 
+message("+++++++++++++++++")
+message("LIBS: ${LIBS}")
+message("+++++++++++++++++")
 
- ELSEIF(UNIX)
+ ELSEIF (UNIX)
 
     set(OSLIBS "pthread")
 
@@ -83,68 +135,68 @@ IF (WIN32)
     pkg_check_modules(CRYPTONEAT REQUIRED cryptoneat)
     pkg_check_modules(JSONCPP REQUIRED jsoncpp)
 
-	set(LIBEVENT_LIBRARY ${LIBEVENT_LIBRARIES})
+    set(LIBEVENT_LIBRARY ${LIBEVENT_LIBRARIES})
 
-    set(BUILDFLAGS " ${FLAGS} ${JSONCPP_CFLAGS} ${PRIOCPP_CFLAGS}")
-	set(DEBUGFLAGS "-g -DMOL_PROMISE_DEBUG")
+    set(BUILDFLAGS " ${FLAGS}")
 
-	set(LIBS ${CMAKE_PROJECT_NAME}d priohttpd reprocurld priocppd ${JSONCPP_LIBRARIES} ${GTEST_LIBRARIES} ${OPENSSL_LIBRARIES} ${NGHTTP2_LIBRARIES} ${CRYPTONEAT_LIBRARIES} ${CURL_LIBRARIES} ${ZLIB_LIBRARIES} ${STDLIB} )
+    set(LIBS 
+		debug priocppd optimized priocpp 
+		debug priohttpd optimized priohttp 
+		debug cryptoneatd optimized cryptoneat 
+		${GTEST_LIBRARIES} ${OPENSSL_LIBRARIES} ${NG2HTTP_LIBRARY} ${CURL_LIBRARIES} ${JSONCPP_LIBRARIES} ${STDLIB}  
+	)
+
+    set(LIBS debug ${CMAKE_PROJECT_NAME} optimized ${CMAKE_PROJECT_NAME} ${LIBS} )
+
 ENDIF ()
 
-############################################
-# macros
-############################################
 
-macro(AddCompilerFlags target flags)
-    get_target_property(CF ${target} COMPILE_FLAGS)
-    if(CF STREQUAL "CF-NOTFOUND")
-        SET(CF "") # set to empty string
-    else()
-        SET(CF "${CF} ") # a space to cleanly separate from existing content
-    endif()
-
-    SET(CF "${CF} ${flags}" )
-    set_target_properties(${target} PROPERTIES COMPILE_FLAGS ${CF} )
-endmacro()
 
 ############################################
-# defaults
+# set linker and compiler flags
 ############################################
 
-set(BACKEND ${LIBEVENT_LIBRARY})
+set(CMAKE_EXE_LINKER_FLAGS  "${CMAKE_EXE_LINKER_FLAGS} ${LINKERFLAGS}" )
+set(CMAKE_CXX_FLAGS_DEBUG  	"${CMAKE_CXX_FLAGS_DEBUG} -DMOL_PROMISE_DEBUG")
+set(CMAKE_CXX_FLAGS  		"${CMAKE_CXX_FLAGS} ${BUILDFLAGS}")
+
+
+############################################
+# backend: libevent or boost_asio
+############################################
+
 
 option(WITH_LIBEVENT "use libevent (default:on)" ON)
 if(WITH_LIBEVENT)
-    add_definitions(-DPROMISE_USE_LIBEVENT)
+    add_definitions(-DPROMISE_USE_LIBEVENT)    
+    set(BACKEND ${LIBEVENT_LIBRARY})
 else()
     add_definitions(-DPROMISE_USE_BOOST_ASIO)
     set(BACKEND "boost_system")
 endif()
+
+############################################
+# include directories
+############################################
+
+include_directories(include)
+include_directories(${OPENSSL_INCLUDE_DIR})
+include_directories(${PRIOCPP_INCLUDE_DIRS})
 
 
 ############################################
 # sources
 ############################################
 
-include_directories(include)
-include_directories(/usr/local/include)
-include_directories(${OPENSSL_INCLUDE_DIR})
-
 file(GLOB SOURCES "src/*.cpp")
-file(GLOB_RECURSE HEADERS "include/${CMAKE_PROJECT_NAME}/*.h")
+file(GLOB HEADERS "include/${CMAKE_PROJECT_NAME}/*.h")
 
 ############################################
-# library targets
+# lib target
 ############################################
 
 add_library(${CMAKE_PROJECT_NAME}  STATIC ${SOURCES})
-add_library(${CMAKE_PROJECT_NAME}d STATIC ${SOURCES})
 
-
-AddCompilerFlags(${CMAKE_PROJECT_NAME} ${BUILDFLAGS})
-
-AddCompilerFlags(${CMAKE_PROJECT_NAME}d ${BUILDFLAGS})
-AddCompilerFlags(${CMAKE_PROJECT_NAME}d ${DEBUGFLAGS})
 
 ############################################
 # tests
@@ -152,30 +204,30 @@ AddCompilerFlags(${CMAKE_PROJECT_NAME}d ${DEBUGFLAGS})
 
 add_executable(Tests t/test.cpp)
 
-AddCompilerFlags(Tests ${BUILDFLAGS})
-AddCompilerFlags(Tests ${DEBUGFLAGS})
+############################################
+# libs for tests
+############################################
 
-target_link_libraries(Tests ${LIBS} ${BACKEND} )
+target_link_libraries(Tests ${LIBS} ${BACKEND} ${OSLIBS} )
+
+############################################
+# run tests
+############################################
+
 
 add_test(NAME AllTests COMMAND Tests)
 
 file(COPY pem DESTINATION .)
-file(COPY config.json DESTINATION .)
  
 ############################################
 # install rules
 ############################################
- 
-if( "${INSTALL_RELEASE}" STREQUAL "On")
-	install(TARGETS ${CMAKE_PROJECT_NAME} DESTINATION lib)
-endif()
 
-if( "${INSTALL_DEBUG}" STREQUAL "On")
-	install(TARGETS ${CMAKE_PROJECT_NAME}d DESTINATION lib)
-endif()
+install(TARGETS ${CMAKE_PROJECT_NAME} DESTINATION lib)
 
-INSTALL( DIRECTORY include/${CMAKE_PROJECT_NAME} DESTINATION include )
-
+install(FILES ${HEADERS} DESTINATION include/${CMAKE_PROJECT_NAME})
 
 install(FILES ${CMAKE_PROJECT_NAME}.pc DESTINATION lib/pkgconfig)
+
+
 
