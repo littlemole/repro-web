@@ -128,6 +128,7 @@ message("+++++++++++++++++")
     pkg_check_modules(NGHTTP2 REQUIRED libnghttp2)
     pkg_check_modules(PRIOCPP REQUIRED priocpp)
     pkg_check_modules(PRIOHTTP REQUIRED priohttp)
+    pkg_check_modules(REPROCURL REQUIRED reprocurl)
     pkg_check_modules(LIBEVENT REQUIRED libevent_pthreads)
     pkg_check_modules(CRYPTONEAT REQUIRED cryptoneat)
     pkg_check_modules(JSONCPP REQUIRED jsoncpp)
@@ -137,8 +138,9 @@ message("+++++++++++++++++")
     set(BUILDFLAGS " ${FLAGS}")
 
     set(LIBS 
-		debug priocppd optimized priocpp 
+		debug reprocurld optimized reprocurl 
 		debug priohttpd optimized priohttp 
+		debug priocppd optimized priocpp 
 		debug cryptoneatd optimized cryptoneat 
 		${GTEST_LIBRARIES} ${OPENSSL_LIBRARIES} ${NGHTTP2_LIBRARIES} ${CURL_LIBRARIES} ${JSONCPP_LIBRARIES} ${STDLIB}  
 		z
