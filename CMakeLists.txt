@@ -199,7 +199,7 @@ include_directories(${PRIOCPP_INCLUDE_DIRS})
 ############################################
 
 file(GLOB SOURCES "src/*.cpp")
-file(GLOB HEADERS "include/${CMAKE_PROJECT_NAME}/*.h")
+file(GLOB_RECURSE HEADERS "include/${CMAKE_PROJECT_NAME}/*.h")
 
 ############################################
 # lib target
