@@ -71,10 +71,15 @@ message("+++++++++++++++++")
 		find_library(ZLIB_LIBRARY NAMES zlib.lib)
 		find_library(REPROCURL_LIBRARY NAMES reprocurl)
 		find_library(REPROWEB_LIBRARY NAMES reproweb)
+		find_library(REPROREDIS_LIBRARY NAMES reproredis)
+		find_library(REPROSQLITE_LIBRARY NAMES reprosqlite)
+		find_library(SQLITE_LIBRARY NAMES sqlite3)
 
 		set(LIBS 
 			${REPROWEB_LIBRARY} 
 			${PRIOCPP_LIBRARY} 
+			${REDROREDIS_LIBRARY}
+			${REDROSQLITE_LIBRARY}
 			${PRIOHTTP_LIBRARY} 
 			${REPROCURL_LIBRARY} 
 			${CRYPTONEAT_LIBRARY} 
@@ -82,6 +87,7 @@ message("+++++++++++++++++")
 			${JSONCPP_LIBRARY} 
 			${CURL_LIBRARY} 
 			${ZLIB_LIBRARY}
+			${SQLITE_LIBRARY}
 			${LIBS} 
 		)
     else()
@@ -104,10 +110,17 @@ message("+++++++++++++++++")
 		find_library(ZLIBD_LIBRARY NAMES zlibd.lib)
 		find_library(REPROWEB_LIBRARY NAMES reproweb)
 		find_library(REPROWEBD_LIBRARY NAMES reprowebd)
+		find_library(REPROREDIS_LIBRARY NAMES reproredis)
+		find_library(REPROREDISD_LIBRARY NAMES reproredisd)
+		find_library(REPROSQLITE_LIBRARY NAMES reprosqlite)
+		find_library(REPROSQLITED_LIBRARY NAMES reprosqlited)
+		find_library(SQLITE_LIBRARY NAMES sqlite3)
 
 
 		set(LIBS  
 			debug ${PRIOCPPD_LIBRARY} optimized  ${PRIOCPP_LIBRARY} 
+			debug ${REPROREDISD_LIBRARY} optimized  ${REPROREDIS_LIBRARY} 
+			debug ${REPROSQLITED_LIBRARY} optimized  ${REPROSQLITE_LIBRARY} 
 			debug ${REPROWEBD_LIBRARY} optimized ${REPROWEB_LIBRARY}  
 			debug ${PRIOCPPD_LIBRARY} optimized ${PRIOCPP_LIBRARY} 
 			debug ${PRIOHTTPD_LIBRARY} optimized ${PRIOHTTP_LIBRARY} 
@@ -116,6 +129,7 @@ message("+++++++++++++++++")
 			${NG2HTTP_LIBRARY}
 			${JSONCPP_LIBRARY} 
 			${CURL_LIBRARY} 
+			${SQLITE_LIBRARY}
 			debug ${ZLIBD_LIBRARY} optimized ${ZLIB_LIBRARY}
 			${LIBS}
 		)
@@ -133,9 +147,12 @@ message("+++++++++++++++++")
     pkg_check_modules(PRIOHTTP REQUIRED priohttp)
     pkg_check_modules(REPROWEB REQUIRED reproweb)
     pkg_check_modules(REPROCURL REQUIRED reprocurl)
+    pkg_check_modules(REPROREDIS REQUIRED reproredis)
+    pkg_check_modules(REPROSQLITE REQUIRED reprosqlite)
     pkg_check_modules(LIBEVENT REQUIRED libevent_pthreads)
     pkg_check_modules(CRYPTONEAT REQUIRED cryptoneat)
     pkg_check_modules(JSONCPP REQUIRED jsoncpp)
+    pkg_check_modules(SQLITE REQUIRED sqlite3)
 
     set(LIBEVENT_LIBRARY ${LIBEVENT_LIBRARIES})
 
@@ -145,9 +162,11 @@ message("+++++++++++++++++")
 		debug reprowebd optimized reproweb
 		debug reprocurld optimized reprocurl 
 		debug priohttpd optimized priohttp 
+		debug reproredisd optimized reproredis 
+		debug reprosqlited optimized reprosqlite 
 		debug priocppd optimized priocpp 
 		debug cryptoneatd optimized cryptoneat 
-		${GTEST_LIBRARIES} ${OPENSSL_LIBRARIES} ${NGHTTP2_LIBRARIES} ${CURL_LIBRARIES} ${JSONCPP_LIBRARIES} ${STDLIB} z
+		${GTEST_LIBRARIES} ${OPENSSL_LIBRARIES} ${NGHTTP2_LIBRARIES} ${CURL_LIBRARIES} ${JSONCPP_LIBRARIES} ${SQLITE_LIBRARIES} ${STDLIB} z
 		z
 	)
 
