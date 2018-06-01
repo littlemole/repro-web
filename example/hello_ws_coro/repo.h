@@ -31,7 +31,7 @@ public:
 			std::string payload = reply->str();
 			Json::Value json = reproweb::JSON::parse(payload);
 
-			(void) co_await redis->cmd("EXPIRE", sid, 180);
+			reproredis::RedisResult::Ptr reply2 = co_await redis->cmd("EXPIRE", sid, 180);
 
 			co_return Session(sid,json);
 		}
@@ -48,7 +48,7 @@ public:
 			Session session(user.toJson());
 
 			reproredis::RedisResult::Ptr reply = co_await redis->cmd("SET", session.sid(), session.profile());
-			(void) co_await redis->cmd("EXPIRE", session.sid(), 180);
+			reproredis::RedisResult::Ptr reply2 = co_await redis->cmd("EXPIRE", session.sid(), 180);
 
 			co_return session;
 		}

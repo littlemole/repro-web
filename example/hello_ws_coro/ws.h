@@ -55,7 +55,8 @@ public:
 			std::string msg  = json["msg"].asString();
 
 			// validate session
-			Session session = co_await session_->get_user_session(sid);
+			Session session;
+			session = co_await session_->get_user_session(sid);
 
 			// populate result
 			Json::Value profile = session.profile();

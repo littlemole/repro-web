@@ -71,7 +71,11 @@ int main(int argc, char **argv)
 
 		ws_controller<WebSocketController> ("/ws"),
 
+#ifndef _WIN32
 		static_content("/htdocs/","/etc/mime.types"),
+#else
+		static_content("/htdocs/","mime.types"),
+#endif
 
 		singleton<AppConfig(FrontController)>(),
 		singleton<SessionPool(AppConfig)>(),

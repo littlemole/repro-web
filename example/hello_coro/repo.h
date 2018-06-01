@@ -8,7 +8,7 @@
 
 using namespace prio;
  
-
+/*
 class SessionRepository
 {
 public:
@@ -80,7 +80,7 @@ private:
 };
 
 
-/*
+*/
 class SessionRepository
 {
 public:
@@ -158,7 +158,7 @@ private:
 
 	std::shared_ptr<reproredis::RedisPool> redis;
 };
-*/
+
 
 
 
