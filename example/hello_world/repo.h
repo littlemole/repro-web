@@ -147,7 +147,7 @@ public:
 		})
 		.otherwise( [p](const std::exception& ex)
 		{
-			p.reject(AuthEx("login is already taken"));
+			p.reject(AuthEx("invalid credentials specified. pls try again."));
 		});
 
 		return p.future();

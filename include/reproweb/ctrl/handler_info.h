@@ -87,49 +87,21 @@ public:
 	{
 		//std::cout << "ex handler match " << typeid(E).name() << " =?= " << typeid(ex).name() << std::endl;
 
-		if (repro::ex::isWrapped(ex))
-		{
-			const repro::WrappedEx* wrapped = dynamic_cast<const repro::WrappedEx*>(&ex);
-			return wrapped->type() == std::type_index(typeid(E));
-		}
-
 		return typeid(ex) == typeid(E);
 	}
 
 	virtual bool isa(const std::exception& ex)
 	{
-		//std::cout << "ex handler match " << typeid(E).name() << " =?= " << typeid(ex).name() << std::endl;
-		return repro::ex::isa<E>(ex);
+		//std::cout << "ex handler isa  " << typeid(E).name() << " =?= " << typeid(ex).name() << std::endl;
+		return dynamic_cast<const E*>(&ex) != nullptr;
 	}
 
 	virtual void invoke(const std::exception& ex, prio::Request& req, prio::Response& res)
 	{
-		if (repro::ex::isWrapped(ex))
-		{
-			handler_( unwrap<E>(ex), req, res);
-		}
-		else
-		{ 
-			handler_(dynamic_cast<const E&>(ex), req, res);
-		}
+		handler_(dynamic_cast<const E&>(ex), req, res);
 	}
 
 private:
-
-	template<class T>
-	T unwrap(const std::exception& ex, typename std::enable_if< std::is_constructible<T,const::std::string&>::value>::type* = 0)
-	{
-		const repro::WrappedEx* wrapped = dynamic_cast<const repro::WrappedEx*>(&ex);
-		T t(wrapped->what());
-		return t;
-	}
-
-	template<class T>
-	T unwrap(const std::exception& ex, typename std::enable_if< !std::is_constructible<T,const::std::string&>::value>::type* = 0)
-	{
-		T t;
-		return t;
-	}
 
 	ex_handler_t handler_;
 };
