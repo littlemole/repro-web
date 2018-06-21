@@ -149,11 +149,12 @@ public:
 		std::string pwd        = qp.get("pwd");
 		std::string avatar_url = qp.get("avatar_url");
 
-		User user = co_await userRepository->register_user(username,login,pwd,avatar_url);
+		User user;
+		user = co_await userRepository->register_user(username, login, pwd, avatar_url);
 
 		std::cout << "NEW USER SUCESS: " << user.username() << std::endl;
 		
-		Session session = co_await sessionRepository->write_user_session(user);
+		Session session= co_await sessionRepository->write_user_session(user);
 
 		view_->redirect_to_index(res,session.sid());
 	}

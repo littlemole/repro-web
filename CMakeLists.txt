@@ -65,7 +65,7 @@ message("+++++++++++++++++")
 	find_library(LIBEVENT_LIBRARY NAMES event)
 	find_library(CURL_LIBRARY NAMES libcurl)
 	find_library(NG2HTTP_LIBRARY NAMES nghttp2)
-	set(LIBS ${NG2HTTP_LIBRARY} ${CURL_LIBRARY}  ${GTEST_LIBRARIES} ${OPENSSL_LIBRARIES} ${STDLIB}  )
+	set(LIBS ${GTEST_LIBRARIES} ${OPENSSL_LIBRARIES} ${STDLIB}  )
 
 	if(${CMAKE_BUILD_TYPE} MATCHES "Release")
 		find_library(PRIOCPP_LIBRARY NAMES priocpp)
@@ -77,16 +77,19 @@ message("+++++++++++++++++")
 		find_library(CRYPTONEAT_LIBRARY NAMES cryptoneat)
 		find_library(JSONCPP_LIBRARY NAMES jsoncpp)
 		find_library(CURL_LIBRARY NAMES libcurl)
+		find_library(ZLIB_LIBRARY NAMES zlib.lib)
 		find_library(REPROCURL_LIBRARY NAMES reprocurl)
 
-		set(LIBS ${LIBS} debug ${CMAKE_PROJECT_NAME} optimized ${CMAKE_PROJECT_NAME} 
+		set(LIBS debug ${CMAKE_PROJECT_NAME} optimized ${CMAKE_PROJECT_NAME} 
 			${PRIOCPP_LIBRARY} 
-			${PRIOHTPP_LIBRARY} 
+			${PRIOHTTP_LIBRARY} 
+			${REPROCURL_LIBRARY} 
 			${CRYPTONEAT_LIBRARY} 
 			${NG2HTTP_LIBRARY} 
 			${JSONCPP_LIBRARY} 
 			${CURL_LIBRARY} 
-			${REPROCURL_LIBRARY} 
+			${ZLIB_LIBRARY}
+			${LIBS} 
 		)
     else()
     	find_library(PRIOCPP_LIBRARY NAMES priocpp.lib)
@@ -96,7 +99,7 @@ message("+++++++++++++++++")
 		find_library(PRIOCPPD_LIBRARY NAMES priocppd)
 		find_library(PRIOHTTP_LIBRARY NAMES priohttp)
 		find_library(PRIOHTTPD_LIBRARY NAMES priohttpd)
-		find_library(NG2HTTP_LIBRARY NAMES libnghttp2)
+		find_library(NG2HTTP_LIBRARY NAMES nghttp2)
 		find_library(LIBEVENT_LIBRARY NAMES event)
 		find_library(CRYPTONEAT_LIBRARY NAMES cryptoneat)
 		find_library(CRYPTONEATD_LIBRARY NAMES cryptoneatd)
@@ -104,17 +107,21 @@ message("+++++++++++++++++")
 		find_library(CURL_LIBRARY NAMES libcurl)
 		find_library(REPROCURL_LIBRARY NAMES reprocurl)
 		find_library(REPROCURLD_LIBRARY NAMES reprocurld)
+		find_library(ZLIB_LIBRARY NAMES zlib.lib)
+		find_library(ZLIBD_LIBRARY NAMES zlibd.lib)
 
 
-		set(LIBS ${LIBS} debug ${CMAKE_PROJECT_NAME} optimized ${CMAKE_PROJECT_NAME} debug ${PRIOCPPD_LIBRARY} optimized  ${PRIOCPP_LIBRARY} 
+		set(LIBS debug ${CMAKE_PROJECT_NAME} optimized ${CMAKE_PROJECT_NAME} debug ${PRIOCPPD_LIBRARY} optimized  ${PRIOCPP_LIBRARY} 
 
 			debug ${PRIOCPPD_LIBRARY} optimized ${PRIOCPP_LIBRARY} 
-			debug ${PRIOHTPPD_LIBRARY} optimized ${PRIOHTPP_LIBRARY} 
+			debug ${PRIOHTTPD_LIBRARY} optimized ${PRIOHTTP_LIBRARY} 
 			debug ${CRYPTONEATD_LIBRARY} optimized ${CRYPTONEAT_LIBRARY} 
 			debug ${REPROCURLD_LIBRARY} optimized ${REPROCURL_LIBRARY}
 			${NG2HTTP_LIBRARY}
 			${JSONCPP_LIBRARY} 
 			${CURL_LIBRARY} 
+			debug ${ZLIBD_LIBRARY} optimized ${ZLIB_LIBRARY}
+			${LIBS}
 		)
 	endif()
 
@@ -142,7 +149,7 @@ message("+++++++++++++++++")
 		debug priohttpd optimized priohttp 
 		debug priocppd optimized priocpp 
 		debug cryptoneatd optimized cryptoneat 
-		${GTEST_LIBRARIES} ${OPENSSL_LIBRARIES} ${NGHTTP2_LIBRARIES} ${CURL_LIBRARIES} ${JSONCPP_LIBRARIES} ${STDLIB}  
+		${GTEST_LIBRARIES} ${OPENSSL_LIBRARIES} ${NGHTTP2_LIBRARIES} ${CURL_LIBRARIES} ${JSONCPP_LIBRARIES} ${STDLIB} z
 		z
 	)
 
@@ -192,7 +199,7 @@ include_directories(${PRIOCPP_INCLUDE_DIRS})
 ############################################
 
 file(GLOB SOURCES "src/*.cpp")
-file(GLOB HEADERS "include/${CMAKE_PROJECT_NAME}/*.h")
+file(GLOB_RECURSE HEADERS "include/${CMAKE_PROJECT_NAME}/*.h")
 
 ############################################
 # lib target
@@ -229,7 +236,7 @@ file(COPY config.json DESTINATION .)
 
 install(TARGETS ${CMAKE_PROJECT_NAME} DESTINATION lib)
 
-install(FILES ${HEADERS} DESTINATION include/${CMAKE_PROJECT_NAME})
+INSTALL( DIRECTORY "include/${CMAKE_PROJECT_NAME}/" DESTINATION "include/${CMAKE_PROJECT_NAME}/" )
 
 install(FILES ${CMAKE_PROJECT_NAME}.pc DESTINATION lib/pkgconfig)
 

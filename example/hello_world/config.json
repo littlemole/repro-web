@@ -1,5 +1,5 @@
 {
     "redis"  : "redis://localhost:6379/",
-    "sqlite" : "./user.db",
+    "sqlite" : "user.db",
     "cert"   : "./pem/server.pem"
 }

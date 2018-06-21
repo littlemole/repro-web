@@ -36,6 +36,8 @@ class User
 {
 public:
 
+	User() {}
+
 	User( 
 		const std::string& name,
 		const std::string& login,
@@ -74,6 +76,9 @@ private:
 class Session
 {
 public:
+	Session()
+	{}
+
 	Session(Json::Value profile) 
 		:sid_(make_session_id()), profile_(profile)
 	{}

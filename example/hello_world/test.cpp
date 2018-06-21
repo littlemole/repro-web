@@ -68,8 +68,11 @@ int main(int argc, char **argv)
 		POST ( "/login",		&ExampleController::login),
 		POST ( "/register",		&ExampleController::register_user),
 
+#ifndef _WIN32
 		static_content("/htdocs/","/etc/mime.types"),
-
+#else
+		static_content("/htdocs/","mime.types"),
+#endif
 		singleton<AppConfig(FrontController)>(),
 		singleton<SessionPool(AppConfig)>(),
 		singleton<UserPool(AppConfig)>(),
