@@ -15,24 +15,29 @@ study to explore modern c++' fitness for modern, server side web development.
 - support for templating
 - Dependency Injection
 
-dependencies
+# dependencies
 - repro exposes the fundamental Promise abstraction to wrap async io
 - prio gives basic asio primitives using promises, backed by either libevent or boost-asio
 - priohttp adds support for HTTP, HTTPS, HTTP2, further backed by zlib and libnghttp2
 - cryptoneat adds support for basic crypto backed by OpenSSL
 - diy dependency injection for c++
 
-middleware
+# middleware
 - repro-curl for making HTTP client calls serverside
 - repro-redis access to Redis key-value store
 - repro-mysql access MySQL databases 
 - repro-sqlite access SQlite databases (mainly intended for dev and prototyping)
 
-hello world
+# hello world
 
+main.cpp
 ```c++
 #include "reproweb/ctrl/controller.h"
 #include "reproweb/web_webserver.h"
+#include "reproweb/view/tpl.h"
+
+using namespace prio;
+using namespace reproweb;
 
 class Controller
 {
@@ -60,7 +65,7 @@ private:
 
 int main(int argc, char** argv)
 {
-    prio::init();
+    init();
 
     WebApplicationContext ctx 
     {
@@ -77,7 +82,8 @@ int main(int argc, char** argv)
     return 0;
 }
 ``` 
-with this template index.tpl:
+
+index.tpl:
 ```html
 <body>
 <head></head>
@@ -86,5 +92,9 @@ with this template index.tpl:
 </body>
 </html>
 ```
+compile with
+```bash
+g++ main.cpp -std=c++14 $(pkg-config --libs --cflags reproweb jsoncpp libnghttp2  openssl zlib libevent_pthreads)
+``` 
 
 [TBD]
