@@ -1,8 +1,11 @@
-# repro-web
-reactive non blocling c++ web development with promises. coroutines optional.
+# Modern C++ for web development. With Promises. And Coroutines.
+reactive non-blocking c++ web development with promises. coroutines optional.
 
 # motivation
 study to explore modern c++' fitness for modern, server side web development.
+
+# target
+from a developer perspective, allow for server side web development at a level of convenience par to Node.js or Java Servlets.
 
 # requirements
 - nonblocking io
@@ -247,4 +250,76 @@ private:
 
 ``` 
 
-[TBD]
+# installation
+
+## docker
+
+assuming a recent installation of docker and docker-compose:
+
+```bash
+git clone https://github.com/littlemole/devenv
+cd devenv
+make image CXX=g++
+make image CXX=clang++
+cd ..
+git clone https://github.com/littlemole/repro-web
+cd repro-web
+make image CXX=g++
+make image CXX=clang++
+``` 
+at this point do *make run* to start the image with a bash shell and tinker around.
+
+or look at the examples
+
+```bash
+cd examples/hello_world
+make up
+``` 
+point your browser to https://localhost:9876/ once the container is running.
+
+## linux 
+
+reproduce steps as in [devenv](https://github.com/littlemole/devenv/blob/master/Dockerfile) Dockerfile 
+
+this roughly boils down to
+- install std c++ dev packages
+- install 3dparty C linraries
+- install 3dparty C++ libraries (gtest and jsoncpp) and compile with g++ or clang++ respectively
+- fetch and install these static libs from [github.com/littlemole](https://github.com/littlemole)
+    - cryptoneat
+    - diy
+    - repro
+    - prio
+    - prio-http
+    - repro-web
+- optional middleware:
+    - repro-curl
+    - repro-mysql
+    - repro-sqlite
+    - repro-redis
+
+use classic *make && make test && sudo make install* to provision the static libs.
+
+## windows
+
+windows installation via private clone of vcpkg:
+
+```bash
+git clone https://github.com/littlemole/vcpkg
+cd vcpkg
+git checkout promise
+bootstrap-vcpkg.bat
+.\vcpkg install reproweb
+cd ..
+```
+
+to play with examples, use CMAKE to generate vcproject files, ie:
+
+```bash
+git clone https://github.com/littlemole/repro-web
+cd repro-web\examples\hello_world
+mkdir debug
+cd debug
+cmake .. -DCMAKE_BUILD_TYPE=debug -DCMAKE_TOOLCHAIN_FILE=..\..\..\vcpkg\scripts\buildsystems\vcpkg.cmake
+
+``` 
