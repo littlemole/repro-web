@@ -24,12 +24,17 @@ from a developer perspective, allow for server side web development at a level o
 - [priohttp](http://github.com/littlemole/priohttp) adds support for HTTP, HTTPS, HTTP2, further backed by [zlib](https://zlib.net/) and [libnghttp2](https://nghttp2.org/)
 - [cryptoneat](http://github.com/littlemole/cryptoneat) adds support for basic crypto backed by [OpenSSL](https://www.openssl.org/)
 - [diy](http://github.com/littlemole/diy) dependency injection for c++
+- [jsoncpp](https://github.com/open-source-parsers/jsoncpp) for JSON support
+- [mustache](https://github.com/kainjow/Mustache) for templating
 
 # middleware
 - [repro-curl](http://github.com/littlemole/repro-curl) for making HTTP client calls serverside
 - [repro-redis](http://github.com/littlemole/repro-redis) access to Redis key-value store
 - [repro-mysql](http://github.com/littlemole/repro-mysql) access MySQL databases 
 - [repro-sqlite](http://github.com/littlemole/repro-sqlite) access SQlite databases (mainly intended for dev and prototyping)
+
+# unit and integration testing
+using [gtest](https://github.com/google/googletest)
 
 # hello world
 
