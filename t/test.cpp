@@ -719,8 +719,37 @@ TEST_F(BasicTest, SimpleHttps) {
 	MOL_TEST_ASSERT_CNTS(0,0);
 }
 
+/*
+TEST_F(BasicTest, SplitSSI) 
+{
+	std::string ssisrc = 
+	"<html><head></head><body>"
+	"<table><tr><td>"
+	"<!--#include virtual='/inc/header.html' -->"
+	"</td></tr><tr><td>"
+	"<!--#include virtual='/inc/main.html' -->"
+	"</td></tr><tr><td>"
+	"<!--#include virtual='/inc/footer.html' -->"
+	"</td></tr><tr><td>"
+	"</td></tr></table>"
+	"</body></html>";
 
+	std::regex r("<!--#include +virtual=");
+	std::smatch match;
 
+	std::string::const_iterator start = ssisrc.begin();
+    std::string::const_iterator end   = ssisrc.end();    
+    
+    while (std::regex_search (start,end,match,r)) 
+    {
+        if ( match.size() > 1 )
+        {
+            args_.push_back(match[1]);
+        }
+        start = match[0].second;
+    }
+}
+*/
 
 int main(int argc, char **argv)
 {

@@ -229,13 +229,6 @@ void FrontController::request_handler( prio::Request& req, prio::Response& res )
 	handle_request(handler, req, res, method, path);
 }
 
-/*
-FrontController& frontController()
-{
-    static FrontController frontController;
-    return frontController;
-}
-*/
 
 ////////////////////////////////////////////////////////////////////////////
 

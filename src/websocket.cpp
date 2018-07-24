@@ -15,6 +15,7 @@
 #endif
 
 using namespace prio;
+using namespace repro;
 using namespace cryptoneat;
 
 namespace prio {
