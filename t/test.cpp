@@ -19,6 +19,7 @@
 #include <reproweb/ctrl/controller.h>
 #include <reproweb/tools/config.h>
 #include <reproweb/json/jwt.h>
+#include <reproweb/ctrl/ssi.h>
 #include <reprocurl/asyncCurl.h>
 #include <reproweb/ctrl/front_controller.h>
 #include <reproweb/web_webserver.h>
@@ -56,7 +57,6 @@ class BasicTest : public ::testing::Test {
 	 // MOL_TEST_PRINT_CNTS();
   }
 }; // end test setup
-
 
 
 
@@ -136,25 +136,43 @@ public:
 			theLoop().exit();
 		};
 	}
-
 #endif
+
+	void handlerSSI( prio::Request& req, prio::Response& res)
+	{
+		res.contentType("text/html");
+
+		logger_->log(req.path.path());
+
+		char* cwd = getcwd(0,0);
+    	std::string path_ = cwd;
+    	path_ += "/htdocs";
+    	free(cwd); 
+
+        std::regex e ("\\.\\.");
+        std::string path = std::regex_replace(req.path.path(),e,"");
+        std::string fp = path_ +  path;		
+
+		std::string tmpl = prio::slurp(fp);
+
+		reproweb::SSIResolver::resolve(req,tmpl)
+		.then( [&res](std::string s)
+		{
+			res.body(s);
+			res.ok().flush();
+		})
+		.otherwise([&res](const std::exception& ex)
+		{
+			res.error().flush();
+		});
+	}	
+
 
 private:
 
 	std::shared_ptr<Logger> logger_;
 };
 
-/*
-http_controller routes(
-
-	GET ("/path/a",&TestController::handlerA)
-
-#ifdef _RESUMABLE_FUNCTIONS_SUPPORTED
-	,
-	POST("/path/b",&TestController::handlerB)
-#endif
-);
-*/
 singleton<TestController(Logger)> TestControllerComponent;
 
 
@@ -719,7 +737,7 @@ TEST_F(BasicTest, SimpleHttps) {
 	MOL_TEST_ASSERT_CNTS(0,0);
 }
 
-/*
+
 TEST_F(BasicTest, SplitSSI) 
 {
 	std::string ssisrc = 
@@ -734,22 +752,218 @@ TEST_F(BasicTest, SplitSSI)
 	"</td></tr></table>"
 	"</body></html>";
 
-	std::regex r("<!--#include +virtual=");
+	std::regex r("<!--#include +virtual=(?:[\"'])([^\"']+)(?:[\"']) *-->");
 	std::smatch match;
 
 	std::string::const_iterator start = ssisrc.begin();
     std::string::const_iterator end   = ssisrc.end();    
+
+	std::vector<std::string> result;
     
     while (std::regex_search (start,end,match,r)) 
     {
         if ( match.size() > 1 )
         {
-            args_.push_back(match[1]);
+			std::cout << std::string(start,match[0].first) << std::endl;
+			std::cout << "inc: " << match[1] << std::endl;
+            result.push_back(match[1]);
         }
         start = match[0].second;
     }
+	std::cout << std::string(start,end) << std::endl;
+	EXPECT_EQ(3,result.size());
 }
-*/
+
+TEST_F(BasicTest, ResolveSSI) 
+{
+	std::string ssisrc = 
+	"<html><head></head><body>"
+	"<table><tr><td>"
+	"<!--#include virtual='/path/a' -->"
+	"</td></tr><tr><td>"
+	"<!--#include virtual='/path/a' -->"
+	"</td></tr><tr><td>"
+	"<!--#include virtual='/path/a' -->"
+	"</td></tr><tr><td>"
+	"</td></tr></table>"
+	"</body></html>";
+
+	std::string result;
+
+	WebApplicationContext ctx {
+
+		LoggerComponent,
+		TestControllerComponent,
+
+		GET ("/path/a",&TestController::handlerA)
+	};
+
+	{
+		reproweb::WebServer server(ctx);
+
+		nextTick()
+		.then( [&result,&server,&ctx,ssisrc]()
+		{
+
+			auto fc = inject<FrontController>(ctx);
+
+			Request req;
+			req.attributes.set<std::shared_ptr<diy::Context>>("ctx",std::make_shared<Context>(&ctx));
+			req.path.method("GET");
+
+			return reproweb::SSIResolver::resolve(req,ssisrc);
+		})
+		.then( [&result,&server](std::string s)
+		{
+				result = s;
+				server.shutdown();
+				theLoop().exit();
+		})
+		.otherwise([&server](const std::exception& ex)
+		{
+			std::cout << ex.what() << std::endl;
+			server.shutdown();
+			theLoop().exit();
+		});
+
+		server.listen(8765);
+		theLoop().run();
+	}
+    EXPECT_EQ("<html><head></head><body><table><tr><td>HELO WORL</td></tr><tr><td>HELO WORL</td></tr><tr><td>HELO WORL</td></tr><tr><td></td></tr></table></body></html>",result);
+    MOL_TEST_ASSERT_CNTS(0,0);
+}
+
+TEST_F(BasicTest, handleSSI) 
+{
+	std::string result;
+
+	WebApplicationContext ctx {
+
+		LoggerComponent,
+		TestControllerComponent,
+
+		GET ("/path/a",&TestController::handlerA),
+		GET ("/index.shtml",&TestController::handlerSSI)
+	};
+
+	{
+		reproweb::WebServer server(ctx);
+
+		nextTick()
+		.then( [&result,&server]()
+		{
+			HttpClient::url("http://localhost:8765/index.shtml")
+			->fetch()
+			.then([&result,&server](prio::Response& res)
+			{
+				result = res.body();
+				server.shutdown();
+				theLoop().exit();
+			})
+			.otherwise([&server](const std::exception& ex)
+			{
+				std::cout << ex.what() << std::endl;
+				server.shutdown();
+				theLoop().exit();
+			});
+		});
+
+		server.listen(8765);
+		theLoop().run();
+	}
+    EXPECT_EQ("<html><head></head><body>\n<table><tr><td>\nHELO WORL\n</td></tr><tr><td>\nHELO WORL\n</td></tr><tr><td>\nHELO WORL\n</td></tr><tr><td>\n</td></tr></table>\n</body></html>\n",result);
+    MOL_TEST_ASSERT_CNTS(0,0);
+}
+
+TEST_F(BasicTest, autoHandleSSI) 
+{
+	std::string result;
+
+	WebApplicationContext ctx {
+
+		LoggerComponent,
+		TestControllerComponent,
+
+		GET ("/path/a",&TestController::handlerA),
+		ssi_content("/htdocs", "/.*\\.shtml")
+	};
+
+	{
+		reproweb::WebServer server(ctx);
+
+		nextTick()
+		.then( [&result,&server]()
+		{
+			HttpClient::url("http://localhost:8765/index.shtml")
+			->fetch()
+			.then([&result,&server](prio::Response& res)
+			{
+				result = res.body();
+				server.shutdown();
+				theLoop().exit();
+			})
+			.otherwise([&server](const std::exception& ex)
+			{
+				std::cout << ex.what() << std::endl;
+				server.shutdown();
+				theLoop().exit();
+			});
+		});
+
+		server.listen(8765);
+		theLoop().run();
+	}
+    EXPECT_EQ("<html><head></head><body>\n<table><tr><td>\nHELO WORL\n</td></tr><tr><td>\nHELO WORL\n</td></tr><tr><td>\nHELO WORL\n</td></tr><tr><td>\n</td></tr></table>\n</body></html>\n",result);
+    MOL_TEST_ASSERT_CNTS(0,0);
+}
+
+
+
+
+TEST_F(BasicTest, SimpleInclude) 
+{
+	std::string result;
+
+	WebApplicationContext ctx {
+
+		LoggerComponent,
+		TestControllerComponent,
+
+		GET ("/path/a",&TestController::handlerA)
+	};
+
+	{
+		reproweb::WebServer server(ctx);
+
+		nextTick()
+		.then( [&result,&server,&ctx]()
+		{
+			auto fc = inject<FrontController>(ctx);
+
+			Request req;
+			req.path.method("GET");
+
+			return fc->include(req,"/path/a");
+		})
+		.then( [&result,&server](std::string s)
+		{
+				result = s;
+				server.shutdown();
+				theLoop().exit();
+		})
+		.otherwise([&server](const std::exception& ex)
+		{
+			std::cout << ex.what() << std::endl;
+			server.shutdown();
+			theLoop().exit();
+		});
+
+		server.listen(8765);
+		theLoop().run();
+	}
+    EXPECT_EQ("HELO WORL",result);
+    MOL_TEST_ASSERT_CNTS(0,0);
+}
 
 int main(int argc, char **argv)
 {

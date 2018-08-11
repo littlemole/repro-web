@@ -43,7 +43,7 @@ bool HandlerInfo::match(const std::string& m, const std::string& p, prio::pathar
     {        
         return false;
     }
-    
+     
     std::smatch match;
     if ( !std::regex_match(p,match,path_regex_) )
     {

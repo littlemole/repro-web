@@ -7,6 +7,7 @@
 namespace reproweb  {
 
  
+ std::shared_ptr<diy::Context> ctx( prio::Request& req);
 
 class FrontController
 {
@@ -30,6 +31,7 @@ public:
 
     void request_handler( prio::Request& req, prio::Response& res );
 	void dispatch(const std::string& path,prio::Request& req, prio::Response& res);
+    repro::Future<std::string> include(const prio::Request& req, const std::string& path);
 
 
     FrontController(const FrontController& rhs) = delete;

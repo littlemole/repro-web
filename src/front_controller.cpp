@@ -4,6 +4,7 @@
 #include "priocpp/task.h"
 #include "priohttp/response.h"
 #include "priohttp/http_server.h"
+#include "priohttp/conversation.h"
 #include "reproweb/ctrl/handler_info.h"
 #include "diycpp/ctx.h"
 #include <fstream>
@@ -18,6 +19,10 @@
 
 namespace reproweb  {
 
+std::shared_ptr<diy::Context> ctx( prio::Request& req)
+ {
+     return req.attributes.attr<std::shared_ptr<diy::Context>>("ctx");
+ }
 
 
 ////////////////////////////////////////////////////////////////////////////
@@ -177,6 +182,26 @@ void FrontController::dispatch(const std::string& path, prio::Request& req, prio
 	{
 		handle_exception(ex, req, res);
 	}
+}
+
+repro::Future<std::string> FrontController::include(const prio::Request& req, const std::string& path)
+{
+	auto p = repro::promise<std::string>();
+
+	auto subreq = std::make_shared<prio::SubRequest>(); 
+	subreq->on(req,path)
+	.then( [p]( prio::Request& req, prio::Response& res)
+	{
+		p.resolve(res.body()); 
+	})
+	.otherwise(prio::reject(p));
+
+	prio::nextTick( [this,subreq]() 
+	{
+		request_handler(subreq->req,subreq->res);
+	});
+
+	return p.future();
 }
 
 HandlerInfo* FrontController::find_handler(
