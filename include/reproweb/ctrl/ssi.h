@@ -15,7 +15,7 @@ public:
 
 	static 	repro::Future<std::string> resolve( prio::Request& req, const std::string& tmpl);
 
-    static std::string tmpl(Request& req, const std::string& htdocs);
+    static std::string tmpl(prio::Request& req, const std::string& htdocs);
 
 private:
 

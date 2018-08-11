@@ -135,19 +135,6 @@ void ssi_content::register_static_handler(diy::Context* ctx)
     {
 		res.contentType("text/html");
 
-/*
-		char* cwd = getcwd(0,0);
-    	std::string path_ = cwd;
-    	path_ += htdocs;
-    	free(cwd); 
-
-        std::regex e ("\\.\\.");
-        std::string path = std::regex_replace(req.path.path(),e,"");
-        std::string fp = path_ +  path;		
-
-		std::string tmpl = prio::slurp(fp);
-*/
-
         std::string tmpl = SSIResolver::tmpl(req,htdocs);
 
 		reproweb::SSIResolver::resolve(req,tmpl)
