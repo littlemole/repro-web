@@ -228,6 +228,7 @@ target_link_libraries(Tests ${LIBS} ${BACKEND} ${OSLIBS} )
 add_test(NAME AllTests COMMAND Tests)
 
 file(COPY pem DESTINATION .)
+file(COPY htdocs DESTINATION .)
 file(COPY config.json DESTINATION .)
  
 ############################################

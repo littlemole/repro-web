@@ -6,11 +6,11 @@
 #include "repo.h"
 
 
-class ExampleController
+class Controller
 {
 public:
 
-	ExampleController( 
+	Controller( 
 		std::shared_ptr<View> view,
 		std::shared_ptr<SessionRepository> sessionRepo, 
 		std::shared_ptr<UserRepository> userRepo )

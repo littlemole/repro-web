@@ -7,6 +7,7 @@
 #include "model.h"
 
 using namespace prio;
+using namespace repro;
  
 
 class SessionRepository

@@ -44,15 +44,6 @@ struct UserPool : public reprosqlite::SqlitePool
 	{}
 };
 
-class ssl_ctx : public Http2SslCtx
-{
-public:
-	ssl_ctx(std::shared_ptr<Config> config)
-	{
-		load_cert_pem(config->getString("cert"));
-	}
-};
-
 
 int main(int argc, char **argv)
 {
@@ -61,12 +52,12 @@ int main(int argc, char **argv)
 
 	WebApplicationContext ctx {
 
-		GET  ( "/",				&ExampleController::index),
-		GET  ( "/logout",		&ExampleController::logout),
-		GET  ( "/login",		&ExampleController::show_login),
-		GET  ( "/register",		&ExampleController::show_registration),
-		POST ( "/login",		&ExampleController::login),
-		POST ( "/register",		&ExampleController::register_user),
+		GET  ( "/",				&Controller::index),
+		GET  ( "/logout",		&Controller::logout),
+		GET  ( "/login",		&Controller::show_login),
+		GET  ( "/register",		&Controller::show_registration),
+		POST ( "/login",		&Controller::login),
+		POST ( "/register",		&Controller::register_user),
 
 #ifndef _WIN32
 		static_content("/htdocs/","/etc/mime.types"),
@@ -81,9 +72,7 @@ int main(int argc, char **argv)
 		singleton<UserRepository(UserPool)>(),
 
 		singleton<View(AppConfig)>(),
-		singleton<ExampleController(View,SessionRepository,UserRepository)>(),
-
-		singleton<ssl_ctx(AppConfig)>()
+		singleton<Controller(View,SessionRepository,UserRepository)>(),
 	};	
 
 	Http2SslCtx sslCtx;

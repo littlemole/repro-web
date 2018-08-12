@@ -1,12 +1,8 @@
 #ifndef _DEF_GUARD_DEFINE_REPROWEB_HELLO_WORLD_MODEL_DEFINE_
 #define _DEF_GUARD_DEFINE_REPROWEB_HELLO_WORLD_MODEL_DEFINE_
 
-#include <string>
-#include <memory>
-
 #include "reproweb/tools/config.h"
 #include "cryptoneat/cryptoneat.h"
-
 
 
 class AuthEx : public repro::Ex 

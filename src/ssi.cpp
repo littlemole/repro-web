@@ -24,9 +24,10 @@ Future<std::string> SSIResolver::fetch( Request& req, const std::string& tmpl)
 
     if(!match(tmpl))
     {
-        nextTick([p]()
+        nextTick([this,p]()
         {
             p.reject(repro::Ex("SSI match failed"));
+            self_.reset();
         });
         return p.future();
     }
@@ -36,6 +37,7 @@ Future<std::string> SSIResolver::fetch( Request& req, const std::string& tmpl)
         nextTick([this,p]()
         {
             p.resolve(combine());
+            self_.reset();
         });
         return p.future();
     }
@@ -55,9 +57,14 @@ Future<std::string> SSIResolver::fetch( Request& req, const std::string& tmpl)
             if(cnt_ == 0)
             {
                 p.resolve(combine());
+                self_.reset();
             }
         })
-        .otherwise(reject(p));
+        .otherwise([this,p](const std::exception& ex)
+        {
+            p.reject(ex);
+            self_.reset();
+        });
 
         cnt_++;
     }

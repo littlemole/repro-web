@@ -1,19 +1,18 @@
 #ifndef _DEF_GUARD_DEFINE_REPROWEB_HELLO_WORLD_VIEW_DEFINE_
 #define _DEF_GUARD_DEFINE_REPROWEB_HELLO_WORLD_VIEW_DEFINE_
 
-#include <string>
-#include <memory>
-
 #include "reproweb/tools/config.h"
 #include "reproweb/view/tpl.h"
 
 using namespace prio;
+using namespace reproweb;
+
 
 class View
 {
 public:
 
-	View(std::shared_ptr<reproweb::Config> conf)
+	View(std::shared_ptr<Config> conf)
 		: config_(conf)
 	{
 		templates_.load("/view/");
@@ -75,8 +74,8 @@ public:
 	}	
 
 private:
-	reproweb::TplStore templates_;
-	std::shared_ptr<reproweb::Config> config_;
+	TplStore templates_;
+	std::shared_ptr<Config> config_;
 };
  
 #endif
