@@ -56,21 +56,35 @@ Future<std::string> SSIResolver::fetch( Request& req, const std::string& tmpl)
         prio::Request request = req;
         int n = cnt_;
 
+        auto rejected = std::make_shared<bool>(false);
+
         fc->include(request,url)
-        .then([this,p,n](std::string s)
+        .then([this,p,n,rejected](std::string s)
         {
             resolves_[n] = s;
             cnt_--;
             if(cnt_ == 0)
             {
-                p.resolve(combine());
+                if(!*rejected)
+                {
+                    p.resolve(combine());
+                }
                 self_.reset();
             }
         })
-        .otherwise([this,p](const std::exception& ex)
+        .otherwise([this,p,rejected](const std::exception& ex)
         {
-            p.reject(ex);
-            self_.reset();
+            if(!*rejected)
+            {
+                p.reject(ex);
+                *rejected = true;
+            }
+            
+            cnt_--;
+            if(cnt_ == 0)
+            {
+                self_.reset();
+            }
         });
 
         cnt_++;
