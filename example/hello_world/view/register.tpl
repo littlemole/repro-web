@@ -1,35 +1,65 @@
-<!DOCTYPE HTML>
-<!--
-	Overflow by HTML5 UP
-	html5up.net | @ajlkn
-	Free for personal and commercial use under the CCA 3.0 license (html5up.net/license)
--->
+<!DOCTYPE html>
 <html>
-	<head>
-		<title>register user</title>
-		<meta charset="utf-8" />
-		<meta name="viewport" content="width=device-width, initial-scale=1" />
-		<!--[if lte IE 8]><script src="assets/js/ie/html5shiv.js"></script><![endif]-->
-		<link rel="stylesheet" href="assets/css/main.css" />
-		<!--[if lte IE 8]><link rel="stylesheet" href="assets/css/ie8.css" /><![endif]-->
-	</head>
-	<body>
+<head>
+<title>Hello World Registration</title>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<link href="https://fonts.googleapis.com/css?family=Noto+Sans|Roboto+Mono|Titillium+Web" rel="stylesheet"> 
+<link rel="stylesheet" href="https://use.fontawesome.com/releases/v5.2.0/css/all.css" integrity="sha384-hWVjflwFxL6sNzntih27bfxkr27PmbbK/iSvJ+a4+0owXq79v+lsFkW54bOGbiDQ" crossorigin="anonymous">
+<link rel="stylesheet" href="css/style.css">
+<style>
+</style>
+</head>
+<body>
 
-		<!-- Header -->
-			<section id="header">
-				<header>
-					<h1>register a new user</h1>
-				</header>
-				<footer>
-					<a href="#banner" class="button style2 scrolly-middle">register here</a>
-				</footer>
-			</section>
+<!-- Header -->
+<div class="header">
+  <b>repro-web</b>
+  <span>modern reactive c++ for the web.</span>
+  <a href="https://github.com/littlemole/repro-web">repro-web home</a>
+  <a href="https://github.com/littlemole/repro-web/tree/master/example">examples</a>
+  <a href="https://github.com/littlemole/repro-web/tree/master/example/hello_world">this example</a>
+</div>
 
-		<!-- Banner -->
-			<section id="banner">
-				<header>
-					<h2>new user registration</h2>
-				</header>
+<div class="frame">
+<div class="title">
+    <h1>hello world registration</h1>
+    <p>hello world registration example for modern reactive c++ for the web.</p>
+</div>
+</div>
+
+
+
+<!-- The flexible grid (content) -->
+<div class="row">
+  <div class="side">
+      <h2>Hello World Menu</h2>
+  
+<!-- Navigation Bar -->
+     <div class="navbar">
+
+      <ul class="nav">
+       <li>
+            <a href="/">home</a>
+       </li>
+       <li>
+            <a href="/login">login</a>
+       </li>
+       <li>
+            <a href="/register">register</a>
+        </li>
+        <li>
+                <a href="/logout">logout</a>
+            </li>
+        </ul>
+    
+    </div>      
+  </div>
+  <div id="sitedivider"></div>
+
+  <div class="main">
+      <h2>Hello World Example Registration</h2>
+
 				<p>please fill out all fields</p>
 				<p><b style="color:red">{{errorMsg}}</b></p>
 				<form action="/register" method="POST">
@@ -55,32 +85,32 @@
 						</tr>
 					</table>
 				</form>
-		</section>
 
-		<section id="footer">
-			<ul class="icons">
-				<li><a href="#" class="icon fa-twitter"><span class="label">Twitter</span></a></li>
-				<li><a href="#" class="icon fa-facebook"><span class="label">Facebook</span></a></li>
-				<li><a href="#" class="icon fa-google-plus"><span class="label">Google+</span></a></li>
-				<li><a href="#" class="icon fa-pinterest"><span class="label">Pinterest</span></a></li>
-				<li><a href="#" class="icon fa-dribbble"><span class="label">Dribbble</span></a></li>
-				<li><a href="#" class="icon fa-linkedin"><span class="label">LinkedIn</span></a></li>
+  </div>
+</div>
+
+<!-- Footer -->
+<div class="footer">
+<!--
+        <ul class="icons">
+				<li><a href="#" class="icon fab fa-twitter"><span class="label">Twitter</span></a></li>
+				<li><a href="#" class="icon fab fa-facebook"><span class="label">Facebook</span></a></li>
+				<li><a href="#" class="icon fab fa-google-plus"><span class="label">Google+</span></a></li>
+				<li><a href="#" class="icon fab fa-pinterest"><span class="label">Pinterest</span></a></li>
+				<li><a href="#" class="icon fab fa-dribbble"><span class="label">Dribbble</span></a></li>
+				<li><a href="#" class="icon fab fa-linkedin"><span class="label">LinkedIn</span></a></li>
 			</ul>
+-->			
 			<div class="copyright">
 				<ul class="menu">
-					<li>&copy; Untitled. All rights reserved.</li><li>Design: <a href="http://html5up.net">HTML5 UP</a></li>
+					<li>&copy; littlemole. All rights reserved.</li></li>
 				</ul>
 			</div>
-		</section>
+</div>
 
-		<!-- Scripts -->
-			<script src="assets/js/jquery.min.js"></script>
-			<script src="assets/js/jquery.scrolly.min.js"></script>
-			<script src="assets/js/jquery.poptrox.min.js"></script>
-			<script src="assets/js/skel.min.js"></script>
-			<script src="assets/js/util.js"></script>
-			<!--[if lte IE 8]><script src="assets/js/ie/respond.min.js"></script><![endif]-->
-			<script src="assets/js/main.js"></script>
-
-	</body>
+</body>
 </html>
+
+
+
+
