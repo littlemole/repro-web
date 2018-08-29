@@ -21,7 +21,7 @@ from a developer perspective, allow for server side web development at a level o
 # dependencies
 - [repro](http://github.com/littlemole/repro) exposes the fundamental Promise abstraction to wrap async io
 - [prio](http://github.com/littlemole/prio) gives basic asio primitives using promises, backed by either [libevent](http://libevent.org/) or [boost-asio](https://www.boost.org/doc/libs/1_66_0/doc/html/boost_asio.html)
-- [priohttp](http://github.com/littlemole/priohttp) adds support for HTTP, HTTPS, HTTP2, further backed by [zlib](https://zlib.net/) and [libnghttp2](https://nghttp2.org/)
+- [prio-http](http://github.com/littlemole/prio-http) adds support for HTTP, HTTPS, HTTP2, further backed by [zlib](https://zlib.net/) and [libnghttp2](https://nghttp2.org/)
 - [cryptoneat](http://github.com/littlemole/cryptoneat) adds support for basic crypto backed by [OpenSSL](https://www.openssl.org/)
 - [diy](http://github.com/littlemole/diy) dependency injection for c++
 - [jsoncpp](https://github.com/open-source-parsers/jsoncpp) for JSON support
