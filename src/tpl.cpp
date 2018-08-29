@@ -17,13 +17,29 @@ mustache::mustache( const std::string& tpl)
 
 std::string mustache::render(Json::Value data)
 {
+	return render(template_,data);
+}
+
+
+std::string mustache::render(Data& data)
+{
+	return render(template_,data);
+}
+
+std::string mustache::render(const std::string& tpl, Json::Value data)
+{
+	Data d(fromJson(data));
+	return render(tpl,d);
+}
+
+
+std::string mustache::render(const std::string& tpl, Data& data)
+{
 	std::ostringstream oss;
 
-	Mustache tmpl{template_};
+	Mustache tmpl{tpl};
 
-	Data d(fromJson(data));
-
-	tmpl.render(d, oss);
+	tmpl.render(data, oss);
 
 	return oss.str();
 }

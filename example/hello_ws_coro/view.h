@@ -6,6 +6,8 @@
 
 #include "reproweb/tools/config.h"
 #include "reproweb/view/tpl.h"
+#include "reproweb/view/i18n.h"
+#include "reproweb/ctrl/ssi.h"
 
 using namespace prio;
 
@@ -19,37 +21,25 @@ public:
 		templates_.load("/view/");
 	}
 
-	void render_index(Response& res, const Json::Value& profile)
+	void render_index(Request& req, Response& res, Json::Value profile)
 	{
-		res
-		.body(templates_.render("index", profile ))
-		.contentType("text/html")
-		.ok()
-		.flush();
+		render(req,res,"index",profile);
 	}
 
-	void render_login(Response& res, const std::string& msg )
+	void render_login(Request& req, Response& res, const std::string& msg )
 	{
 		Json::Value errorMsg(Json::objectValue);
 		errorMsg["errorMsg"] = msg;
 
-		res
-		.body(templates_.render("login", errorMsg ))
-		.contentType("text/html")
-		.ok()
-		.flush();
+		render(req,res,"login",errorMsg);
 	}
 
-	void render_registration(Response& res, const std::string& msg )
+	void render_registration(Request& req, Response& res, const std::string& msg )
 	{
 		Json::Value errorMsg(Json::objectValue);
 		errorMsg["errorMsg"] = msg;
 
-		res
-		.body(templates_.render("register", errorMsg ))
-		.contentType("text/html")
-		.ok()
-		.flush();
+		render(req,res,"register",errorMsg);
 	}	
 
 	void redirect_to_index(Response& res, const std::string& sid)
@@ -77,6 +67,39 @@ public:
 private:
 	reproweb::TplStore templates_;
 	std::shared_ptr<reproweb::Config> config_;
+
+	void render(Request& req, Response& res, const std::string& page, Json::Value value)
+	{
+		std::string view = templates_.get(page);
+
+		reproweb::SSIResolver::resolve(req,view)
+		.then( [&req,&res,value](std::string txt)
+		{
+			auto h = req.headers.values("Accept-Language");
+		    auto value = h.value().main();
+
+			std::regex e ("-");   	
+
+		    std::string locale = std::regex_replace (value,e,"_");
+
+			I18N i18n("/locales/properties", {"de","en"} );
+			std::string tmpl = i18n.render(locale,txt);
+
+			std::string content = mustache::render(tmpl,value);
+
+			res
+			.body(content)
+			.contentType("text/html")
+			.ok()
+			.flush();
+		})
+		.otherwise([&res](const std::exception& ex)
+		{
+			std::cout << ex.what() << std::endl;
+			res.error().flush();
+		});
+	}
+
 };
  
 #endif

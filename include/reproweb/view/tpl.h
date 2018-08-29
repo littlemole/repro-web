@@ -14,8 +14,12 @@ public:
 
 	mustache( const std::string& tpl);
 
+	std::string render(Data& data);
 	std::string render(Json::Value data);
-	Data fromJson(Json::Value& data);
+
+	static std::string render(const std::string& tpl,Data& data);
+	static std::string render(const std::string& tpl,Json::Value data);
+	static Data fromJson(Json::Value& data);
 
 private:
 	std::string template_;

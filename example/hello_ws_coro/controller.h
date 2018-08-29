@@ -5,82 +5,79 @@
 #include "view.h"
 #include "repo.h"
 #include <regex>
+#include "reproweb/tools/validation.h"
 
-class ValidationEx : public repro::Ex 
+std::string xmlentities_encode(const std::string& in )
 {
-public:
-	ValidationEx() {}
-	ValidationEx(const std::string& s) : Ex(s) {}
-};
+    std::ostringstream out;
+    size_t p = 0;
+    size_t len = in.size();
+    while( ( p < len ) )
+    {
+        switch ( in[p] )
+        {
+            case '&' :
+            {
+                out << "&amp;";
+                break;
+            }
+            case '<' :
+            {
+                out << "&lt;";
+                break;
+            }
+            case '>' :
+            {
+                out << "&gt;";
+                break;
+            }
+            default :
+            {
+                out << in[p];
+                break;
+            }
+        }
+        p++;
+    }
+    return out.str();
+}
 
-
-class validator
+std::string xmlentities_decode( const std::string& str )
 {
-public:
-	validator(const std::regex & r)
-		: r_(r)
-	{}
-
-	std::string getString(const std::string& tainted)
-	{
-		std::smatch match;
-		 if ( !std::regex_match(tainted,match,r_) )
-		 {
-			 throw ValidationEx("validation failed");
-		 }
-
-		 return match[0];
-	}
-
-	int getInteger(const std::string& tainted)
-	{
-		std::smatch match;
-		if ( !std::regex_match(tainted,match,r_) )
-		{
-			throw ValidationEx("validation failed");
+    std::ostringstream out;
+    size_t len = str.size();
+    for ( size_t i = 0; i < len; i++ )
+    {
+        if ( str[i] == '&' )
+        {
+			if ( str.substr(i,4) == "&lt;" )
+            {
+				out << "<";
+                i+=3;
+            }
+            else
+			if ( str.substr(i,4) == "&gt;" )
+            {
+                out << ">";
+                i+=3;
+            }
+            else
+	        if ( str.substr(i,5) == "&amp;" )
+            {
+                out << "&";
+                i+=4;
+            }
 		}
-
-		std::istringstream iss(match[0]);
-		int i;
-		iss >> i;		 
-		return i;
-	}
-
-	double getDouble(const std::string& tainted)
-	{
-		std::smatch match;
-		if ( !std::regex_match(tainted,match,r_) )
-		{
-			throw ValidationEx("validation failed");
-		}
-
-		std::istringstream iss(match[0]);
-		double d;
-		iss >> d;		 
-		return d;
-	}
-
-private:
-	std::regex r_;	
-};
-
-inline std::string valid(const std::string& s, const std::regex& r)
-{
-	validator v(r);
-	return v.getString(s);
+        else
+        {
+			out << str[i];
+        }
+    }
+    return out.str();
 }
 
-inline std::string valid_int(const std::string& s)
-{
-	validator v(std::regex("[0-9]*"));
-	return v.getString(s);
-}
 
-inline std::string valid_double(const std::string& s)
-{
-	validator v(std::regex("[0-9\\.]*"));
-	return v.getString(s);
-}
+
 
 class ExampleController
 {
@@ -100,24 +97,24 @@ public:
 		const std::string session_id = get_session_id(req.headers.cookies());
 
 		Session session = co_await sessionRepository->get_user_session(session_id);
-		view_->render_index(res,session.profile());
+		view_->render_index(req,res,session.profile());
 	}
 
 	void show_login( Request& req, Response& res)
 	{
-		view_->render_login(res,"");		
+		view_->render_login(req,res,"");		
 	}
 
 	void show_registration( Request& req, Response& res)
 	{
-		view_->render_registration(res,"");		
+		view_->render_registration(req,res,"");		
 	}
 
 	reproweb::Async login( Request& req, Response& res)
 	{
 		QueryParams qp(req.body());
-		std::string login = qp.get("login");
-		std::string pwd   = qp.get("pwd");
+		std::string login = get_login<LoginEx>(qp);
+		std::string pwd   = get_passwd<LoginEx>(qp);
 
 		User user = co_await userRepository->get_user(login);
 		cryptoneat::Password pass;
@@ -125,7 +122,10 @@ public:
 
 		std::cout << "valid pwd: " << verified << std::endl;
 
-		if(!verified) throw repro::Ex("invalid login/password combination");
+		if(!verified) 
+		{
+			throw LoginEx("invalid login/password combination");
+		}
 
 		Session session = co_await sessionRepository->write_user_session(user);
 
@@ -144,10 +144,10 @@ public:
 	reproweb::Async register_user( Request& req, Response& res)
 	{
 		QueryParams qp(req.body());
-		std::string username   = qp.get("username");
-		std::string login      = qp.get("login");
-		std::string pwd        = qp.get("pwd");
-		std::string avatar_url = qp.get("avatar_url");
+		std::string username   = get_username(qp);
+		std::string login      = get_login<RegistrationEx>(qp);
+		std::string pwd        = get_passwd<RegistrationEx>(qp);
+		std::string avatar_url = get_avatar(qp);
 
 		User user;
 		user = co_await userRepository->register_user(username, login, pwd, avatar_url);
@@ -172,11 +172,54 @@ private:
 			throw AuthEx("no session found");
 		}
 
-		return valid(
+		return valid<AuthEx>(
 			cookies.get("repro_web_sid").value(), 
-			std::regex("repro_web_sid::[0-9a-f]*")
+			std::regex("repro_web_sid::[0-9a-f]*"),
+			"invalid session id."
 		);
 	}
+
+	static const std::string get_username( QueryParams& params)
+	{
+		std::string username = params.get("username");
+
+		if(username.empty())
+			throw RegistrationEx("user name may not be empty");
+
+		return valid<RegistrationEx>(username, std::regex("[*<>]*") ,"username contains invalid tokens.");
+	}
+
+	template<class E>
+	static const std::string get_passwd( QueryParams& params)
+	{
+		std::string pwd = params.get("pwd");
+
+		if(pwd.empty())
+			throw E("password may not be empty");
+
+		return valid<E>(pwd, std::regex("*") , "password shall not be empty");
+	}
+
+	template<class E>
+	static const std::string get_login( QueryParams& params)
+	{
+		std::string login = params.get("login");
+
+		if(login.empty())
+			throw E("login may not be empty");
+
+		return valid<E>(login, std::regex("^[a-zA-Z0-9.!#$%&’*+/=?^_`{|}~-]+@[a-zA-Z0-9-]+(?:\.[a-zA-Z0-9-]+)*$"), "login must be valid email address" );
+	}
+
+	static const std::string get_avatar( QueryParams& params)
+	{
+		std::string avatar = params.get("avatar_url");
+
+		if(avatar.empty())
+			return avatar;
+
+		return valid<RegistrationEx>(avatar, std::regex("(http|https):\/\/(\w+:{0,1}\w*@)?(\S+)(:[0-9]+)?(\/|\/([\w#!:.?+=&%@!\-\/]))?"), "avatar url must be emty or a valid htpp/https url." );
+	}	
 };
 
 
@@ -197,13 +240,13 @@ public:
 	void on_login_failed(const LoginEx& ex,Request& req, Response& res)
 	{
 		std::cout << ex.what() << std::endl;
-		view_->render_login(res,ex.what());
+		view_->render_login(req,res,ex.what());
 	}
 
 	void on_registration_failed(const RegistrationEx& ex,Request& req, Response& res)
 	{
 		std::cout << ex.what() << std::endl;
-		view_->render_registration(res,ex.what());
+		view_->render_registration(req,res,ex.what());
 	}
 
 	void on_std_ex(const std::exception& ex,Request& req, Response& res)
