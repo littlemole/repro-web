@@ -108,16 +108,19 @@ std::string SSIResolver::combine()
 
 std::string SSIResolver::tmpl(Request& req, const std::string& htdocs)
 {
-    char* cwd = getcwd(0,0);
-    std::string path_ = cwd;
-    path_ += htdocs;
-    free(cwd); 
+    std::string path_base = prio::get_current_work_dir() + htdocs;
+    std::cout << "path_base: " << path_base << std::endl;
 
-    std::regex e ("\\.\\.");
-    std::string path = std::regex_replace(req.path.path(),e,"");
-    std::string fp = path_ +  path;		
+    std::string path = prio::real_path(path_base + req.path.path());		
+    std::cout << "path: " << path << std::endl;
+    
+    if ( path.substr(0,path_base.length()) != path_base )
+    {
+        std::cout << "bad path: " << path << std::endl;
+        return "";
+    } 
 
-    return prio::slurp(fp);
+    return prio::slurp(path);
 }
 
 bool SSIResolver::match(const std::string& tmpl)

@@ -212,18 +212,20 @@ private:
 	}
 
 
-	void load(const std::string& path, const std::vector<std::string>& locales)
+	void load(const std::string& base, const std::vector<std::string>& locales)
 	{
-		char* cwd = getcwd(0,0);
-		std::string path_ = cwd;
-		free(cwd);
+		std::string path_base = prio::get_current_work_dir()+ base;
+		std::string path = prio::real_path(path_base );		
 
-		std::string p = path_ + prio::safe_path(path);
+		if ( path.substr(0,path_base.length()) != path_base )
+		{
+			return;
+		} 
 
-		load("",p);
+		load("",path);
 		for( auto& l : locales)
 		{
-			load(l,p + "." + l);
+			load(l,path + "." + l);
 		}
 	}
 

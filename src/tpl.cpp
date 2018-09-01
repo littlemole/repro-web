@@ -76,9 +76,7 @@ mustache::Data mustache::fromJson(Json::Value& data)
 
 TplStore::TplStore()
 {
-	char* cwd = getcwd(0,0);
-	path_ = cwd;
-	free(cwd);
+	path_ = prio::get_current_work_dir();
 }
 
 void TplStore::register_tpl(const std::string& name, const std::string& tpl)
@@ -98,7 +96,8 @@ std::string& TplStore::get(const std::string& name)
 
 void TplStore::load(const std::string& path)
 {
-	std::string p = path_ + prio::safe_path(path);
+	std::string p = path_ + path;
+	p = prio::real_path(p);
 
 	std::vector<std::string> v = prio::glob(p);
 	for ( std::string s : v )

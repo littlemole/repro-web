@@ -284,10 +284,7 @@ static_content::static_content(const std::string& htdocs_path,const std::string&
 void static_content::register_static_handler(diy::Context* ctx)
 {
 	std::map<std::string,std::string> map_;
-    char* cwd = getcwd(0,0);
-    std::string path_ = cwd;
-    path_ += htdocs_;
-    free(cwd); 
+    std::string path_base = prio::get_executable_dir() + htdocs_;
 
     std::ifstream ifs;
     ifs.open(mime_);
@@ -315,20 +312,27 @@ void static_content::register_static_handler(diy::Context* ctx)
     }
 	ifs.close();
 
-    http_handler_t handler = [path_,map_](prio::Request& req, prio::Response& res)
+    http_handler_t handler = [path_base,map_](prio::Request& req, prio::Response& res)
     {
-        std::regex e ("\\.\\.");
-        std::string path = std::regex_replace(req.path.path(),e,"");
-        std::string fp = path_ +  path;
+		std::string path = path_base + req.path.path();
+		path = prio::real_path(path);
+ 
+		if ( path.substr(0,path_base.length()) != path_base )
+		{
+			res.bad_request().flush();
+			return;
+		} 
 
-    	res.contentType(static_content::get_mime(map_,fp));
+    	res.contentType(static_content::get_mime(map_,path));
 
     	res.header("Access-Control-Allow-Origin", "*");
 
-        prio::task([fp](){
-        	return prio::slurp(fp);
+        prio::task([path]()
+		{
+        	return prio::slurp(path);
     	})
-        .then([&res](std::string data){
+        .then([&res](std::string data)
+		{
         	res.body(data);
         	res.ok().flush();
         });

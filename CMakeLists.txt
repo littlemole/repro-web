@@ -229,6 +229,7 @@ add_test(NAME AllTests COMMAND Tests)
 
 file(COPY pem DESTINATION .)
 file(COPY htdocs DESTINATION .)
+file(COPY locale DESTINATION .)
 file(COPY config.json DESTINATION .)
  
 ############################################
