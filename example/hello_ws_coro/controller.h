@@ -186,7 +186,7 @@ private:
 		if(username.empty())
 			throw RegistrationEx("user name may not be empty");
 
-		return valid<RegistrationEx>(username, std::regex("[*<>]*") ,"username contains invalid tokens.");
+		return valid<RegistrationEx>(username, std::regex("[^<>]*") ,"username contains invalid tokens.");
 	}
 
 	template<class E>
@@ -197,7 +197,7 @@ private:
 		if(pwd.empty())
 			throw E("password may not be empty");
 
-		return valid<E>(pwd, std::regex("*") , "password shall not be empty");
+		return valid<E>(pwd, std::regex(".*") , "password shall not be empty");
 	}
 
 	template<class E>
@@ -208,7 +208,7 @@ private:
 		if(login.empty())
 			throw E("login may not be empty");
 
-		return valid<E>(login, std::regex("^[a-zA-Z0-9.!#$%&’*+/=?^_`{|}~-]+@[a-zA-Z0-9-]+(?:\.[a-zA-Z0-9-]+)*$"), "login must be valid email address" );
+		return valid<E>(login, std::regex("^[a-zA-Z0-9.!#$%&’*+/=?^_`{|}~-]+@[a-zA-Z0-9-]+(?:\\.[a-zA-Z0-9-]+)*$"), "login must be valid email address" );
 	}
 
 	static const std::string get_avatar( QueryParams& params)
@@ -216,9 +216,9 @@ private:
 		std::string avatar = params.get("avatar_url");
 
 		if(avatar.empty())
-			return avatar;
+			return "https://upload.wikimedia.org/wikipedia/commons/e/e4/Elliot_Grieveson.png";
 
-		return valid<RegistrationEx>(avatar, std::regex("(http|https):\/\/(\w+:{0,1}\w*@)?(\S+)(:[0-9]+)?(\/|\/([\w#!:.?+=&%@!\-\/]))?"), "avatar url must be emty or a valid htpp/https url." );
+		return valid<RegistrationEx>(avatar, std::regex("(http|https)://(\\w+:{0,1}\\w*@)?(\\S+)(:[0-9]+)?(/|/([\\w#!:.?+=&%@!-/]))?"), "avatar url must be emty or a valid htpp/https url." );
 	}	
 };
 

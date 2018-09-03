@@ -10,6 +10,8 @@
 #include "reproweb/ctrl/ssi.h"
 
 using namespace prio;
+using namespace repro;
+using namespace reproweb;
 
 class View
 {
@@ -76,15 +78,19 @@ private:
 		.then( [&req,&res,value](std::string txt)
 		{
 			auto h = req.headers.values("Accept-Language");
-		    auto value = h.value().main();
+		    auto lang = h.value().main();
 
 			std::regex e ("-");   	
 
-		    std::string locale = std::regex_replace (value,e,"_");
+		    std::string locale = std::regex_replace (lang,e,"_");
 
 			I18N i18n("/locales/properties", {"de","en"} );
 			std::string tmpl = i18n.render(locale,txt);
 
+			std::cout << "-------------------------------" << std::endl;
+			std::cout << JSON::stringify(value) << std::endl;
+			std::cout << "-------------------------------" << std::endl;
+ 
 			std::string content = mustache::render(tmpl,value);
 
 			res

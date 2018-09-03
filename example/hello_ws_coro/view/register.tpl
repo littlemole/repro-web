@@ -76,7 +76,7 @@
 						</tr>
 						<tr>
 							<td>avatar_url</td>
-							<td><input type="text" name="avatar_url"></td>
+							<td><input type="text" name="avatar_url" value=""></td>
 						</tr>
 						<tr>
 							<td>password</td>

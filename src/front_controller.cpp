@@ -284,7 +284,7 @@ static_content::static_content(const std::string& htdocs_path,const std::string&
 void static_content::register_static_handler(diy::Context* ctx)
 {
 	std::map<std::string,std::string> map_;
-    std::string path_base = prio::get_executable_dir() + htdocs_;
+    std::string path_base = prio::get_current_work_dir() + htdocs_;
 
     std::ifstream ifs;
     ifs.open(mime_);
