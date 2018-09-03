@@ -37,6 +37,7 @@ public:
 		}
 		catch(const std::exception& ex)
 		{
+			std::cout << "inside get_user_Session: " << ex.what() << std::endl;
 			throw AuthEx(ex.what());
 		}
 	}

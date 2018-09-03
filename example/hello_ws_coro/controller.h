@@ -233,7 +233,7 @@ public:
 
 	void on_auth_failed(const AuthEx& ex,Request& req, Response& res)
 	{
-		std::cout << ex.what() << std::endl;
+		std::cout << "AuthEx: " << ex.what() << std::endl;
 		view_->redirect_to_login(res);
 	}
 
@@ -251,7 +251,7 @@ public:
 
 	void on_std_ex(const std::exception& ex,Request& req, Response& res)
 	{
-		std::cout << ex.what() << std::endl;
+		std::cout << typeid(ex).name() << ":" << ex.what() << std::endl;
 		view_->redirect_to_login(res);
 	}
 
