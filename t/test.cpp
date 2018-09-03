@@ -1020,8 +1020,8 @@ TEST_F(BasicTest, SimpleI18Ntpl)
 	std::string tpl = 
 	"<html>\n"
 	"<body>\n"
-	"<h1><!--i18n key='login.page.title' --></h1>\n"
-	"<p><!--i18n key = 'login.header.headline.desc' --></p>\n"
+	"<h1><!--#i18n key='login.page.title' --></h1>\n"
+	"<p><!--#i18n key = 'login.header.headline.desc' --></p>\n"
 	"</body>\n"
 	"</html>\n";
 
@@ -1052,9 +1052,9 @@ TEST_F(BasicTest, I18NtplWithMarkup)
 	std::string tpl = 
 	"<html>\n"
 	"<body>\n"
-	"<h1><!--i18n key='login.page.title' --></h1>\n"
+	"<h1><!--#i18n key='login.page.title' --></h1>\n"
 	"email: {{ login }}\n"
-	"<p><!--i18n key = 'login.main.greeting' --></p>\n"
+	"<p><!--#i18n key = 'login.main.greeting' --></p>\n"
 	"</body>\n"
 	"</html>\n";
 

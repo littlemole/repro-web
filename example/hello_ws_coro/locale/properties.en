@@ -1,4 +1,4 @@
-login.page.title=Hello Coro Websockets
+login.page.title=Heya Coro Websockets
 
 login.header.headline=repro-web
 login.header.headline.desc=modern reactive c++ for the web.
@@ -13,4 +13,3 @@ login.main.logout=you can logout
 login.main.logout.link=here
 login.main.chat=Websocket chat: type a message
 
-login.main.copyright=&copy; littlemole. All rights reserved.

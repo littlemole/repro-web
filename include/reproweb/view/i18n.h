@@ -112,7 +112,7 @@ public:
 		locale = find_locale(locale);
 
 		std::map<std::string,std::string> props = map_[locale];
-		std::regex r("<!--i18n\\s+key\\s*=\\s*[\"']([^'\"]*)[\"']\\s*-->");
+		std::regex r("<!--#i18n\\s+key\\s*=\\s*[\"']([^'\"]*)[\"']\\s*-->");
 		std::smatch match;
 
 		std::string::const_iterator start = txt.begin();
@@ -127,9 +127,9 @@ public:
 				result.write(&*start,match[0].first-start);
 
 				std::string key = match[1];
-				if(props.count(key)==0)
+				if( props.count(key)==0 && map_[""].count(key)==0 )
 				{
-					result << "key: '" << key << "' not fount for i18n";
+					result << "key: '" << key << "' not found for i18n using locale " << locale;
 				}
 				else
 				{
@@ -207,7 +207,7 @@ private:
 		{
 			return;
 		}
-
+		std::cout << "load locales: " << locale << " from " << path << std::endl;
 		parse(locale,content);
 	}
 

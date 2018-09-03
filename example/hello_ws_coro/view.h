@@ -74,6 +74,8 @@ private:
 	{
 		std::string view = templates_.get(page);
 
+		value["page"] = page;
+
 		reproweb::SSIResolver::resolve(req,view)
 		.then( [&req,&res,value](std::string txt)
 		{
@@ -83,8 +85,9 @@ private:
 			std::regex e ("-");   	
 
 		    std::string locale = std::regex_replace (lang,e,"_");
+			std::cout << locale << std::endl;
 
-			I18N i18n("/locales/properties", {"de","en"} );
+			I18N i18n("/locale/properties", {"de","en"} );
 			std::string tmpl = i18n.render(locale,txt);
 
 			std::cout << "-------------------------------" << std::endl;
