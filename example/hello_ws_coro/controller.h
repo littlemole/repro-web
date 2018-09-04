@@ -7,77 +7,6 @@
 #include <regex>
 #include "reproweb/tools/validation.h"
 
-std::string xmlentities_encode(const std::string& in )
-{
-    std::ostringstream out;
-    size_t p = 0;
-    size_t len = in.size();
-    while( ( p < len ) )
-    {
-        switch ( in[p] )
-        {
-            case '&' :
-            {
-                out << "&amp;";
-                break;
-            }
-            case '<' :
-            {
-                out << "&lt;";
-                break;
-            }
-            case '>' :
-            {
-                out << "&gt;";
-                break;
-            }
-            default :
-            {
-                out << in[p];
-                break;
-            }
-        }
-        p++;
-    }
-    return out.str();
-}
-
-std::string xmlentities_decode( const std::string& str )
-{
-    std::ostringstream out;
-    size_t len = str.size();
-    for ( size_t i = 0; i < len; i++ )
-    {
-        if ( str[i] == '&' )
-        {
-			if ( str.substr(i,4) == "&lt;" )
-            {
-				out << "<";
-                i+=3;
-            }
-            else
-			if ( str.substr(i,4) == "&gt;" )
-            {
-                out << ">";
-                i+=3;
-            }
-            else
-	        if ( str.substr(i,5) == "&amp;" )
-            {
-                out << "&";
-                i+=4;
-            }
-		}
-        else
-        {
-			out << str[i];
-        }
-    }
-    return out.str();
-}
-
-
-
 
 class ExampleController
 {
@@ -124,7 +53,7 @@ public:
 
 		if(!verified) 
 		{
-			throw LoginEx("invalid login/password combination");
+			throw LoginEx("error.msg.login.failed");
 		}
 
 		Session session = co_await sessionRepository->write_user_session(user);
@@ -165,6 +94,7 @@ private:
 	std::shared_ptr<SessionRepository> sessionRepository;
 	std::shared_ptr<UserRepository> userRepository;
 
+
 	static const std::string get_session_id(const Cookies& cookies)
 	{
 		if(!cookies.exists("repro_web_sid"))
@@ -184,9 +114,9 @@ private:
 		std::string username = params.get("username");
 
 		if(username.empty())
-			throw RegistrationEx("user name may not be empty");
+			throw RegistrationEx("error.msg.username.empty");
 
-		return valid<RegistrationEx>(username, std::regex("[^<>]*") ,"username contains invalid tokens.");
+		return valid<RegistrationEx>(username, std::regex("[^<>]*") ,"error.msg.username.invalid");
 	}
 
 	template<class E>
@@ -194,10 +124,7 @@ private:
 	{
 		std::string pwd = params.get("pwd");
 
-		if(pwd.empty())
-			throw E("password may not be empty");
-
-		return valid<E>(pwd, std::regex(".*") , "password shall not be empty");
+		return valid<E>(pwd, std::regex(".*") , "error.msg.password.empty");
 	}
 
 	template<class E>
@@ -206,9 +133,9 @@ private:
 		std::string login = params.get("login");
 
 		if(login.empty())
-			throw E("login may not be empty");
+			throw E("error.msg.login.empty");
 
-		return valid<E>(login, std::regex("^[a-zA-Z0-9.!#$%&’*+/=?^_`{|}~-]+@[a-zA-Z0-9-]+(?:\\.[a-zA-Z0-9-]+)*$"), "login must be valid email address" );
+		return valid<E>(login, std::regex("^[a-zA-Z0-9.!#$%&’*+/=?^_`{|}~-]+@[a-zA-Z0-9-]+(?:\\.[a-zA-Z0-9-]+)*$"), "error.msg.login.invalid.email" );
 	}
 
 	static const std::string get_avatar( QueryParams& params)
@@ -218,7 +145,7 @@ private:
 		if(avatar.empty())
 			return "https://upload.wikimedia.org/wikipedia/commons/e/e4/Elliot_Grieveson.png";
 
-		return valid<RegistrationEx>(avatar, std::regex("(http|https)://(\\w+:{0,1}\\w*@)?(\\S+)(:[0-9]+)?(/|/([\\w#!:.?+=&%@!-/]))?"), "avatar url must be emty or a valid htpp/https url." );
+		return valid<RegistrationEx>(avatar, std::regex("(http|https)://(\\w+:{0,1}\\w*@)?(\\S+)(:[0-9]+)?(/|/([\\w#!:.?+=&%@!-/]))?"), "error.msg.avatar.invalid.url" );
 	}	
 };
 

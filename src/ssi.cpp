@@ -54,6 +54,7 @@ Future<std::string> SSIResolver::fetch( Request& req, const std::string& tmpl)
     for ( auto& url : includes_ )
     {
         prio::Request request = req;
+        request.path.method("GET");
         int n = cnt_;
 
         auto rejected = std::make_shared<bool>(false);

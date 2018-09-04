@@ -117,7 +117,7 @@ public:
 			}
 			catch(const std::exception& ex)
 			{
-				throw RegistrationEx("login is already taken");
+				throw RegistrationEx("error.msg.login.alreaady.taken");
 			}
 
 			co_return result;
@@ -150,7 +150,7 @@ public:
 		}
 		catch(const std::exception& ex)
 		{
-			throw LoginEx("unknown user credentials (login/password combination).");
+			throw LoginEx("error.msg.login.failed");
 		}
 	}
 

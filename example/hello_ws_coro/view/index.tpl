@@ -10,8 +10,8 @@
 
 <div class="frame">
 <div class="title">
-    <h1><!--#i18n key="login.title.headline" --></h1>
-    <p><!--#i18n key="login.title.desc" --></p>
+    <h1><!--#i18n key="index.title.headline" --></h1>
+    <p><!--#i18n key="index.title.desc" --></p>
 </div>
 </div>
 
@@ -24,14 +24,14 @@
 
   <div id="sitedivider"></div>
   <div class="main">
-      <h2><!--#i18n key="login.main.headline" --></h2>
+      <h2><!--#i18n key="index.main.headline" --></h2>
 
-      <h5><!--#i18n key="login.main.greeting" --></h5>
-      <p><!--#i18n key="login.main.logout" --> 
-       <a href="/logout"><!--#i18n key="login.main.logout.link" --></a>. 
+      <h5><!--#i18n key="index.main.greeting" --></h5>
+      <p><!--#i18n key="index.main.logout" --> 
+       <a href="/logout"><!--#i18n key="index.main.logout.link" --></a>. 
       </p>
 
-      <h2><!--#i18n key="login.main.chat" --></h2>
+      <h2><!--#i18n key="index.main.chat" --></h2>
 
 	<form method="post" action="#" onSubmit="return Controller.onSubmit(this);">
 	<table>
@@ -47,7 +47,7 @@
 	</tr>
 	<tr>
 	<td>
-		<input type="submit" value="<!--#i18n key='login.main.chat.send' -->" />
+		<input type="submit" value="<!--#i18n key='index.main.chat.send' -->" />
 	</td>
 	</tr>
 	</table>

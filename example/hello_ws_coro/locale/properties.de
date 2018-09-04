@@ -1,15 +1,47 @@
-login.page.title=Hallo Coro Websockets
+# index
+index.title.headline=hallo coroutine websockets
+index.title.desc=hallo welt websocket beispiel mit coroutinen für modernes reactive c++ für das web.
 
-login.header.headline=repro-web
-login.header.headline.desc=modernes reactives c++ für das web.
+index.main.headline=Hallo Coroutines WebSockets Beispiel
+index.main.greeting=Hallo {{ username }}
+index.main.logout=Ausloggen kannst Du 
+index.main.logout.link=hier
 
-login.title.headline=Hallo Coroutine Websockets
-login.title.desc=Hallo welt websocket Beispier mit Coroutinen für modernes reactives C++ für das Web.
+index.main.chat=Websocket chat: schreibe eine nachricht.
+index.main.chat.send=Versenden
 
-login.main.headline=Hallo Coroutinen WebSockets Beispiel
-login.main.greeting=Willkomen zurück, {{ username }}!
+# login
+login.title.headline=hallo coroutine websockets login
+login.title.desc=hallo welt websocket login beispiel mit coroutinen für modernes reactives c++ für das web.
 
-login.main.logout=Ausloggen kannst Du Dich
-login.main.logout.link=hier
-login.main.chat=Websocket chat: Schreibe eine Botschaft:
+login.main.headline=Hallo Coroutines WebSockets Login Beispiel
+login.main.desc=Bitte login und password angeben. Registrieren kannst Du Dich
+login.main.desc.link=hier
+
+#register
+register.title.headline=hallo coroutine websockets registration
+register.title.desc=hallo welt registration websocket beispiel mit coroutinen für modernes reactives c++ für das web.
+
+register.main.headline=Hallo Coroutines WebSockets Registration Beispiel
+register.main.desc=Registrierung für neue Benutzer.
+register.main.fields=Bitte fülle alle Felder aus.
+
+#generic
+generic.page.title=Hallo Coro Websockets
+
+generic.header.headline=repro-web
+generic.header.headline.desc=modern reactive c++ for the web.
+generic.header.headline.home=home
+generic.header.headline.examples=examples
+generic.header.headline.this.example=this example
+
+generic.menu.title=Hallo WSCORO Menu
+generic.menu.home=home
+generic.menu.login=login
+generic.menu.register=register
+generic.menu.logout=logout
+
+generic.main.copyright=&copy; littlemole 2018. All rights reserved.
+
+
 

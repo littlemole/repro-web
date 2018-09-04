@@ -1,5 +1,6 @@
 #include "test.h"
 #include "reproweb/ctrl/controller.h"
+#include "reproweb/view/i18n.h"
 #include "reproweb/web_webserver.h"
 #include <signal.h>
   
@@ -45,17 +46,6 @@ struct UserPool : public reprosqlite::SqlitePool
 	{}
 };
 
-/*
-class ssl_ctx : public Http2SslCtx
-{
-public:
-	ssl_ctx(std::shared_ptr<Config> config)
-	{
-		load_cert_pem(config->getString("cert"));
-	}
-};
-*/
-
 int main(int argc, char **argv)
 {
 	prio::init();
@@ -78,6 +68,8 @@ int main(int argc, char **argv)
 		static_content("/htdocs/","mime.types"),
 #endif
 
+		i18n_props("/locale/properties", {"en", "de"} ),
+
 		ex_handler(&Exceptions::on_auth_failed),
 		ex_handler(&Exceptions::on_login_failed),
 		ex_handler(&Exceptions::on_registration_failed),
@@ -90,14 +82,13 @@ int main(int argc, char **argv)
 		singleton<SessionRepository(SessionPool)>(),
 		singleton<UserRepository(UserPool)>(),
 
-		singleton<View(AppConfig)>(),
+		singleton<View(AppConfig,I18N)>(),
 		singleton<ExampleController(View,SessionRepository,UserRepository)>(),
 
 		singleton<EventBus()>(),
 		singleton<WebSocketController(SessionRepository,EventBus)>(),
 
-		singleton<Exceptions(View)>() //,
-		//singleton<ssl_ctx(AppConfig)>()
+		singleton<Exceptions(View)>()
 	};	
 
 	Http2SslCtx sslCtx;

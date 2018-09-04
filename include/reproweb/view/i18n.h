@@ -7,66 +7,6 @@
 namespace reproweb {
 
 
-class Locale 
-{
-public:
-
-	Locale()
-		:lang_("en"),country_("US")
-	{}
-
-	Locale(const std::string& l)
-	{
-		std::vector<std::string> v = prio::split(l,'_');
-		if(v.empty())
-		{
-			lang_    = "en";
-			country_ = "US";
-		}
-		if(v.size()>0)
-		{
-			lang_    = v[0];
-		}
-		if(v.size()>1)
-		{
-			country_ = v[1];
-		}
-	}
-
-	Locale(const std::string& l,const std::string& c)
-		:lang_(l),country_(c)
-	{}
-
-	std::string str() const noexcept
-	{
-		std::ostringstream oss;
-		if(!lang_.empty())
-		{
-			oss << lang_;
-		}
-		if(!country_.empty())
-		{
-			oss << "_" << country_;
-		}
-		return oss.str();
-	}
-
-	std::string lang() const noexcept
-	{
-		return lang_;
-	}
-
-	std::string country() const noexcept
-	{
-		return country_;
-	}
-
-private:
-
-	std::string lang_;
-	std::string country_;
-};
-
 class I18N 
 {
 public:

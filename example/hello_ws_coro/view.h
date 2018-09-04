@@ -17,8 +17,8 @@ class View
 {
 public:
 
-	View(std::shared_ptr<reproweb::Config> conf)
-		: config_(conf)
+	View(std::shared_ptr<Config> conf, std::shared_ptr<I18N> i18n)
+		: config_(conf), i18n_(i18n)
 	{
 		templates_.load("/view/");
 	}
@@ -31,7 +31,12 @@ public:
 	void render_login(Request& req, Response& res, const std::string& msg )
 	{
 		Json::Value errorMsg(Json::objectValue);
-		errorMsg["errorMsg"] = msg;
+		errorMsg["errorMsg"] = "";
+
+		if(!msg.empty())
+		{
+			errorMsg["errorMsg"] = i18n_->key(get_locale(req),msg);
+		}
 
 		render(req,res,"login",errorMsg);
 	}
@@ -39,7 +44,12 @@ public:
 	void render_registration(Request& req, Response& res, const std::string& msg )
 	{
 		Json::Value errorMsg(Json::objectValue);
-		errorMsg["errorMsg"] = msg;
+		errorMsg["errorMsg"] = "";
+
+		if(!msg.empty())
+		{
+			errorMsg["errorMsg"] = msg;// i18n_->key(get_locale(req),msg);
+		}
 
 		render(req,res,"register",errorMsg);
 	}	
@@ -47,7 +57,7 @@ public:
 	void redirect_to_index(Response& res, const std::string& sid)
 	{
 		res
-		.cookie(prio::Cookie("repro_web_sid", sid))
+		.cookie(Cookie("repro_web_sid", sid))
 		.redirect("https://localhost:9876/")
 		.flush();
 	}
@@ -67,34 +77,32 @@ public:
 	}	
 
 private:
-	reproweb::TplStore templates_;
-	std::shared_ptr<reproweb::Config> config_;
+	TplStore templates_;
+	std::shared_ptr<Config> config_;
+	std::shared_ptr<I18N> i18n_;
 
 	void render(Request& req, Response& res, const std::string& page, Json::Value value)
 	{
-		std::string view = templates_.get(page);
-
 		value["page"] = page;
 
-		reproweb::SSIResolver::resolve(req,view)
-		.then( [&req,&res,value](std::string txt)
-		{
-			auto h = req.headers.values("Accept-Language");
-		    auto lang = h.value().main();
+		std::string locale = get_locale(req);
+		std::string view = templates_.get(page);
 
-			std::regex e ("-");   	
-
-		    std::string locale = std::regex_replace (lang,e,"_");
-			std::cout << locale << std::endl;
-
-			I18N i18n("/locale/properties", {"de","en"} );
-			std::string tmpl = i18n.render(locale,txt);
-
-			std::cout << "-------------------------------" << std::endl;
-			std::cout << JSON::stringify(value) << std::endl;
-			std::cout << "-------------------------------" << std::endl;
+		std::cout << "---------------------------------" << std::endl;
+		std::cout << locale << ":" << view << std::endl;
  
+		SSIResolver::resolve(req,view)
+		.then( [this,&res,value,locale](std::string txt)
+		{
+
+			std::cout << "---------------------------------" << std::endl;
+			std::string tmpl = i18n_->render(locale,txt);
+			std::cout << tmpl << std::endl;
+ 	
+	 		std::cout << "---------------------------------" << std::endl;
 			std::string content = mustache::render(tmpl,value);
+			std::cout << content << std::endl;
+			std::cout << "---------------------------------" << std::endl;
 
 			res
 			.body(content)
@@ -109,6 +117,14 @@ private:
 		});
 	}
 
+	std::string get_locale(Request& req)
+	{
+		auto h = req.headers.values("Accept-Language");
+		auto lang = h.value().main();
+		std::string locale = std::regex_replace (lang,std::regex("-"),"_");		
+
+		return locale;
+	}
 };
  
 #endif

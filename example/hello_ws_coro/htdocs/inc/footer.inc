@@ -11,7 +11,7 @@
 		-->
 			<div class="copyright">
 				<ul class="menu">
-					<li><!--#i18n key="login.main.copyright" --></li>
+					<li><!--#i18n key="generic.main.copyright" --></li>
 				</ul>
 			</div>
 </div>
