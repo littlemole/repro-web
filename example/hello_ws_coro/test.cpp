@@ -53,12 +53,12 @@ int main(int argc, char **argv)
 
 	WebApplicationContext ctx {
 
-		GET  ( "/",				&ExampleController::index),
-		GET  ( "/logout",		&ExampleController::logout),
-		GET  ( "/login",		&ExampleController::show_login),
-		GET  ( "/register",		&ExampleController::show_registration),
-		POST ( "/login",		&ExampleController::login),
-		POST ( "/register",		&ExampleController::register_user),
+		GET  ( "/",				&Controller::index),
+		GET  ( "/logout",		&Controller::logout),
+		GET  ( "/login",		&Controller::show_login),
+		GET  ( "/register",		&Controller::show_registration),
+		POST ( "/login",		&Controller::login),
+		POST ( "/register",		&Controller::register_user),
 
 		ws_controller<WebSocketController> ("/ws"),
 
@@ -82,8 +82,9 @@ int main(int argc, char **argv)
 		singleton<SessionRepository(SessionPool)>(),
 		singleton<UserRepository(UserPool)>(),
 
+		singleton<Model(SessionRepository,UserRepository)>(),
 		singleton<View(AppConfig,I18N)>(),
-		singleton<ExampleController(View,SessionRepository,UserRepository)>(),
+		singleton<Controller(Model,View)>(),
 
 		singleton<EventBus()>(),
 		singleton<WebSocketController(SessionRepository,EventBus)>(),

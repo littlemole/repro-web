@@ -8,25 +8,21 @@
 #include "reproweb/tools/validation.h"
 
 
-class ExampleController
+class Controller
 {
 public:
 
-	ExampleController( 
-		std::shared_ptr<View> view,
-		std::shared_ptr<SessionRepository> sessionRepo, 
-		std::shared_ptr<UserRepository> userRepo )
-		: view_(view),
-		  sessionRepository(sessionRepo), 
-		  userRepository(userRepo)
+	Controller( std::shared_ptr<Model> model, std::shared_ptr<View> view)
+		: model_(model), view_(view)
 	{}
 
-	reproweb::Async index( Request& req, Response& res)
+	Async index( Request& req, Response& res)
 	{
-		const std::string session_id = get_session_id(req.headers.cookies());
+		const std::string sid = get_session_id(req.headers.cookies());
 
-		Session session = co_await sessionRepository->get_user_session(session_id);
-		view_->render_index(req,res,session.profile());
+		Json::Value viewModel = co_await model_->chat(sid);
+
+		view_->render_index(req,res,viewModel);
 	}
 
 	void show_login( Request& req, Response& res)
@@ -39,38 +35,28 @@ public:
 		view_->render_registration(req,res,"");		
 	}
 
-	reproweb::Async login( Request& req, Response& res)
+	Async login( Request& req, Response& res)
 	{
+
 		QueryParams qp(req.body());
 		std::string login = get_login<LoginEx>(qp);
 		std::string pwd   = get_passwd<LoginEx>(qp);
 
-		User user = co_await userRepository->get_user(login);
-		cryptoneat::Password pass;
-		bool verified = pass.verify(pwd, user.hash() );
+		std::string sid = co_await model_->login(login,pwd);
 
-		std::cout << "valid pwd: " << verified << std::endl;
-
-		if(!verified) 
-		{
-			throw LoginEx("error.msg.login.failed");
-		}
-
-		Session session = co_await sessionRepository->write_user_session(user);
-
-		view_->redirect_to_index(res,session.sid());
+		view_->redirect_to_index(res,sid);
 	}
 
-	reproweb::Async logout( Request& req, Response& res)
+	Async logout( Request& req, Response& res)
 	{
-		const std::string session_id = get_session_id(req.headers.cookies());
+		const std::string sid = get_session_id(req.headers.cookies());
 
-		co_await sessionRepository->remove_user_session(session_id);
+		co_await model_->logout(sid);
 
 		view_->redirect_to_login(res);
 	}
 
-	reproweb::Async register_user( Request& req, Response& res)
+	Async register_user( Request& req, Response& res)
 	{
 		QueryParams qp(req.body());
 		std::string username   = get_username(qp);
@@ -78,74 +64,78 @@ public:
 		std::string pwd        = get_passwd<RegistrationEx>(qp);
 		std::string avatar_url = get_avatar(qp);
 
-		User user;
-		user = co_await userRepository->register_user(username, login, pwd, avatar_url);
+		std::string sid = co_await model_->register_user(username,login,pwd,avatar_url);
 
-		std::cout << "NEW USER SUCESS: " << user.username() << std::endl;
-		
-		Session session= co_await sessionRepository->write_user_session(user);
-
-		view_->redirect_to_index(res,session.sid());
+		view_->redirect_to_index(res,sid);
 	}
 
 private:
 
+	std::shared_ptr<Model> model_;
 	std::shared_ptr<View> view_;
-	std::shared_ptr<SessionRepository> sessionRepository;
-	std::shared_ptr<UserRepository> userRepository;
 
 
 	static const std::string get_session_id(const Cookies& cookies)
 	{
+		static std::regex r("repro_web_sid::[0-9a-f]*");
+
 		if(!cookies.exists("repro_web_sid"))
 		{
 			throw AuthEx("no session found");
 		}
 
-		return valid<AuthEx>(
+		return valid<AuthEx>( 
 			cookies.get("repro_web_sid").value(), 
-			std::regex("repro_web_sid::[0-9a-f]*"),
+			r,
 			"invalid session id."
 		);
 	}
 
 	static const std::string get_username( QueryParams& params)
 	{
+		static std::regex r("[^<>]*");
+		
 		std::string username = params.get("username");
 
 		if(username.empty())
 			throw RegistrationEx("error.msg.username.empty");
 
-		return valid<RegistrationEx>(username, std::regex("[^<>]*") ,"error.msg.username.invalid");
+		return valid<RegistrationEx>(username, r, "error.msg.username.invalid");
 	}
 
 	template<class E>
 	static const std::string get_passwd( QueryParams& params)
 	{
+		static std::regex r(".*");
+
 		std::string pwd = params.get("pwd");
 
-		return valid<E>(pwd, std::regex(".*") , "error.msg.password.empty");
+		return valid<E>(pwd, r , "error.msg.password.empty");
 	}
 
 	template<class E>
 	static const std::string get_login( QueryParams& params)
 	{
+		static std::regex r("^[a-zA-Z0-9.!#$%&’*+/=?^_`{|}~-]+@[a-zA-Z0-9-]+(?:\\.[a-zA-Z0-9-]+)*$");
+
 		std::string login = params.get("login");
 
 		if(login.empty())
 			throw E("error.msg.login.empty");
 
-		return valid<E>(login, std::regex("^[a-zA-Z0-9.!#$%&’*+/=?^_`{|}~-]+@[a-zA-Z0-9-]+(?:\\.[a-zA-Z0-9-]+)*$"), "error.msg.login.invalid.email" );
+		return valid<E>(login, r, "error.msg.login.invalid.email" );
 	}
 
 	static const std::string get_avatar( QueryParams& params)
 	{
+		static std::regex r("(http|https)://(\\w+:{0,1}\\w*@)?(\\S+)(:[0-9]+)?(/|/([\\w#!:.?+=&%@!-/]))?");
+
 		std::string avatar = params.get("avatar_url");
 
 		if(avatar.empty())
 			return "https://upload.wikimedia.org/wikipedia/commons/e/e4/Elliot_Grieveson.png";
 
-		return valid<RegistrationEx>(avatar, std::regex("(http|https)://(\\w+:{0,1}\\w*@)?(\\S+)(:[0-9]+)?(/|/([\\w#!:.?+=&%@!-/]))?"), "error.msg.avatar.invalid.url" );
+		return valid<RegistrationEx>(avatar, r, "error.msg.avatar.invalid.url" );
 	}	
 };
 

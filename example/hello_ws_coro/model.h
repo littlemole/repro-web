@@ -31,7 +31,6 @@ public:
 };
 
 
-
 class User
 {
 public:
@@ -72,7 +71,6 @@ private:
 };
 
 
-
 class Session
 {
 public:
@@ -100,6 +98,72 @@ private:
 		sid += cryptoneat::toHex(cryptoneat::nonce(64));
 		return sid;
 	}
+};
+
+#include "repo.h"
+
+class Model 
+{
+public:
+	Model( std::shared_ptr<SessionRepository> sessionRepo, std::shared_ptr<UserRepository> userRepo)
+		:  sessionRepository(sessionRepo), 
+		   userRepository(userRepo)
+	{}
+
+
+	Future<Json::Value> chat( const std::string& sid )
+	{
+		Session session = co_await sessionRepository->get_user_session(sid);
+
+		co_return session.profile();
+	}
+
+	Future<std::string> login( std::string login, std::string pwd )
+	{
+		User user = co_await userRepository->get_user(login);
+
+		cryptoneat::Password pass;
+		bool verified = pass.verify(pwd, user.hash() );
+
+		std::cout << "valid pwd: " << verified << std::endl;
+
+		if(!verified) 
+		{
+			throw LoginEx("error.msg.login.failed");
+		}
+
+		Session session = co_await sessionRepository->write_user_session(user);
+
+		co_return session.sid();
+	}
+
+	Future<> logout( const std::string& sid )
+	{
+		co_await sessionRepository->remove_user_session(sid);
+
+		co_return;
+	}
+
+	Future<std::string> register_user( 
+		const std::string& username,
+		const std::string& login,
+		const std::string& pwd,
+		const std::string& avatar_url
+		)
+	{
+		User user = co_await userRepository->register_user(username, login, pwd, avatar_url);
+
+		std::cout << "NEW USER SUCESS: " << user.username() << std::endl;
+		
+		Session session= co_await sessionRepository->write_user_session(user);
+
+		co_return session.sid();
+	}
+
+private:
+
+	std::shared_ptr<SessionRepository> sessionRepository;
+	std::shared_ptr<UserRepository> userRepository;
 };
 
 #endif
