@@ -18,7 +18,7 @@ public:
 
 	Async index( Request& req, Response& res)
 	{
-		const std::string sid = get_session_id(req.headers.cookies());
+		std::string sid = get_session_id(req.headers.cookies());
 
 		Json::Value viewModel = co_await model_->chat(sid);
 
@@ -42,7 +42,8 @@ public:
 		std::string login = get_login<LoginEx>(qp);
 		std::string pwd   = get_passwd<LoginEx>(qp);
 
-		std::string sid = co_await model_->login(login,pwd);
+		std::string sid; // crashes on direct assing?
+		sid = co_await model_->login(login,pwd);
 
 		view_->redirect_to_index(res,sid);
 	}

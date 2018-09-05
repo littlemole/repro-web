@@ -49,10 +49,10 @@ public:
 		 avatar_url_(avatar_url)
 	{}
 
-	const std::string username() const 	  { return name_; }
-	const std::string login() const 	  { return login_; }
-	const std::string hash() const  	  { return hash_; }
-	const std::string avatar_url() const  { return avatar_url_; }
+	std::string username() const 	  { return name_; }
+	std::string login() const 	  { return login_; }
+	std::string hash() const  	  { return hash_; }
+	std::string avatar_url() const  { return avatar_url_; }
 
 	Json::Value toJson() const
 	{
@@ -85,7 +85,7 @@ public:
 		:sid_(sid), profile_(profile)
 	{}
 
-	const std::string& sid() const  { return sid_; }
+	std::string sid() const  { return sid_; }
 	Json::Value profile() const     { return profile_; }
 
 private:
@@ -157,6 +157,11 @@ public:
 		
 		Session session= co_await sessionRepository->write_user_session(user);
 
+//		std::cout << "NEW USER SESSION: " << session.sid() << std::endl;
+		//sleep(1);
+
+		//std::string sid;
+		//sid  = session.sid();
 		co_return session.sid();
 	}
 
