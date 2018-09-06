@@ -20,19 +20,24 @@ public:
 	{
 		std::string sid = get_session_id(req.headers.cookies());
 
-		Json::Value viewModel = co_await model_->chat(sid);
+		Json::Value viewModel;
+		
+		viewModel = co_await model_->chat(sid);
 
 		view_->render_index(req,res,viewModel);
+		co_return;		
 	}
 
-	void show_login( Request& req, Response& res)
+	Async show_login( Request& req, Response& res)
 	{
-		view_->render_login(req,res,"");		
+		view_->render_login(req,res,"");
+		co_return;		
 	}
 
-	void show_registration( Request& req, Response& res)
+	Async show_registration( Request& req, Response& res)
 	{
 		view_->render_registration(req,res,"");		
+		co_return;		
 	}
 
 	Async login( Request& req, Response& res)
@@ -43,18 +48,34 @@ public:
 		std::string pwd   = get_passwd<LoginEx>(qp);
 
 		std::string sid; // crashes on direct assing?
-		sid = co_await model_->login(login,pwd);
+		//try
+		{
+			//std::string 
+			sid = co_await model_->login(login,pwd);
 
-		view_->redirect_to_index(res,sid);
+			view_->redirect_to_index(res,sid);
+		}
+		//catch(const std::exception& ex)
+		{
+		//	std::cout << "loginex: " << ex.what() << std::endl;
+		}
+		co_return;		
 	}
 
 	Async logout( Request& req, Response& res)
 	{
 		const std::string sid = get_session_id(req.headers.cookies());
 
-		co_await model_->logout(sid);
+		try {
+			co_await model_->logout(sid);
+		}
+		catch(...)
+		{
+			throw;
+		}
 
 		view_->redirect_to_login(res);
+		co_return;		
 	}
 
 	Async register_user( Request& req, Response& res)
@@ -68,6 +89,7 @@ public:
 		std::string sid = co_await model_->register_user(username,login,pwd,avatar_url);
 
 		view_->redirect_to_index(res,sid);
+		co_return;		
 	}
 
 private:
@@ -95,7 +117,7 @@ private:
 	static const std::string get_username( QueryParams& params)
 	{
 		static std::regex r("[^<>]*");
-		
+
 		std::string username = params.get("username");
 
 		if(username.empty())

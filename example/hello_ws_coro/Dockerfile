@@ -23,7 +23,7 @@ ADD . /usr/local/src/reproweb-example
 
 RUN cd /usr/local/src/reproweb-example && (if [ "$BUILDCHAIN" != "cmake" ] ; then make -e; else (mkdir -p build && cd build && cmake .. && make) fi)
 
-CMD bash -c " cd /usr/local/src/reproweb-example && build/hello_world.bin"
+CMD bash -c " cd /usr/local/src/reproweb-example && valgrind build/hello_world.bin"
 
 
 

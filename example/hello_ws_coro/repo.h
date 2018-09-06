@@ -61,18 +61,18 @@ public:
 		}
 	}
 
-	Future<> remove_user_session(const std::string& sid)
+	Future<> remove_user_session( std::string sid)
 	{
 		try
 		{
 			reproredis::RedisResult::Ptr reply = co_await redis->cmd("DEL", sid);
 
-			co_return;
 		}
 		catch(const std::exception& ex)
 		{
 			throw AuthEx(ex.what());
 		}			
+		co_return;
 	}
 
 private:

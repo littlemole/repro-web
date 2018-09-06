@@ -43,7 +43,6 @@ generic.menu.logout=logout
 
 generic.main.copyright=&copy; littlemole. All rights reserved.
 
-
 error.msg.login.failed=invalid login/password combination
 error.msg.username.empty=username may not be empty
 error.msg.username.invalid=username contains invalid tokens.

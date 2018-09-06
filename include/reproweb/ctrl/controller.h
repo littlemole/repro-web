@@ -27,6 +27,8 @@ repro::Future<> coro_handler(FrontController& fc, T& t, Async(C::*fun)(prio::Req
 	{
 		fc.handle_exception(ex, req, res);
 	}
+	co_await prio::nextTick();
+	co_return;
 }
 
 #endif
@@ -73,7 +75,9 @@ private:
 			auto ptr = req.attributes.attr<std::shared_ptr<diy::Context>>("ctx")->resolve<C>();
 			req.attributes.set("controller", ptr);
 			C& c = *ptr;
-			coro_handler(fc,c, fun, req, res);
+			coro_handler(fc,c, fun, req, res)
+			.then([](){})
+			.otherwise([](const std::exception&ex){});
 		});
 	}
 #endif
