@@ -28,16 +28,14 @@ public:
 		co_return;		
 	}
 
-	Async show_login( Request& req, Response& res)
+	void show_login( Request& req, Response& res)
 	{
 		view_->render_login(req,res,"");
-		co_return;		
 	}
 
-	Async show_registration( Request& req, Response& res)
+	void show_registration( Request& req, Response& res)
 	{
 		view_->render_registration(req,res,"");		
-		co_return;		
 	}
 
 	Async login( Request& req, Response& res)
@@ -47,18 +45,11 @@ public:
 		std::string login = get_login<LoginEx>(qp);
 		std::string pwd   = get_passwd<LoginEx>(qp);
 
-		std::string sid; // crashes on direct assing?
-		//try
-		{
-			//std::string 
-			sid = co_await model_->login(login,pwd);
+		//std::string sid; // crashes on direct assing?
+		std::string sid = co_await model_->login(login,pwd);
 
-			view_->redirect_to_index(res,sid);
-		}
-		//catch(const std::exception& ex)
-		{
-		//	std::cout << "loginex: " << ex.what() << std::endl;
-		}
+		view_->redirect_to_index(res,sid);
+	
 		co_return;		
 	}
 
@@ -66,13 +57,7 @@ public:
 	{
 		const std::string sid = get_session_id(req.headers.cookies());
 
-		try {
-			co_await model_->logout(sid);
-		}
-		catch(...)
-		{
-			throw;
-		}
+		co_await model_->logout(sid);
 
 		view_->redirect_to_login(res);
 		co_return;		
@@ -179,13 +164,13 @@ public:
 
 	void on_login_failed(const LoginEx& ex,Request& req, Response& res)
 	{
-		std::cout << ex.what() << std::endl;
+		std::cout << "LoginEx: " << ex.what() << std::endl;
 		view_->render_login(req,res,ex.what());
 	}
 
 	void on_registration_failed(const RegistrationEx& ex,Request& req, Response& res)
 	{
-		std::cout << ex.what() << std::endl;
+		std::cout << "RegistrationEx: " << ex.what() << std::endl;
 		view_->render_registration(req,res,ex.what());
 	}
 

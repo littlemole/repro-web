@@ -110,14 +110,11 @@ std::string SSIResolver::combine()
 std::string SSIResolver::tmpl(Request& req, const std::string& htdocs)
 {
     std::string path_base = prio::get_current_work_dir() + htdocs;
-    std::cout << "path_base: " << path_base << std::endl;
-
     std::string path = prio::real_path(path_base + req.path.path());		
-    std::cout << "path: " << path << std::endl;
     
     if ( path.substr(0,path_base.length()) != path_base )
     {
-        std::cout << "bad path: " << path << std::endl;
+        std::cout << "bad SSI path: " << path << std::endl;
         return "";
     } 
 

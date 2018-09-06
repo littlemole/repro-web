@@ -303,7 +303,7 @@ private:
 	template<class T, class ... Args>
 	void register_dependencies(T&& t,Args&& ... args)
 	{
-		std::cout << "register " << typeid(t).name() << std::endl;
+		//std::cout << "register " << typeid(t).name() << std::endl;
 		t.ctx_register(this);
 		register_dependencies<Args&&...>(std::forward<Args&&>(args)...);
 	}

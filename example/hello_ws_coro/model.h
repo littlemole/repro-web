@@ -125,7 +125,7 @@ public:
 		cryptoneat::Password pass;
 		bool verified = pass.verify(pwd, user.hash() );
 
-		std::cout << "valid pwd: " << verified << std::endl;
+		//std::cout << "valid pwd: " << verified << std::endl;
 
 		if(!verified) 
 		{
@@ -153,15 +153,10 @@ public:
 	{
 		User user = co_await userRepository->register_user(username, login, pwd, avatar_url);
 
-		std::cout << "NEW USER SUCESS: " << user.username() << std::endl;
+		//std::cout << "NEW USER SUCESS: " << user.username() << std::endl;
 		
 		Session session= co_await sessionRepository->write_user_session(user);
 
-//		std::cout << "NEW USER SESSION: " << session.sid() << std::endl;
-		//sleep(1);
-
-		//std::string sid;
-		//sid  = session.sid();
 		co_return session.sid();
 	}
 
