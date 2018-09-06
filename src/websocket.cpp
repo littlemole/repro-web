@@ -149,7 +149,6 @@ Future<WsConnection::Ptr> WsConnection::connect(std::string urlStr)
 	}
 	else if ( url.getProto() == "wss" && ctx_ )
 	{
-		std::cout << "SSL Connect " << url.getHost() << ":" << url.getPort() << std::endl;
 		f = SslConnection::connect( url.getHost(),url.getPort(),*ctx_);
 	}
 	else
@@ -180,7 +179,8 @@ Future<WsConnection::Ptr> WsConnection::connect(std::string urlStr)
 		auto& t = client->timeouts();
 		t.rw_timeout_s = 3600 * 1000;
 
-		std::cout << "WS REQ: " << oss.str() << std::endl;
+		//std::cout << "WS REQ: " << oss.str() << std::endl;
+
 		return client->write(oss.str());
 	})
 	.then([](Connection::Ptr client)
@@ -189,8 +189,9 @@ Future<WsConnection::Ptr> WsConnection::connect(std::string urlStr)
 	})
 	.then([this,p](Connection::Ptr client, std::string data)
 	{
-		std::cout << "WS DATA: " << data << std::endl;
-		//TODO: check ws handshake response
+		//std::cout << "WS DATA: " << data << std::endl;
+
+		//TODO: check ws handshake response ?
 		auto tmp = p;
 		tmp.resolve(this->shared_from_this());
 		send_msg();

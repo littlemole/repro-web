@@ -147,7 +147,9 @@ private:
 		{
 			return;
 		}
-		std::cout << "load locales: " << locale << " from " << path << std::endl;
+		
+		//std::cout << "load locales: " << locale << " from " << path << std::endl;
+		
 		parse(locale,content);
 	}
 

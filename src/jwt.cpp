@@ -149,11 +149,7 @@ bool JWT::verify(const std::string& secret)
 
 bool JWT::verify( EVP_PKEY* pubkey)
 {
-	std::cout << "JWT::verify " << (pubkey!=0) << std::endl;
-
     cryptoneat::Signature verifier(digest("sha256"),pubkey);
-
-	std::cout << "JWT::verify " << payload_ <<  std::endl;
 
     return verifier.verify(payload_,signature_);
 }

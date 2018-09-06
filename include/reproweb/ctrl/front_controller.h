@@ -23,7 +23,7 @@ public:
     template<class E>
     FrontController& registerExceptionHandler( typename ExceptionHandlerInfo<E>::ex_handler_t handler)
     {
-		std::cout << "register ex handler " << typeid(E).name() << std::endl;
+		//std::cout << "register ex handler " << typeid(E).name() << std::endl;
 
     	ex_handlers_.push_back(std::unique_ptr<ExHandlerInfo>(new ExceptionHandlerInfo<E>(handler)));
     	return *this;
