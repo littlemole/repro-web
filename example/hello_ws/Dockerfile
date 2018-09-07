@@ -13,6 +13,8 @@ ENV BACKEND=${BACKEND}
 ARG BUILDCHAIN=make
 ENV BUILDCHAIN=${BUILDCHAIN}
 
+ENV REDIS_HOST=redis
+
 RUN /usr/local/bin/install.sh  repro-redis
 RUN /usr/local/bin/install.sh  repro-sqlite
 
@@ -21,6 +23,8 @@ ADD . /usr/local/src/reproweb-example
 
 RUN cd /usr/local/src/reproweb-example && (if [ "$BUILDCHAIN" != "cmake" ] ; then make -e; else (mkdir -p build && cd build && cmake .. && make) fi)
 
-CMD bash -c "/etc/init.d/redis-server start && cd /usr/local/src/reproweb-example && build/hello_world.bin"
+CMD bash -c " cd /usr/local/src/reproweb-example && valgrind build/hello_world.bin"
+
+
 
 

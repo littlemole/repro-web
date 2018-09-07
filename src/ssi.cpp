@@ -116,7 +116,7 @@ std::string SSIResolver::tmpl(Request& req, const std::string& htdocs)
 #ifndef _WIN32
     if ( path.substr(0,path_base.length()) != path_base )
     {
-        std::cout << "bad SSI path: " << path << " " << path_base std::endl;
+        std::cout << "bad SSI path: " << path << " " << path_base << std::endl;
         return "";
     } 
 #endif

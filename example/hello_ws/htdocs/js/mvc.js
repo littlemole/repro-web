@@ -53,7 +53,7 @@ var View = {
 	
 		var html = $('#chatLog').html() + "<div style='background-color:#DEDEDE;padding:3px'>"
 			+ "<div style='display:table;padding:3px;position:relative;left:30px;top:-40px;background-color:#cdcdcd;'>"
-			+ "<img src='" + msg.img + "' style='width:48px;height:48px;margin:3px;'>"
+			+ "<img src='" + msg.img + "' style='width:48px;height:auto;margin:3px;'>"
 			+ "<b>" + msg.login + "</b></div>" + msg.msg + "</div><br><br>";
 		$('#chatLog').html(html);
 		
@@ -61,12 +61,6 @@ var View = {
 	}
 };
 
-
-function logout()
-{
-	document.cookie = 'org_oha7_sid=; expires=Thu, 01 Jan 1970 00:00:01 GMT;';
-	return false;
-}
 
 (function($) 
 {

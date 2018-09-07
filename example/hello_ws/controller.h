@@ -4,140 +4,128 @@
 #include "model.h"
 #include "view.h"
 #include "repo.h"
+#include "valid.h"
 
+using namespace reproweb;
 
-class ExampleController
+class Controller
 {
 public:
 
-	ExampleController( 
-		std::shared_ptr<View> view,
-		std::shared_ptr<SessionRepository> sessionRepo, 
-		std::shared_ptr<UserRepository> userRepo )
-		: view_(view),
-		  sessionRepository(sessionRepo), 
-		  userRepository(userRepo)
+	Controller( std::shared_ptr<Model> model, std::shared_ptr<View> view)
+		: model_(model), view_(view)
 	{}
 
 	void index( Request& req, Response& res)
 	{
-		const std::string session_id = get_session_id(req.headers.cookies());
-		if(session_id.empty())
+		try
 		{
-			view_->redirect_to_login(res);
-			return;
+			std::string sid = Valid::session_id(req.headers.cookies());
+
+			model_->chat(sid)
+			.then([this,&req,&res](Json::Value viewModel)
+			{
+				view_->render_index(req,res,viewModel);
+			})
+			.otherwise([this,&res](const std::exception& ex)
+			{
+				view_->redirect_to_login(res);
+			});
 		}
-
-		sessionRepository->get_user_session(session_id)
-		.then( [this,&res](Session session)
-		{
-			view_->render_index(res,session.profile());
-
-		})
-		.otherwise([this,&res](const std::exception& ex)
+		catch(const std::exception& ex)
 		{
 			view_->redirect_to_login(res);
-		});
-		
+		}
 	}
 
 	void show_login( Request& req, Response& res)
 	{
-		view_->render_login(res,"");		
+		view_->render_login(req,res,"");
 	}
 
 	void show_registration( Request& req, Response& res)
 	{
-		view_->render_registration(res,"");		
+		view_->render_registration(req,res,"");		
 	}
 
 	void login( Request& req, Response& res)
 	{
-		QueryParams qp(req.body());
-		std::string login = qp.get("login");
-		std::string pwd   = qp.get("pwd");
-
-		userRepository->get_user(login)
-		.then( [this,pwd](User user)
+		try
 		{
-			cryptoneat::Password pass;
-			bool verified = pass.verify(pwd, user.hash() );
+			QueryParams qp(req.body());
+			std::string login = Valid::login<LoginEx>(qp);
+			std::string pwd   = Valid::passwd<LoginEx>(qp);
 
-			std::cout << "valid pwd: " << verified << std::endl;
-
-			if(!verified) throw repro::Ex("invalid login/password combination");
-
-			return sessionRepository->write_user_session(user);
-		})
-		.then( [this,&res](Session session)
+			model_->login(login,pwd)
+			.then([this,&res](std::string sid)
+			{
+				view_->redirect_to_index(res,sid);
+			})
+			.otherwise([this,&req,&res](const std::exception& ex)
+			{
+				view_->render_login(req,res,ex.what());
+			});
+		}
+		catch(const std::exception& ex)
 		{
-			view_->redirect_to_index(res,session.sid());
-		})
-		.otherwise( [this,&res](const std::exception& ex)
-		{
-			view_->render_login(res,ex.what());
-		});
+			view_->render_login(req,res,ex.what());
+		}		
 	}
 
 	void logout( Request& req, Response& res)
 	{
-		const std::string session_id = get_session_id(req.headers.cookies());
-		if(session_id.empty())
+		try
 		{
-			view_->redirect_to_login(res);
-			return;
-		}
+			const std::string sid = Valid::session_id(req.headers.cookies());
 
-		sessionRepository->remove_user_session(session_id)
-		.then([this,&res]()
+			model_->logout(sid)
+			.then([this,&res]()
+			{
+				view_->redirect_to_login(res);
+			})
+			.otherwise([this,&res](const std::exception& ex)
+			{
+				view_->render_error(ex,res);
+			});
+		}
+		catch(const std::exception& ex)
 		{
 			view_->redirect_to_login(res);
-		})
-		.otherwise([this,&res](const std::exception& ex)
-		{
-			view_->redirect_to_login(res);
-		});
+		}		
 	}
 
 	void register_user( Request& req, Response& res)
 	{
-		QueryParams qp(req.body());
-		std::string username   = qp.get("username");
-		std::string login      = qp.get("login");
-		std::string pwd        = qp.get("pwd");
-		std::string avatar_url = qp.get("avatar_url");
+		try
+		{
+			QueryParams qp(req.body());
+			std::string username   = Valid::username(qp);
+			std::string login      = Valid::login<RegistrationEx>(qp);
+			std::string pwd        = Valid::passwd<RegistrationEx>(qp);
+			std::string avatar_url = Valid::avatar(qp);
 
-		userRepository->register_user(username,login,pwd,avatar_url)
-		.then( [this](User user)
+			model_->register_user(username,login,pwd,avatar_url)
+			.then([this,&res](std::string sid)
+			{
+				view_->redirect_to_index(res,sid);
+			})
+			.otherwise([this,&req,&res](const std::exception& ex)
+			{
+				view_->render_registration(req,res,ex.what());
+			});
+		}
+		catch(const std::exception& ex)
 		{
-			std::cout << "NEW USER SUCESS: " << user.username() << std::endl;
-			return sessionRepository->write_user_session(user);
-		})
-		.then( [this,&res](Session session)
-		{
-			view_->redirect_to_index(res,session.sid());
-		})
-		.otherwise( [this,&res](const std::exception& ex)
-		{
-			view_->render_registration(res,ex.what());
-		});		
+			view_->render_registration(req,res,ex.what());
+		}		
 	}
 
 private:
 
+	std::shared_ptr<Model> model_;
 	std::shared_ptr<View> view_;
-	std::shared_ptr<SessionRepository> sessionRepository;
-	std::shared_ptr<UserRepository> userRepository;
-
-	static const std::string get_session_id(const Cookies& cookies)
-	{
-		if(!cookies.exists("repro_web_sid"))
-		{
-			return "";
-		}
-
-		return cookies.get("repro_web_sid").value();
-	}
 };
+
+
 
 #endif

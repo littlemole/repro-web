@@ -7,61 +7,96 @@
 #include "reproweb/ws/ws.h"
 #include "reproweb/json/json.h"
 
+using namespace reproweb;
+
 class WebSocketController
 {
 public:
 
-	WebSocketController(std::shared_ptr<SessionRepository> s, std::shared_ptr<reproweb::EventBus> bus)
-		: session_(s), eventBus_(bus)
+	// c'tor
+	WebSocketController(
+		std::shared_ptr<SessionRepository> s, 
+		std::shared_ptr<EventBus> bus
+	)
+	  : session_(s), 
+	  	eventBus_(bus)
 	{}
 
-    void onConnect(reproweb::WsConnection::Ptr ws)
+	// websocket connects
+    void onConnect(WsConnection::Ptr ws)
     {
-    	std::string id = eventBus_->subscribe("chat-topic", [ws] (Json::Value value)
+		// subscribe to topic and pass any Json downwards on invocation
+    	std::string sid = eventBus_->subscribe("chat-topic", [ws] (Json::Value value)
     	{
-    		ws->send(0x01,reproweb::JSON::stringify(value));
+    		ws->send(0x01,JSON::stringify(value));
     	});
 
-    	ws->attributes.set("subscription-id",id);
+		// make this ws remember the subscriber id
+		set_subscriber_id(ws,sid);
     };
 
-    void onClose(reproweb::WsConnection::Ptr ws)
+	// websocket disconnects
+    void onClose(WsConnection::Ptr ws)
     {
-    	std::string id = ws->attributes.attr<std::string>("subscription-id");
-    	eventBus_->unsubscribe("chat-topic", id);
+		// unsubscribe from topic using supscription id
+    	eventBus_->unsubscribe("chat-topic", subscriber_id(ws));
     };
 
+	// receive a websocket msg
     void onMsg(reproweb::WsConnection::Ptr ws, const std::string& data)
 	{
-    	std::cout << "ws: " << data << std::endl;
+		try 
+		{
+			std::cout << "ws: " << data << std::endl;
 
-    	Json::Value json = reproweb::JSON::parse(data);
-    	std::string sid  = json["sid"].asString();
-    	std::string msg  = json["msg"].asString();
+			// parse msg
+			Json::Value json = JSON::parse(data);
+			std::string sid  = json["sid"].asString();
+			std::string msg  = json["msg"].asString();
 
-    	session_->get_user_session(sid)
-    	.then([this,msg,ws](Session session)
-    	{
-			Json::Value profile = session.profile();
-    		Json::Value json(Json::objectValue);
-    		json["uid"]   = profile["username"];
-    		json["login"] = profile["login"];
-    		json["img"]   = profile["avatar_url"];
-    		json["msg"]   = msg;
+			// validate session			
+			session_->get_user_session(sid)
+			.then([this,msg](Session session)
+			{
+				// populate result
+				Json::Value profile = session.profile();
 
-    		eventBus_->notify("chat-topic",json);
-    	})
-		.otherwise([ws](const std::exception& ex)
+				Json::Value result(Json::objectValue);
+				result["uid"]   = profile["username"];
+				result["login"] = profile["login"];
+				result["img"]   = profile["avatar_url"];
+				result["msg"]   = msg;
+
+				// publish msg to all subscribers
+				eventBus_->notify("chat-topic",result);
+
+			})
+			.otherwise([ws](const std::exception& ex)
+			{
+				ws->close();
+			});
+
+		}
+		catch(const std::exception& ex)
 		{
     		ws->close();
-		});
-
+		}
 	};
 
 private:
 
+	void set_subscriber_id(WsConnection::Ptr ws, const std::string& id)
+	{
+		ws->attributes.set("subscription-id",id);
+	}
+
+	std::string subscriber_id(WsConnection::Ptr ws)
+	{
+		return ws->attributes.attr<std::string>("subscription-id");
+	}
+
     std::shared_ptr<SessionRepository> session_;
-    std::shared_ptr<reproweb::EventBus> eventBus_;
+    std::shared_ptr<EventBus> eventBus_;
 };
 
 #endif

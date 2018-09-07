@@ -3,7 +3,7 @@
 ############################################
 cmake_minimum_required(VERSION 2.8.9)
 cmake_policy(SET CMP0054 NEW)
-project(hello_ws)
+project(hello_ws_coro)
 
 ############################################
 # c++ std
@@ -78,8 +78,8 @@ message("+++++++++++++++++")
 		set(LIBS 
 			${REPROWEB_LIBRARY} 
 			${PRIOCPP_LIBRARY} 
-			${REDROREDIS_LIBRARY}
-			${REDROSQLITE_LIBRARY}
+			${REPROREDIS_LIBRARY}
+			${REPROSQLITE_LIBRARY}
 			${PRIOHTTP_LIBRARY} 
 			${REPROCURL_LIBRARY} 
 			${CRYPTONEAT_LIBRARY} 

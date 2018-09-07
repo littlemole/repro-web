@@ -4,91 +4,107 @@
 #include <string>
 #include <memory>
 
-#include "reproweb/tools/config.h"
-#include "cryptoneat/cryptoneat.h"
+#include "entities.h"
+#include "repo.h"
 
-
-
-class AuthEx : public repro::Ex 
+class AppConfig : public Config
 {
 public:
-	AuthEx() {}
-	AuthEx(const std::string& s) : Ex(s) {}
+	AppConfig(std::shared_ptr<FrontController> fc)
+	  : Config("config.json")
+	{
+		const char* redis = getenv("REDIS_HOST");
+		if(redis)
+		{
+			std::ostringstream oss;
+			oss << "redis://" << redis << ":6379";
+
+			get("redis") = oss.str();
+		}
+		std::cout << "REDIS: " << get("redis") << std::endl;
+	}
 };
 
-
-class RegistrationEx : public repro::Ex 
+class Model 
 {
 public:
-	RegistrationEx() {}
-	RegistrationEx(const std::string& s) : Ex(s) {}
-};
+	Model( std::shared_ptr<SessionRepository> sessionRepo, std::shared_ptr<UserRepository> userRepo)
+		:  sessionRepository(sessionRepo), 
+		   userRepository(userRepo)
+	{}
 
 
+	Future<Json::Value> chat( const std::string& sid )
+	{
+		auto p = promise<Json::Value>();
 
-class User
-{
-public:
+		sessionRepository->get_user_session(sid)
+		.then([p](Session session)
+		{
+			p.resolve(session.profile());
+		})
+		.otherwise(reject(p));
 
-	User( 
-		const std::string& name,
+		return p.future();
+	}
+
+	Future<std::string> login( std::string login, std::string pwd )
+	{
+		auto p = promise<std::string>();
+
+		userRepository->get_user(login)
+		.then([this,pwd](User user)
+		{
+			cryptoneat::Password pass;
+			bool verified = pass.verify(pwd, user.hash() );
+
+			if(!verified) 
+			{
+				throw LoginEx("error.msg.login.failed");
+			}
+			return sessionRepository->write_user_session(user);
+		})
+		.then([p](Session session)
+		{
+			p.resolve(session.sid());
+		})
+		.otherwise(reject(p));
+
+		return p.future();
+	}
+
+	Future<> logout( const std::string& sid )
+	{
+		return sessionRepository->remove_user_session(sid);
+	}
+
+	Future<std::string> register_user( 
+		const std::string& username,
 		const std::string& login,
-		const std::string& hash,
+		const std::string& pwd,
 		const std::string& avatar_url
-	)
-		: name_(name),
-		 login_(login),
-		 hash_(hash),
-		 avatar_url_(avatar_url)
-	{}
-
-	const std::string username() const 	  { return name_; }
-	const std::string login() const 	  { return login_; }
-	const std::string hash() const  	  { return hash_; }
-	const std::string avatar_url() const  { return avatar_url_; }
-
-	Json::Value toJson() const
+		)
 	{
-		Json::Value result(Json::objectValue);
-		result["username"] = name_;
-		result["login"] = login_;
-		result["avatar_url"] = avatar_url_;
-		return result;
+		auto p = promise<std::string>();
+
+		userRepository->register_user(username, login, pwd, avatar_url)
+		.then([this](User user)
+		{
+			return sessionRepository->write_user_session(user);
+		})
+		.then([p](Session session)
+		{
+			p.resolve(session.sid());
+		})		
+		.otherwise(reject(p));
+
+		return p.future();		
 	}
-	
-private:
-	std::string name_;	
-	std::string login_;	
-	std::string hash_;	
-	std::string avatar_url_;	
-};
-
-
-
-class Session
-{
-public:
-	Session(Json::Value profile) 
-		:sid_(make_session_id()), profile_(profile)
-	{}
-
-	Session(const std::string& sid,Json::Value profile) 
-		:sid_(sid), profile_(profile)
-	{}
-
-	const std::string& sid() const  { return sid_; }
-	Json::Value profile() const     { return profile_; }
 
 private:
-	std::string sid_;
-	Json::Value profile_;	
 
-	static std::string make_session_id()
-	{
-		std::string sid = "repro_web_sid::";
-		sid += cryptoneat::toHex(cryptoneat::nonce(64));
-		return sid;
-	}
+	std::shared_ptr<SessionRepository> sessionRepository;
+	std::shared_ptr<UserRepository> userRepository;
 };
 
 #endif

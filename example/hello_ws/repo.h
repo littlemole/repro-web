@@ -8,7 +8,8 @@
 
 using namespace prio;
 using namespace repro;
- 
+using namespace reproweb;
+
 
 class SessionRepository
 {
@@ -20,21 +21,26 @@ public:
 
 	Future<Session> get_user_session( std::string sid)
 	{
-		auto p = repro::promise<Session>();
+		auto p = promise<Session>();
+
+		auto payload = std::make_shared<std::string>();
 
 		redis->cmd("GET", sid)
-		.then([p,sid](reproredis::RedisResult::Ptr reply)
+		.then([this,sid,payload](reproredis::RedisResult::Ptr reply)
 		{
 			if(reply->isError() || reply->isNill())
 			{
-				p.reject(repro::Ex("invalid session"));
-				return;
+				throw AuthEx("invalid session");
 			}
 
-			std::string payload = reply->str();
-			Json::Value json = reproweb::JSON::parse(payload);
-			
-			p.resolve( Session(sid,json) );
+			*payload = reply->str();
+
+			return redis->cmd("EXPIRE", sid, 180);
+		})
+		.then([p,sid,payload](reproredis::RedisResult::Ptr reply)
+		{
+			Json::Value json = reproweb::JSON::parse(*payload);
+			p.resolve(Session(sid,json));
 		})
 		.otherwise(reject(p));
 
@@ -43,27 +49,27 @@ public:
 
 	Future<Session> write_user_session(User user)
 	{
-		auto p = repro::promise<Session>();
+		auto p = promise<Session>();
 
-		Session session(user.toJson());
+		auto session = std::make_shared<Session>(user.toJson());
 
-		redis->cmd("SET", session.sid(), session.profile() )
-		.then([p,this,session](reproredis::RedisResult::Ptr reply)
+		redis->cmd("SET", session->sid(), session->profile())
+		.then([this,session](reproredis::RedisResult::Ptr reply)
 		{
-			return redis->cmd("EXPIRE", session.sid(), 60);
+			return redis->cmd("EXPIRE", session->sid(), 180);
 		})
 		.then([p,session](reproredis::RedisResult::Ptr reply)
 		{
-			p.resolve(session);
+			p.resolve(*session);
 		})
 		.otherwise(reject(p));
 
 		return p.future();
 	}
 
-	Future<> remove_user_session(const std::string& sid)
+	Future<> remove_user_session( std::string sid)
 	{
-		auto p = repro::promise<>();
+		auto p = promise<>();
 
 		redis->cmd("DEL", sid)
 		.then([p](reproredis::RedisResult::Ptr reply)
@@ -97,29 +103,34 @@ public:
 		const std::string& pwd, 
 		const std::string& avatar_url )
 	{
-		auto p = repro::promise<User>();
+		auto p = promise<User>();
 
 		if(username.empty() || login.empty() || pwd.empty())
 		{
-			return prio::rejected(p,RegistrationEx("username, login and password may not be empty"));
+			nextTick( [p]() 
+			{
+				p.reject(RegistrationEx("username, login and password may not be empty"));
+			});
+
+			return p.future();
 		}
 
 		cryptoneat::Password pass;
 		std::string hash = pass.hash(pwd);
 
-		User result(username,login,hash,avatar_url);
-		 
+		auto result = std::make_shared<User>(username,login,hash,avatar_url);
+
 		sqlite->query(
-			"INSERT INTO users (username,login,pwd,avatar_url) VALUES ( ? , ? , ? , ? )",
-			username,login,hash,avatar_url
+					"INSERT INTO users (username,login,pwd,avatar_url) VALUES ( ? , ? , ? , ? )",
+					username,login,hash,avatar_url
 		)
-		.then( [p,result](reprosqlite::Result r) 
+		.then([p,result](reprosqlite::Result r)
 		{
-			p.resolve(result);
+			p.resolve(*result);
 		})
-		.otherwise( [p](const std::exception& ex)
+		.otherwise([p](const std::exception& ex)
 		{
-			p.reject(RegistrationEx("login is already taken"));
+			p.reject(RegistrationEx("error.msg.login.alreaady.taken"));
 		});
 
 		return p.future();
@@ -127,15 +138,15 @@ public:
 
 	Future<User> get_user( const std::string& login )
 	{
-		auto p = repro::promise<User>();
+		auto p = promise<User>();
 
 		sqlite->query(
-			"SELECT username,login,pwd,avatar_url FROM users WHERE login = ? ;",
-			login
+				"SELECT username,login,pwd,avatar_url FROM users WHERE login = ? ;",
+				login
 		)
-		.then( [p](reprosqlite::Result r) 
+		.then([p](reprosqlite::Result r)
 		{
-			if ( r.rows() < 1) throw repro::Ex("user login not found");
+			if ( r.rows() < 1) throw repro::Ex("user not found");
 
 			User result(
 				r[0][0],
@@ -143,12 +154,11 @@ public:
 				r[0][2],
 				r[0][3]
 			);
-
 			p.resolve(result);
 		})
-		.otherwise( [p](const std::exception& ex)
+		.otherwise([p](const std::exception& ex)
 		{
-			p.reject(AuthEx("login is already taken"));
+			p.reject(LoginEx("error.msg.login.failed"));
 		});
 
 		return p.future();
@@ -159,5 +169,20 @@ private:
 	std::shared_ptr<reprosqlite::SqlitePool> sqlite;
 };
 
+ 
+
+struct SessionPool : public reproredis::RedisPool
+{
+	SessionPool(std::shared_ptr<Config> config) 
+	  : RedisPool(config->getString("redis")) 
+	{}
+};
+
+struct UserPool : public reprosqlite::SqlitePool
+{
+	UserPool(std::shared_ptr<Config> config) 
+	  : SqlitePool(config->getString("sqlite")) 
+	{}
+};
 
 #endif
