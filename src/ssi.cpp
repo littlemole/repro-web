@@ -119,7 +119,7 @@ std::string SSIResolver::tmpl(Request& req, const std::string& htdocs)
         std::cout << "bad SSI path: " << path << " " << path_base std::endl;
         return "";
     } 
-#else
+#endif
     return prio::slurp(path);
 }
 

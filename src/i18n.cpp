@@ -170,7 +170,8 @@ void I18N::load(const std::string& base, const std::vector<std::string>& locales
     {
         return;
     } 
-#else
+#endif
+
     load("",path);
     for( auto& l : locales)
     {
