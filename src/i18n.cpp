@@ -148,13 +148,13 @@ void I18N::parse(const std::string& locale,const std::string& content)
 
 void I18N::load(const std::string& locale,const std::string& path)
 {
+    std::cout << "load locales: " << locale << " from " << path << std::endl;
+    
     std::string content = prio::slurp(path);
     if ( content.empty() )
     {
         return;
     }
-    
-    //std::cout << "load locales: " << locale << " from " << path << std::endl;
     
     parse(locale,content);
 }
