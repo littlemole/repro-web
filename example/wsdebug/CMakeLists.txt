@@ -39,7 +39,7 @@ set( CMAKE_EXE_LINKER_FLAGS  "${CMAKE_EXE_LINKER_FLAGS} ${LINKERFLAGS}" )
 
 IF (WIN32)
 
-	set(OSLIBS "Ws2_32" "Rpcrt4")
+	set(OSLIBS "Ws2_32" "Rpcrt4" "Shlwapi")
 
 	find_library(PRIOCPP_LIBRARY NAMES priocpp)
 	find_library(PRIOCPPD_LIBRARY NAMES priocppd)

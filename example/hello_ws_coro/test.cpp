@@ -5,6 +5,7 @@
 #include <signal.h>
   
 #include "model.h"
+#include "valid.h"
 #include "view.h"
 #include "repo.h"
 #include "controller.h"
@@ -14,37 +15,6 @@ using namespace diy;
 using namespace prio;
 using namespace reproweb;
 
-class AppConfig : public Config
-{
-public:
-	AppConfig(std::shared_ptr<FrontController> fc)
-	  : Config("config.json")
-	{
-		const char* redis = getenv("REDIS_HOST");
-		if(redis)
-		{
-			std::ostringstream oss;
-			oss << "redis://" << redis << ":6379";
-
-			get("redis") = oss.str();
-		}
-		std::cout << "REDIS: " << get("redis") << std::endl;
-	}
-};
-
-struct SessionPool : public reproredis::RedisPool
-{
-	SessionPool(std::shared_ptr<Config> config) 
-	  : RedisPool(config->getString("redis")) 
-	{}
-};
-
-struct UserPool : public reprosqlite::SqlitePool
-{
-	UserPool(std::shared_ptr<Config> config) 
-	  : SqlitePool(config->getString("sqlite")) 
-	{}
-};
 
 int main(int argc, char **argv)
 {
@@ -62,13 +32,15 @@ int main(int argc, char **argv)
 
 		ws_controller<WebSocketController> ("/ws"),
 
+		i18n_props("/locale/properties", {"en", "de"} ),
+
+		view_templates("/view/"),
+
 #ifndef _WIN32
 		static_content("/htdocs/","/etc/mime.types"),
 #else
 		static_content("/htdocs/","mime.types"),
 #endif
-
-		i18n_props("/locale/properties", {"en", "de"} ),
 
 		ex_handler(&Exceptions::on_auth_failed),
 		ex_handler(&Exceptions::on_login_failed),
@@ -83,7 +55,7 @@ int main(int argc, char **argv)
 		singleton<UserRepository(UserPool)>(),
 
 		singleton<Model(SessionRepository,UserRepository)>(),
-		singleton<View(AppConfig,I18N)>(),
+		singleton<View(TplStore,I18N)>(),
 		singleton<Controller(Model,View)>(),
 
 		singleton<EventBus()>(),

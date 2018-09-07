@@ -1,7 +1,10 @@
-login.page.title=Hello Coro Websockets
+login.page.title=Hello \
+Coro \
+Websockets
 
 login.header.headline=repro-web
-login.header.headline.desc=modern reactive c++ for the web.
+login.header.headline.desc=modern reactive c++ \
+for the web.
 
 login.title.headline=hello coroutine websockets
 login.title.desc=hello world websocket example with coroutines for modern reactive c++ for the web.

@@ -3,6 +3,7 @@
 
 #include "reproweb/json/json.h"
 #include "reproweb/view/mustache.hpp"
+#include <diycpp/ctx.h>
 
 namespace reproweb  {
 
@@ -45,6 +46,25 @@ private:
 	std::map<std::string,std::string> templates_;
 };
 
+class view_templates
+{
+public:
+
+    view_templates(const std::string& path)
+		: path_(path)
+	{}
+
+    void ctx_register(diy::Context* ctx)
+	{
+		auto i18n = std::make_shared<TplStore>();
+		i18n->load(path_);
+		ctx->registerFactory( typeid(TplStore), new diy::FactoryImpl<TplStore>(i18n) );
+	}
+
+private:
+
+    std::string path_;
+};
 
 }
 

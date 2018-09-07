@@ -1,9 +1,6 @@
 #ifndef _DEF_GUARD_DEFINE_REPROWEB_HELLO_WORLD_VIEW_DEFINE_
 #define _DEF_GUARD_DEFINE_REPROWEB_HELLO_WORLD_VIEW_DEFINE_
 
-#include <string>
-#include <memory>
-
 #include "reproweb/tools/config.h"
 #include "reproweb/view/tpl.h"
 #include "reproweb/view/i18n.h"
@@ -17,42 +14,37 @@ class View
 {
 public:
 
-	View(std::shared_ptr<Config> conf, std::shared_ptr<I18N> i18n)
-		: config_(conf), i18n_(i18n)
-	{
-		templates_.load("/view/");
-	}
+	View(
+		std::shared_ptr<TplStore> tpls, 
+		std::shared_ptr<I18N> i18n )
+		: templates_(tpls), i18n_(i18n)
+	{}
 
 	void render_index(Request& req, Response& res, Json::Value profile)
 	{
 		render(req,res,"index",profile);
 	}
 
-	void render_login(Request& req, Response& res, const std::string& msg )
+	void render_login(Request& req, Response& res, const std::string& errMsg )
 	{
-		Json::Value errorMsg(Json::objectValue);
-		errorMsg["errorMsg"] = "";
-
-		if(!msg.empty())
-		{
-			errorMsg["errorMsg"] = i18n_->key(get_locale(req),msg);
-		}
-
-		render(req,res,"login",errorMsg);
+		render(req,res,"login",errMsg);
 	}
 
-	void render_registration(Request& req, Response& res, const std::string& msg )
+	void render_registration(Request& req, Response& res, const std::string& errMsg )
 	{
-		Json::Value errorMsg(Json::objectValue);
-		errorMsg["errorMsg"] = "";
-
-		if(!msg.empty())
-		{
-			errorMsg["errorMsg"] = i18n_->key(get_locale(req),msg);
-		}
-
-		render(req,res,"register",errorMsg);
+		render(req,res,"register",errMsg);
 	}	
+
+	void render_error(const std::exception& ex, Response& res)
+	{
+		std::ostringstream oss;
+		oss << typeid(ex).name() << ":" << ex.what() << std::endl;
+
+		res
+		.body(oss.str())
+		.error()
+		.flush();
+	}
 
 	void redirect_to_index(Response& res, const std::string& sid)
 	{
@@ -77,16 +69,21 @@ public:
 	}	
 
 private:
-	TplStore templates_;
-	std::shared_ptr<Config> config_;
+
+	std::shared_ptr<TplStore> templates_;
 	std::shared_ptr<I18N> i18n_;
+
+	void render(Request& req, Response& res, const std::string& page, const std::string& errMsg)
+	{
+		return render(req,res,page,error_msg(Valid::locale(req),errMsg));
+	}
 
 	void render(Request& req, Response& res, const std::string& page, Json::Value value)
 	{
 		value["page"] = page;
 
-		std::string locale = get_locale(req);
-		std::string view = templates_.get(page);
+		std::string locale = Valid::locale(req);
+		std::string view = templates_->get(page);
 
 		//std::cout << "---------------------------------" << std::endl;
 		//std::cout << locale << ":" << view << std::endl;
@@ -117,14 +114,18 @@ private:
 		});
 	}
 
-	std::string get_locale(Request& req)
+	Json::Value error_msg(const std::string& locale, const std::string& msg )
 	{
-		auto h = req.headers.values("Accept-Language");
-		auto lang = h.value().main();
-		std::string locale = std::regex_replace (lang,std::regex("-"),"_");		
+		Json::Value errorMsg(Json::objectValue);
+		errorMsg["errorMsg"] = "";
 
-		return locale;
-	}
+		if(!msg.empty())
+		{
+			errorMsg["errorMsg"] = i18n_->key(locale,msg);
+		}
+
+		return errorMsg;
+	}	
 };
  
 #endif

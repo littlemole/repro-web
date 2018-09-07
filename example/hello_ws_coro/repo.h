@@ -9,7 +9,7 @@
 using namespace prio;
 using namespace repro;
 using namespace reproweb;
- 
+
 
 class SessionRepository
 {
@@ -161,5 +161,20 @@ private:
 	std::shared_ptr<reprosqlite::SqlitePool> sqlite;
 };
 
+ 
+
+struct SessionPool : public reproredis::RedisPool
+{
+	SessionPool(std::shared_ptr<Config> config) 
+	  : RedisPool(config->getString("redis")) 
+	{}
+};
+
+struct UserPool : public reprosqlite::SqlitePool
+{
+	UserPool(std::shared_ptr<Config> config) 
+	  : SqlitePool(config->getString("sqlite")) 
+	{}
+};
 
 #endif

@@ -108,5 +108,8 @@ up: update-dockerfile ## run the docker image and open a shell
 
 down: ## stop running docker image, if any
 	CXX=$(CXX) BACKEND=$(BACKEND) BUILDCHAIN=$(BUILDCHAIN) docker-compose stop
+
+clean-logs:
+	sh -c "truncate -s 0 /var/lib/docker/containers/*/*-json.log"
 	
 .PHONY: build up down update-dockerfile

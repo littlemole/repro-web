@@ -50,7 +50,7 @@ message("+++++++++++++++++")
 message("${CMAKE_BUILD_TYPE}")
 message("+++++++++++++++++")
 
-	set(OSLIBS "Ws2_32" "Rpcrt4")
+	set(OSLIBS "Ws2_32" "Rpcrt4" "Shlwapi")
 	set(BUILDFLAGS "-await ${FLAGS}")
 
 	find_library(LIBEVENT_LIBRARY NAMES event)
