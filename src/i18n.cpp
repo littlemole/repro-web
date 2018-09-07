@@ -165,11 +165,12 @@ void I18N::load(const std::string& base, const std::vector<std::string>& locales
     std::string path_base = prio::get_current_work_dir()+ base;
     std::string path = prio::real_path(path_base );		
 
+#ifndef _WIN32
     if ( path.substr(0,path_base.length()) != path_base )
     {
         return;
     } 
-
+#else
     load("",path);
     for( auto& l : locales)
     {
