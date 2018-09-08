@@ -6,6 +6,8 @@
 #include "repo.h"
 #include "valid.h"
 
+#include "cryptoneat/cryptoneat.h"
+
 using namespace reproweb;
 
 class Controller
@@ -18,24 +20,27 @@ public:
 
 	void index( Request& req, Response& res)
 	{
+		std::string sid;
+
 		try
 		{
-			std::string sid = Valid::session_id(req.headers.cookies());
-
-			model_->chat(sid)
-			.then([this,&req,&res](Json::Value viewModel)
-			{
-				view_->render_index(req,res,viewModel);
-			})
-			.otherwise([this,&res](const std::exception& ex)
-			{
-				view_->redirect_to_login(res);
-			});
+			sid = Valid::session_id(req.headers.cookies());
 		}
 		catch(const std::exception& ex)
 		{
 			view_->redirect_to_login(res);
+			return;
 		}
+
+		model_->chat(sid)
+		.then([this,&req,&res](Json::Value viewModel)
+		{
+			view_->render_index(req,res,viewModel);
+		})
+		.otherwise([this,&res](const std::exception& ex)
+		{
+			view_->redirect_to_login(res);
+		});
 	}
 
 	void show_login( Request& req, Response& res)
@@ -50,74 +55,87 @@ public:
 
 	void login( Request& req, Response& res)
 	{
+		std::string login;
+		std::string pwd;
+
 		try
 		{
 			QueryParams qp(req.body());
-			std::string login = Valid::login<LoginEx>(qp);
-			std::string pwd   = Valid::passwd<LoginEx>(qp);
-
-			model_->login(login,pwd)
-			.then([this,&res](std::string sid)
-			{
-				view_->redirect_to_index(res,sid);
-			})
-			.otherwise([this,&req,&res](const std::exception& ex)
-			{
-				view_->render_login(req,res,ex.what());
-			});
+			login = Valid::login<LoginEx>(qp);
+			pwd   = Valid::passwd<LoginEx>(qp);
 		}
 		catch(const std::exception& ex)
 		{
 			view_->render_login(req,res,ex.what());
+			return;
 		}		
+
+		model_->login(login,pwd)
+		.then([this,&res](std::string sid)
+		{
+			view_->redirect_to_index(res,sid);
+		})
+		.otherwise([this,&req,&res](const std::exception& ex)
+		{
+			view_->render_login(req,res,ex.what());
+		});
 	}
 
 	void logout( Request& req, Response& res)
 	{
+		std::string sid;
+
 		try
 		{
-			const std::string sid = Valid::session_id(req.headers.cookies());
-
-			model_->logout(sid)
-			.then([this,&res]()
-			{
-				view_->redirect_to_login(res);
-			})
-			.otherwise([this,&res](const std::exception& ex)
-			{
-				view_->render_error(ex,res);
-			});
+			sid = Valid::session_id(req.headers.cookies());
 		}
 		catch(const std::exception& ex)
 		{
 			view_->redirect_to_login(res);
-		}		
+			return;
+		}	
+
+		model_->logout(sid)
+		.then([this,&res]()
+		{
+			view_->redirect_to_login(res);
+		})
+		.otherwise([this,&res](const std::exception& ex)
+		{
+			view_->render_error(ex,res);
+		});	
 	}
 
 	void register_user( Request& req, Response& res)
 	{
+		std::string username;
+		std::string login;
+		std::string pwd;
+		std::string avatar_url;
+
 		try
 		{
 			QueryParams qp(req.body());
-			std::string username   = Valid::username(qp);
-			std::string login      = Valid::login<RegistrationEx>(qp);
-			std::string pwd        = Valid::passwd<RegistrationEx>(qp);
-			std::string avatar_url = Valid::avatar(qp);
-
-			model_->register_user(username,login,pwd,avatar_url)
-			.then([this,&res](std::string sid)
-			{
-				view_->redirect_to_index(res,sid);
-			})
-			.otherwise([this,&req,&res](const std::exception& ex)
-			{
-				view_->render_registration(req,res,ex.what());
-			});
+			username   = Valid::username(qp);
+			login      = Valid::login<RegistrationEx>(qp);
+			pwd        = Valid::passwd<RegistrationEx>(qp);
+			avatar_url = Valid::avatar(qp);
 		}
 		catch(const std::exception& ex)
 		{
 			view_->render_registration(req,res,ex.what());
+			return;
 		}		
+
+		model_->register_user(username,login,pwd,avatar_url)
+		.then([this,&res](std::string sid)
+		{
+			view_->redirect_to_index(res,sid);
+		})
+		.otherwise([this,&req,&res](const std::exception& ex)
+		{
+			view_->render_registration(req,res,ex.what());
+		});
 	}
 
 private:

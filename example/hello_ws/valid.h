@@ -1,7 +1,6 @@
 #ifndef _DEF_GUARD_DEFINE_REPROWEB_HELLO_WORLD_VALID_CONTROLLER_DEFINE_
 #define _DEF_GUARD_DEFINE_REPROWEB_HELLO_WORLD_VALID_CONTROLLER_DEFINE_
 
-#include <regex>
 #include "reproweb/tools/validation.h"
 #include "entities.h"
 

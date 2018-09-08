@@ -75,8 +75,9 @@ int WebServer::listen(prio::SslCtx& ssl, int port)
         
         auto fc = diy::inject<FrontController>(ctx_);
         server->bind(port)
-        .then( [fc](prio::Request& req, prio::Response& res)
+        .then( [fc,port](prio::Request& req, prio::Response& res)
         {
+            req.attributes.set("PORT",port);
         	fc->request_handler(req,res);
         })
 		.otherwise([](const std::exception& ex)

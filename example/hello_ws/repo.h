@@ -3,7 +3,6 @@
 
 #include "reproredis/redis.h"
 #include "reprosqlite/sqlite.h"
-#include "reproweb/json/json.h"
 #include "model.h"
 
 using namespace prio;

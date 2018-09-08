@@ -5,7 +5,6 @@
 #include <memory>
 
 #include "reproweb/tools/config.h"
-#include "cryptoneat/cryptoneat.h"
 
 
 class AuthEx : public repro::Ex 
@@ -100,5 +99,22 @@ private:
 };
 
 
+class AppConfig : public reproweb::WebAppConfig
+{
+public:
+	AppConfig(std::shared_ptr<diy::Context> ctx)
+	  : WebAppConfig("config.json",ctx)
+	{
+		const char* redis = getenv("REDIS_HOST");
+		if(redis)
+		{
+			std::ostringstream oss;
+			oss << "redis://" << redis << ":6379";
+
+			get("redis") = oss.str();
+		}
+		std::cout << "REDIS: " << get("redis") << std::endl;
+	}
+};
 
 #endif

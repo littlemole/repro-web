@@ -74,6 +74,26 @@ private:
     std::shared_ptr<diy::Context> ctx_;
 };
 
+class StaticContentHandler
+{
+public:
+
+    StaticContentHandler(const std::string& htdocs_path,const std::string& mime_file_path);
+
+    ~StaticContentHandler();
+
+    void register_static_handler(diy::Context* ctx);
+
+private:
+
+    std::string htdocs_;
+    std::string mime_;
+
+
+    static std::string get_mime( const std::map<std::string,std::string>& mime_, const std::string& fp );
+};
+
+
 class static_content
 {
 public:
@@ -82,19 +102,12 @@ public:
 
     ~static_content();
 
-    void ctx_register(diy::Context* ctx)
-	{
-        register_static_handler(ctx);
-	}
+    void ctx_register(diy::Context* ctx);
 
 private:
 
     std::string htdocs_;
     std::string mime_;
-
-    void register_static_handler(diy::Context* ctx);
-
-    static std::string get_mime( const std::map<std::string,std::string>& mime_, const std::string& fp );
 };
 
 

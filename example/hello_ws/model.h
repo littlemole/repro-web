@@ -1,29 +1,8 @@
 #ifndef _DEF_GUARD_DEFINE_REPROWEB_HELLO_WORLD_MODEL_DEFINE_
 #define _DEF_GUARD_DEFINE_REPROWEB_HELLO_WORLD_MODEL_DEFINE_
 
-#include <string>
-#include <memory>
-
 #include "entities.h"
 #include "repo.h"
-
-class AppConfig : public Config
-{
-public:
-	AppConfig(std::shared_ptr<FrontController> fc)
-	  : Config("config.json")
-	{
-		const char* redis = getenv("REDIS_HOST");
-		if(redis)
-		{
-			std::ostringstream oss;
-			oss << "redis://" << redis << ":6379";
-
-			get("redis") = oss.str();
-		}
-		std::cout << "REDIS: " << get("redis") << std::endl;
-	}
-};
 
 class Model 
 {

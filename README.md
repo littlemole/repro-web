@@ -17,6 +17,7 @@ from a developer perspective, allow for server side web development at a level o
 - support for JSON
 - support for templating
 - Dependency Injection
+- websockets
 
 # dependencies
 - [repro](http://github.com/littlemole/repro) exposes the fundamental Promise abstraction to wrap async io

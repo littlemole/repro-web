@@ -1,12 +1,5 @@
 #include "reproweb/ctrl/ssi.h"
 
-#ifndef _WIN32
-#include <unistd.h>
-#else
-#include <direct.h>
-#define getcwd _getcwd
-#endif
-
 using namespace repro;
 using namespace prio;
 

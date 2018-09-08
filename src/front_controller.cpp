@@ -10,12 +10,6 @@
 #include <fstream>
 #include <iostream>
 
-#ifndef _WIN32
-#include <unistd.h>
-#else
-#include <direct.h>
-#define getcwd _getcwd
-#endif
 
 namespace reproweb  {
 
@@ -259,7 +253,7 @@ void FrontController::request_handler( prio::Request& req, prio::Response& res )
 
 
 
-std::string static_content::get_mime( const std::map<std::string,std::string>& mime_, const std::string& fp )
+std::string StaticContentHandler::get_mime( const std::map<std::string,std::string>& mime_, const std::string& fp )
 {
 	size_t pos = fp.find_last_of('.');
 	if ( pos == std::string::npos)
@@ -276,12 +270,12 @@ std::string static_content::get_mime( const std::map<std::string,std::string>& m
 }
 
 
-static_content::static_content(const std::string& htdocs_path,const std::string& mime_file_path)
+StaticContentHandler::StaticContentHandler(const std::string& htdocs_path,const std::string& mime_file_path)
 	: htdocs_(htdocs_path), mime_(mime_file_path)
 {   
 } 
    
-void static_content::register_static_handler(diy::Context* ctx)
+void StaticContentHandler::register_static_handler(diy::Context* ctx)
 {
 	std::map<std::string,std::string> map_;
     std::string path_base = prio::get_current_work_dir() + htdocs_;
@@ -304,6 +298,7 @@ void static_content::register_static_handler(diy::Context* ctx)
     		std::string mime = line.substr(0,pos);
     		std::string exts = prio::trim(line.substr(pos));
     		auto v = prio::split(exts,' ');
+
     		for ( auto e : v )
     		{
     			map_[e] = mime;
@@ -317,13 +312,15 @@ void static_content::register_static_handler(diy::Context* ctx)
 		std::string path = path_base + req.path.path();
 		path = prio::real_path(path);
  
+ #ifndef _WIN32
 		if ( path.substr(0,path_base.length()) != path_base )
 		{
 			res.bad_request().flush();
 			return;
 		} 
+#endif
 
-    	res.contentType(static_content::get_mime(map_,path));
+    	res.contentType(StaticContentHandler::get_mime(map_,path));
 
     	res.header("Access-Control-Allow-Origin", "*");
 
@@ -342,10 +339,31 @@ void static_content::register_static_handler(diy::Context* ctx)
     fc->registerStaticHandler("GET","/.*",handler);
 }
 
-static_content::~static_content() 
+StaticContentHandler::~StaticContentHandler() 
 {
 }
 
+
+////////////////////////////////////////////////////////////////////////////
+
+
+
+static_content::static_content(const std::string& htdocs_path,const std::string& mime_file_path)
+	: htdocs_(htdocs_path), mime_(mime_file_path)
+{   
+} 
+   
+void static_content::ctx_register(diy::Context* ctx)
+{
+	auto content = std::make_shared<StaticContentHandler>(htdocs_,mime_);
+	ctx->registerFactory( typeid(StaticContentHandler), new diy::FactoryImpl<StaticContentHandler>(content) );
+
+	content->register_static_handler(ctx);
+}
+
+static_content::~static_content() 
+{
+}
 
 
 } // end namespace csgi

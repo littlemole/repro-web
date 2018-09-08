@@ -1,12 +1,6 @@
 #include "reproweb/view/tpl.h"
 #include "priohttp/common.h"
 
-#ifndef _WIN32
-#include <unistd.h>
-#else
-#include <direct.h>
-#define getcwd _getcwd
-#endif
 
 namespace reproweb  {
 

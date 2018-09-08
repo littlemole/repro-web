@@ -56,9 +56,9 @@ public:
 
     void ctx_register(diy::Context* ctx)
 	{
-		auto i18n = std::make_shared<TplStore>();
-		i18n->load(path_);
-		ctx->registerFactory( typeid(TplStore), new diy::FactoryImpl<TplStore>(i18n) );
+		auto tpls = std::make_shared<TplStore>();
+		tpls->load(path_);
+		ctx->registerFactory( typeid(TplStore), new diy::FactoryImpl<TplStore>(tpls) );
 	}
 
 private:
