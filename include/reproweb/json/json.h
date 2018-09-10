@@ -47,6 +47,11 @@ inline const std::string stringify(Json::Value value)
 
 }
 
+inline const std::string flatten(Json::Value value)
+{
+	Json::FastWriter writer;
+	return writer.write( value );
+}
 
 
 //////////////////////////////////////////////////////////////
@@ -117,7 +122,165 @@ private:
 };
 
 
+///////////////////////////////////////////////////////////////////////////////////////////
 
+inline Json::Value toJson(int i)
+{
+	return Json::Value(i);
+}
+
+inline Json::Value toJson(const std::string& s)
+{
+	return Json::Value(s);
+}
+
+template<class T>
+Json::Value toJson(const std::vector<T>& v)
+{
+	Json::Value json(Json::arrayValue);
+
+	for ( unsigned int i = 0; i < v.size(); i++)
+	{
+		json[i] = toJson(v[i]);
+	}
+
+	return json;
+}
+
+inline void fromJson( int& i, Json::Value& json )
+{
+	i = json.asInt();
+}
+
+inline void fromJson( std::string& s, Json::Value& json )
+{
+	s = json.asString();
+}
+
+template<class T>
+void fromJson( std::vector<T>& v, Json::Value& json )
+{
+	unsigned int size = json.size();
+	for ( unsigned int i = 0; i < size; i++)
+	{
+		T t;
+		fromJson(t,json[i]);
+		v.push_back( std::move(t) );
+	}
+}
+
+
+
+#define TO_JSON(clazz,member) #member, &clazz::member
+//#define FROM_JSON(obj,member,json) fromJson(obj.member,json[ #member ])
+
+
+
+
+class JsonMemberBase
+{
+public:
+
+	virtual ~JsonMemberBase(){}
+
+ 	virtual void toJson( void* p, Json::Value &json) = 0;
+	virtual void fromJson( void* p, Json::Value& json ) = 0;
+};
+
+
+template<class T, class M>
+class JsonMember : public JsonMemberBase
+{
+public:
+
+	JsonMember(const char* m, M T::*p)
+		: member(m), mp(p)
+	{}
+
+ 	void toJson( void* t, Json::Value &json)
+	{
+		json[member] = reproweb::toJson( ((T*)t)->*mp);
+	}
+
+	void fromJson( void* t, Json::Value& json )
+	{
+		if(json.isMember(member))
+		{
+			 reproweb::fromJson( ((T*)t)->*mp, json[member] );
+		}
+	}
+
+	std::string member;
+	M T::* mp;
+};
+
+template<class T,class M>
+JsonMember<T,M>* json_member(const char* m, M T::* p)
+{
+	return new JsonMember<T,M>(m,p);
+}
+
+template<class T>
+class Jsonizer
+{
+public:
+	template<class ...Args>
+	Jsonizer(Args... args)
+	{
+		jsonize(args...);
+	}
+
+ 	Json::Value toJson( T& t)
+	{
+		Json::Value json(Json::objectValue);
+
+		for( auto& m : members)
+		{
+			m->toJson(&t,json);
+		}
+
+		return json;
+	}
+
+	void fromJson( T& t, Json::Value& json )
+	{
+		for( auto& m : members)
+		{
+			m->fromJson(&t,json);
+		}
+	}
+
+protected:
+
+	std::vector<std::unique_ptr<JsonMemberBase>> members;
+
+private:
+
+	void jsonize()
+	{
+		// terminator
+	}
+
+	template<class M, class ...Args>
+	void jsonize(const char* member, M mp, Args ... args )
+	{
+		auto jmp = json_member(member,mp);
+		members.push_back(std::unique_ptr<JsonMemberBase>(jmp));
+		jsonize(args...);
+	}
+};
+
+template<class T>
+Json::Value toJson(T& t)
+{
+	return t.jsonize().toJson(t);
+}
+
+template<class T>
+void fromJson(T& t, Json::Value& json)
+{
+	t.jsonize().fromJson(t,json);
+}
 
 }
 

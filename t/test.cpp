@@ -63,6 +63,28 @@ class BasicTest : public ::testing::Test {
 
 
 
+struct User
+{
+public:
+
+	std::string username;
+	std::string login;
+	std::string pwd;
+	std::vector<std::string> tags;
+
+	static reproweb::Jsonizer<User>& jsonize()
+	{
+		static Jsonizer<User> jsonizer {
+			TO_JSON(User,username), 
+			TO_JSON(User,login), 
+			TO_JSON(User,pwd),
+			TO_JSON(User,tags) 
+		};
+		return jsonizer;
+	}
+};
+
+
 class Logger
 {
 public:
@@ -170,6 +192,31 @@ public:
 		});
 	}	
 
+	repro::Future<User> getUser(prio::Request& req, prio::Response& res)
+	{
+		auto p = promise<User>();
+
+		nextTick( [p]()
+		{
+			User user{ "mike", "littlemole", "secret", { "one", "two", "three"} };
+			p.resolve(user);
+		});
+
+		return p.future();
+	}
+
+
+	repro::Future<User> postUser(User user, prio::Request& req, prio::Response& res)
+	{
+		auto p = promise<User>();
+
+		nextTick( [p,user]()
+		{
+			p.resolve(user);
+		});
+
+		return p.future();
+	}
 
 private:
 
@@ -1083,6 +1130,115 @@ TEST_F(BasicTest, I18NtplWithMarkup)
 	EXPECT_EQ("<html>\n<body>\n<h1>Hello Coro Websockets</h1>\nemail: littlemole@oha7.org\n<p>Hello dear Michael</p>\n</body>\n</html>\n",content);
 
 }
+
+
+
+
+
+
+TEST_F(BasicTest, toJson) 
+{
+	User user{ "mike", "littlemole", "secret", { "one", "two", "three"} };
+	Json::Value json = toJson(user);
+
+	std::string s = JSON::flatten(json); 
+
+	EXPECT_EQ("{\"login\":\"littlemole\",\"pwd\":\"secret\",\"tags\":[\"one\",\"two\",\"three\"],\"username\":\"mike\"}\n",s);
+
+	User other;
+	fromJson(other,json);
+
+	EXPECT_EQ("mike",other.username);
+	EXPECT_EQ("littlemole",other.login);
+	EXPECT_EQ("secret",other.pwd);
+
+	EXPECT_EQ("one",other.tags[0]);
+	EXPECT_EQ("two",other.tags[1]);
+	EXPECT_EQ("three",other.tags[2]);
+}
+
+TEST_F(BasicTest, SimpleRest) 
+{
+	std::string result;
+
+	WebApplicationContext ctx {
+
+		LoggerComponent,
+		TestControllerComponent,
+
+		GET ("/path/a",&TestController::getUser)
+	};
+
+	{
+		reproweb::WebServer server(ctx);
+
+		nextTick()
+		.then( [&result,&server]()
+		{
+			HttpClient::url("http://localhost:8765/path/a")
+			->fetch()
+			.then([&result,&server](prio::Response& res)
+			{
+				result = res.body();
+				server.shutdown();
+				theLoop().exit();
+			})
+			.otherwise([&server](const std::exception& ex)
+			{
+				std::cout << ex.what() << std::endl;
+				server.shutdown();
+				theLoop().exit();
+			});
+		});
+
+		server.listen(8765);
+		theLoop().run();
+	}
+    EXPECT_EQ("{\n\t\"login\" : \"littlemole\",\n\t\"pwd\" : \"secret\",\n\t\"tags\" : \n\t[\n\t\t\"one\",\n\t\t\"two\",\n\t\t\"three\"\n\t],\n\t\"username\" : \"mike\"\n}",result);
+    MOL_TEST_ASSERT_CNTS(0,0);
+}
+
+TEST_F(BasicTest, SimpleRestPost) 
+{
+	std::string result;
+
+	WebApplicationContext ctx {
+
+		LoggerComponent,
+		TestControllerComponent,
+
+		POST ("/path/a",&TestController::postUser)
+	};
+
+	{
+		reproweb::WebServer server(ctx);
+
+		nextTick()
+		.then( [&result,&server]()
+		{
+			HttpClient::url("http://localhost:8765/path/a")
+			->POST("{\"login\" : \"littlemole\",\"pwd\" : \"secret\",\"tags\" : [\"one\",\"two\",\"three\"],\"username\" : \"mike\"\n}")
+			.then([&result,&server](prio::Response& res)
+			{
+				result = res.body();
+				server.shutdown();
+				theLoop().exit();
+			})
+			.otherwise([&server](const std::exception& ex)
+			{
+				std::cout << ex.what() << std::endl;
+				server.shutdown();
+				theLoop().exit();
+			});
+		});
+
+		server.listen(8765);
+		theLoop().run();
+	}
+    EXPECT_EQ("{\n\t\"login\" : \"littlemole\",\n\t\"pwd\" : \"secret\",\n\t\"tags\" : \n\t[\n\t\t\"one\",\n\t\t\"two\",\n\t\t\"three\"\n\t],\n\t\"username\" : \"mike\"\n}",result);
+    MOL_TEST_ASSERT_CNTS(0,0);
+}
+
 
 int main(int argc, char **argv)
 {
