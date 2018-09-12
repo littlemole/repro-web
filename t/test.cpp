@@ -82,6 +82,11 @@ public:
 		};
 		return jsonizer;
 	}
+
+	bool valid()
+	{
+		return true;
+	}
 };
 
 
@@ -217,6 +222,19 @@ public:
 
 		return p.future();
 	}
+
+
+	repro::Future<Json::Value> postUserJson(Json::Value user, prio::Request& req, prio::Response& res)
+	{
+		auto p = promise<Json::Value>();
+
+		nextTick( [p,user]()
+		{
+			p.resolve(user);
+		});
+
+		return p.future();
+	}	
 
 private:
 
@@ -1239,6 +1257,99 @@ TEST_F(BasicTest, SimpleRestPost)
     MOL_TEST_ASSERT_CNTS(0,0);
 }
 
+TEST_F(BasicTest, SimpleRestPostJson) 
+{
+	std::string result;
+
+	WebApplicationContext ctx {
+
+		LoggerComponent,
+		TestControllerComponent,
+
+		POST ("/path/a",&TestController::postUserJson)
+	};
+
+	{
+		reproweb::WebServer server(ctx);
+
+		nextTick()
+		.then( [&result,&server]()
+		{
+			HttpClient::url("http://localhost:8765/path/a")
+			->POST("{\"login\" : \"littlemole\",\"pwd\" : \"secret\",\"tags\" : [\"one\",\"two\",\"three\"],\"username\" : \"mike\"\n}")
+			.then([&result,&server](prio::Response& res)
+			{
+				result = res.body();
+				server.shutdown();
+				theLoop().exit();
+			})
+			.otherwise([&server](const std::exception& ex)
+			{
+				std::cout << ex.what() << std::endl;
+				server.shutdown();
+				theLoop().exit();
+			});
+		});
+
+		server.listen(8765);
+		theLoop().run();
+	}
+    EXPECT_EQ("{\n\t\"login\" : \"littlemole\",\n\t\"pwd\" : \"secret\",\n\t\"tags\" : \n\t[\n\t\t\"one\",\n\t\t\"two\",\n\t\t\"three\"\n\t],\n\t\"username\" : \"mike\"\n}",result);
+    MOL_TEST_ASSERT_CNTS(0,0);
+}
+
+template <typename T>
+class has_valid
+{
+    typedef char one;
+    typedef long two;
+
+    template <typename C> static one test( decltype(&C::valid) ) ;
+    template <typename C> static two test(...);    
+
+public:
+    enum { value = sizeof(test<T>(0)) == sizeof(char) };
+};
+
+class call_valid
+{
+public:
+
+    template <class T, typename std::enable_if<has_valid<T>::value>::type* = nullptr >
+	static bool invoke( T& t) 
+	{
+		return t.valid();
+	}
+
+    template <class T , typename  std::enable_if<!has_valid<T>::value>::type* = nullptr >
+	static bool invoke( T& t) 
+	{
+		return false;
+	}
+};
+
+TEST_F(BasicTest, Invocable) 
+{
+	User user;
+	User* up = &user;
+
+	std::cout << "invocable: " << has_valid<User>::value << std::endl;
+
+	if ( has_valid<User>::value )
+	{
+		call_valid::invoke(user);
+	}
+
+	Logger logger;
+
+	std::cout << "invocable: " << has_valid<Logger>::value << std::endl;
+
+	if ( has_valid<Logger>::value )
+	{
+		call_valid::invoke(logger);
+	}
+
+}
 
 int main(int argc, char **argv)
 {

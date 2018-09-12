@@ -15,6 +15,21 @@ typedef ::repro::Future<> Async;
 
 #endif
 
+inline void output_json(prio::Response& res,Json::Value json)
+{
+	res
+	.body(JSON::stringify(json))
+	.contentType("application/json")
+	.ok()
+	.flush();
+}
+
+template<class T>
+void output_json(prio::Response& res, T& t)
+{
+	output_json(res, toJson(t) );
+}
+
 #ifdef _RESUMABLE_FUNCTIONS_SUPPORTED
 
 template<class T, class C>
@@ -33,17 +48,13 @@ repro::Future<> coro_handler(FrontController& fc, T& t, Async(C::*fun)(prio::Req
 }
 
 template<class T, class V, class C>
-repro::Future<> coro_handler_json(FrontController& fc, T& t, repro::Future<V> (C::*fun)(prio::Request&, prio::Response&), prio::Request& req, prio::Response& res)
+repro::Future<> coro_handler_output(FrontController& fc, T& t, repro::Future<V> (C::*fun)(prio::Request&, prio::Response&), prio::Request& req, prio::Response& res)
 {
 	try
 	{
 		V v = co_await(t.*fun)(req, res);
 
-		res
-		.body(JSON::stringify(toJson(t)))
-		.contentType("application/json")
-		.ok()
-		.flush();
+		output_json(res,v);
 
 		co_return;
 	}
@@ -55,8 +66,29 @@ repro::Future<> coro_handler_json(FrontController& fc, T& t, repro::Future<V> (C
 	co_return;
 }
 
+
+template<class T, class C>
+repro::Future<> coro_handler_output_json(FrontController& fc, T& t, repro::Future<Json::Value> (C::*fun)(prio::Request&, prio::Response&), prio::Request& req, prio::Response& res)
+{
+	try
+	{
+		Json::Value v = co_await(t.*fun)(req, res);
+
+		output_json(res,v);
+
+		co_return;
+	}
+	catch (const std::exception& ex)
+	{
+		fc.handle_exception(ex, req, res);
+	}
+	co_await prio::nextTick();
+	co_return;
+}
+
+
 template<class T, class V, class C, class R>
-repro::Future<> coro_handler_json_value(FrontController& fc, T& t, repro::Future<V> (C::*fun)(R r,prio::Request&, prio::Response&), prio::Request& req, prio::Response& res)
+repro::Future<> coro_handler_input_output(FrontController& fc, T& t, repro::Future<V> (C::*fun)(R r,prio::Request&, prio::Response&), prio::Request& req, prio::Response& res)
 {
 	try
 	{
@@ -67,11 +99,29 @@ repro::Future<> coro_handler_json_value(FrontController& fc, T& t, repro::Future
 
 		V v = co_await(t.*fun)(r, req, res);
 
-		res
-		.body(JSON::stringify(toJson(t)))
-		.contentType("application/json")
-		.ok()
-		.flush();
+		output_json(res,v);
+
+		co_return;
+	}
+	catch (const std::exception& ex)
+	{
+		fc.handle_exception(ex, req, res);
+	}
+	co_await prio::nextTick();
+	co_return;
+}
+
+
+template<class T, class C>
+repro::Future<> coro_handler_input_output_json(FrontController& fc, T& t, repro::Future<Json::Value> (C::*fun)(Json::Value,prio::Request&, prio::Response&), prio::Request& req, prio::Response& res)
+{
+	try
+	{
+		Json::Value json = JSON::parse(req.body());
+
+		Json::Value v = co_await(t.*fun)(json, req, res);
+
+		output_json(res,v);
 
 		co_return;
 	}
@@ -84,7 +134,7 @@ repro::Future<> coro_handler_json_value(FrontController& fc, T& t, repro::Future
 }
 
 template<class T,class C, class R>
-repro::Future<> coro_handler_json_void(FrontController& fc, T& t, Async (C::*fun)(R r,prio::Request&, prio::Response&), prio::Request& req, prio::Response& res)
+repro::Future<> coro_handler_input_void(FrontController& fc, T& t, Async (C::*fun)(R r,prio::Request&, prio::Response&), prio::Request& req, prio::Response& res)
 {
 	try
 	{
@@ -104,6 +154,26 @@ repro::Future<> coro_handler_json_void(FrontController& fc, T& t, Async (C::*fun
 	co_await prio::nextTick();
 	co_return;
 }
+
+template<class T,class C>
+repro::Future<> coro_handler_input_void_json(FrontController& fc, T& t, Async (C::*fun)(Json::Value,prio::Request&, prio::Response&), prio::Request& req, prio::Response& res)
+{
+	try
+	{
+		Json::Value json = JSON::parse(req.body());
+
+		co_await(t.*fun)(json, req, res);
+
+		co_return;
+	}
+	catch (const std::exception& ex)
+	{
+		fc.handle_exception(ex, req, res);
+	}
+	co_await prio::nextTick();
+	co_return;
+}
+
 #endif
 
 template<class F>
@@ -160,12 +230,25 @@ private:
 		{
 			C& c = prepare_controller<C>(req);
 
-			coro_handler_json(fc,c, fun, req, res)
+			coro_handler_output(fc,c, fun, req, res)
 			.then([](){})
 			.otherwise([](const std::exception&ex){});
 		});
 	}	
 
+
+	template<class C>
+	void registerController(FrontController& fc, const std::string& m, const std::string& p, repro::Future<Json::Value> (C::*fun)(prio::Request&, prio::Response&))
+	{
+		fc.registerHandler(m, p, [this,fun,&fc](prio::Request& req, prio::Response& res)
+		{
+			C& c = prepare_controller<C>(req);
+
+			coro_handler_output_json(fc,c, fun, req, res)
+			.then([](){})
+			.otherwise([](const std::exception&ex){});
+		});
+	}	
 
 	template<class T, class C, class V>
 	void registerController(FrontController& fc, const std::string& m, const std::string& p, repro::Future<T> (C::*fun)(V v,prio::Request&, prio::Response&))
@@ -174,20 +257,33 @@ private:
 		{
 			C& c = prepare_controller<C>(req);
 
-			coro_handler_json_value(fc,c, fun, req, res)
+			coro_handler_input_output(fc,c, fun, req, res)
 			.then([](){})
 			.otherwise([](const std::exception&ex){});
 		});
 	}
 
-	template<class C,class V>
-	void registerController(FrontController& fc, const std::string& m, const std::string& p, Async(C::*fun)(V v,prio::Request&, prio::Response&))
+	template<class C>
+	void registerController(FrontController& fc, const std::string& m, const std::string& p, repro::Future<Json::Value> (C::*fun)(Json::Value,prio::Request&, prio::Response&))
 	{
 		fc.registerHandler(m, p, [this,fun,&fc](prio::Request& req, prio::Response& res)
 		{
 			C& c = prepare_controller<C>(req);
 
-			coro_handler_json_void(fc,c, fun, req, res)
+			coro_handler_input_output_json(fc,c, fun, req, res)
+			.then([](){})
+			.otherwise([](const std::exception&ex){});
+		});
+	}
+
+	template<class C>
+	void registerController(FrontController& fc, const std::string& m, const std::string& p, Async(C::*fun)(Json::Value,prio::Request&, prio::Response&))
+	{
+		fc.registerHandler(m, p, [this,fun,&fc](prio::Request& req, prio::Response& res)
+		{
+			C& c = prepare_controller<C>(req);
+
+			coro_handler_input_void_json(fc,c, fun, req, res)
 			.then([](){})
 			.otherwise([](const std::exception&ex){});
 		});
@@ -204,11 +300,26 @@ private:
 			(c.*fun)(req,res)
 			.then([&res](T t)
 			{
-				res
-				.body(JSON::stringify(toJson(t)))
-				.contentType("application/json")
-				.ok()
-				.flush();
+				output_json(res,t);
+			})
+			.otherwise([&fc,&req,&res](const std::exception& ex)
+			{
+				fc.handle_exception(ex, req, res);
+			});
+		});
+	}
+
+	template<class C>
+	void registerController(FrontController& fc, const std::string& m, const std::string& p, repro::Future<Json::Value> (C::*fun)(prio::Request&, prio::Response&))
+	{
+		fc.registerHandler(m,p, [this,&fc,fun]( prio::Request& req,  prio::Response& res)
+		{
+			C& c = prepare_controller<C>(req);
+
+			(c.*fun)(req,res)
+			.then([&res](Json::Value json)
+			{
+				output_json(res,json);
 			})
 			.otherwise([&fc,&req,&res](const std::exception& ex)
 			{
@@ -231,11 +342,28 @@ private:
 			(c.*fun)(v,req,res)
 			.then([&res](T t)
 			{
-				res
-				.body(JSON::stringify(toJson(t)))
-				.contentType("application/json")
-				.ok()
-				.flush();
+				output_json(res,t);
+			})
+			.otherwise([&fc,&req,&res](const std::exception& ex)
+			{
+				fc.handle_exception(ex, req, res);
+			});
+		});
+	}
+
+	template<class C>
+	void registerController(FrontController& fc, const std::string& m, const std::string& p, repro::Future<Json::Value> (C::*fun)(Json::Value, prio::Request&, prio::Response&))
+	{
+		fc.registerHandler(m,p, [this,&fc,fun]( prio::Request& req,  prio::Response& res)
+		{
+			Json::Value json = JSON::parse(req.body());
+
+			C& c = prepare_controller<C>(req);
+
+			(c.*fun)(json,req,res)
+			.then([&res](Json::Value value)
+			{
+				output_json(res,value);
 			})
 			.otherwise([&fc,&req,&res](const std::exception& ex)
 			{
@@ -257,6 +385,19 @@ private:
 			(c.*fun)(v,req,res);
 		});
 	}
+
+	template<class C>
+	void registerController(FrontController& fc, const std::string& m, const std::string& p, void (C::*fun)(Json::Value, prio::Request&, prio::Response&))
+	{
+		fc.registerHandler(m,p, [this,fun]( prio::Request& req,  prio::Response& res)
+		{
+			Json::Value json = JSON::parse(req.body());
+
+			C& c = prepare_controller<C>(req);
+			(c.*fun)(json,req,res);
+		});
+	}
+
 #endif
 
 	template<class C>
