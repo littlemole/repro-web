@@ -83,8 +83,15 @@ public:
 		return jsonizer;
 	}
 
-	bool valid()
+	bool validate()
 	{
+		reproweb::valid( username, std::regex("[^<>&]+"), "invalid username");
+		reproweb::valid( login, std::regex("[^<>&]+"), "invalid login");
+		reproweb::valid( pwd, std::regex(".+"), "invalid pwd");
+		for ( auto& i : tags)
+		{
+			reproweb::valid( i, std::regex("[0-9a-zA-Z]+"), "invalid pwd");
+		}
 		return true;
 	}
 };
@@ -197,6 +204,7 @@ public:
 		});
 	}	
 
+
 	repro::Future<User> getUser(prio::Request& req, prio::Response& res)
 	{
 		auto p = promise<User>();
@@ -235,6 +243,33 @@ public:
 
 		return p.future();
 	}	
+
+#ifdef _RESUMABLE_FUNCTIONS_SUPPORTED
+
+	repro::Future<User> getUserCoro(prio::Request& req, prio::Response& res)
+	{
+		//co_await nextTick();
+
+		User user{ "mike", "littlemole", "secret", { "one", "two", "three"} };
+		co_return user;
+	}
+
+
+	repro::Future<User> postUserCoro(User user, prio::Request& req, prio::Response& res)
+	{
+		//co_await nextTick();
+		co_return user;
+	}
+
+
+	repro::Future<Json::Value> postUserJsonCoro(Json::Value user, prio::Request& req, prio::Response& res)
+	{
+		//co_await nextTick();
+
+		co_return user;
+	}
+
+#endif
 
 private:
 
@@ -1298,55 +1333,155 @@ TEST_F(BasicTest, SimpleRestPostJson)
     MOL_TEST_ASSERT_CNTS(0,0);
 }
 
-template <typename T>
-class has_valid
+
+
+
+#ifdef _RESUMABLE_FUNCTIONS_SUPPORTED
+
+TEST_F(BasicTest, SimpleRestCoro) 
 {
-    typedef char one;
-    typedef long two;
+	std::string result;
 
-    template <typename C> static one test( decltype(&C::valid) ) ;
-    template <typename C> static two test(...);    
+	WebApplicationContext ctx {
 
-public:
-    enum { value = sizeof(test<T>(0)) == sizeof(char) };
-};
+		LoggerComponent,
+		TestControllerComponent,
 
-class call_valid
+		GET ("/path/a",&TestController::getUserCoro)
+	};
+
+	{
+		reproweb::WebServer server(ctx);
+
+		nextTick()
+		.then( [&result,&server]()
+		{
+			HttpClient::url("http://localhost:8765/path/a")
+			->fetch()
+			.then([&result,&server](prio::Response& res)
+			{
+				result = res.body();
+				server.shutdown();
+				theLoop().exit();
+			})
+			.otherwise([&server](const std::exception& ex)
+			{
+				std::cout << ex.what() << std::endl;
+				server.shutdown();
+				theLoop().exit();
+			});
+		});
+
+		server.listen(8765);
+		theLoop().run();
+	}
+    EXPECT_EQ("{\n\t\"login\" : \"littlemole\",\n\t\"pwd\" : \"secret\",\n\t\"tags\" : \n\t[\n\t\t\"one\",\n\t\t\"two\",\n\t\t\"three\"\n\t],\n\t\"username\" : \"mike\"\n}",result);
+    MOL_TEST_ASSERT_CNTS(0,0);
+}
+
+TEST_F(BasicTest, SimpleRestPostCoro) 
 {
-public:
+	std::string result;
 
-    template <class T, typename std::enable_if<has_valid<T>::value>::type* = nullptr >
-	static bool invoke( T& t) 
-	{
-		return t.valid();
-	}
+	WebApplicationContext ctx {
 
-    template <class T , typename  std::enable_if<!has_valid<T>::value>::type* = nullptr >
-	static bool invoke( T& t) 
+		LoggerComponent,
+		TestControllerComponent,
+
+		POST ("/path/a",&TestController::postUserCoro)
+	};
+
 	{
-		return false;
+		reproweb::WebServer server(ctx);
+
+		nextTick()
+		.then( [&result,&server]()
+		{
+			HttpClient::url("http://localhost:8765/path/a")
+			->POST("{\"login\" : \"littlemole\",\"pwd\" : \"secret\",\"tags\" : [\"one\",\"two\",\"three\"],\"username\" : \"mike\"\n}")
+			.then([&result,&server](prio::Response& res)
+			{
+				result = res.body();
+				server.shutdown();
+				theLoop().exit();
+			})
+			.otherwise([&server](const std::exception& ex)
+			{
+				std::cout << ex.what() << std::endl;
+				server.shutdown();
+				theLoop().exit();
+			});
+		});
+
+		server.listen(8765);
+		theLoop().run();
 	}
-};
+    EXPECT_EQ("{\n\t\"login\" : \"littlemole\",\n\t\"pwd\" : \"secret\",\n\t\"tags\" : \n\t[\n\t\t\"one\",\n\t\t\"two\",\n\t\t\"three\"\n\t],\n\t\"username\" : \"mike\"\n}",result);
+    MOL_TEST_ASSERT_CNTS(0,0);
+}
+
+TEST_F(BasicTest, SimpleRestPostJsonCoro) 
+{
+	std::string result;
+
+	WebApplicationContext ctx {
+
+		LoggerComponent,
+		TestControllerComponent,
+
+		POST ("/path/a",&TestController::postUserJsonCoro)
+	};
+
+	{
+		reproweb::WebServer server(ctx);
+
+		nextTick()
+		.then( [&result,&server]()
+		{
+			HttpClient::url("http://localhost:8765/path/a")
+			->POST("{\"login\" : \"littlemole\",\"pwd\" : \"secret\",\"tags\" : [\"one\",\"two\",\"three\"],\"username\" : \"mike\"\n}")
+			.then([&result,&server](prio::Response& res)
+			{
+				result = res.body();
+				server.shutdown();
+				theLoop().exit();
+			})
+			.otherwise([&server](const std::exception& ex)
+			{
+				std::cout << ex.what() << std::endl;
+				server.shutdown();
+				theLoop().exit();
+			});
+		});
+
+		server.listen(8765);
+		theLoop().run();
+	}
+    EXPECT_EQ("{\n\t\"login\" : \"littlemole\",\n\t\"pwd\" : \"secret\",\n\t\"tags\" : \n\t[\n\t\t\"one\",\n\t\t\"two\",\n\t\t\"three\"\n\t],\n\t\"username\" : \"mike\"\n}",result);
+    MOL_TEST_ASSERT_CNTS(0,0);
+}
+
+#endif
+
 
 TEST_F(BasicTest, Invocable) 
 {
-	User user;
-	User* up = &user;
+	User user{ "mike", "littlemole", "secret", { "one", "two", "three"} };
 
-	std::cout << "invocable: " << has_valid<User>::value << std::endl;
+	std::cout << "invocable: " << reproweb::has_valid<User>::value << std::endl;
 
-	if ( has_valid<User>::value )
+	if ( reproweb::has_valid<User>::value )
 	{
-		call_valid::invoke(user);
+		reproweb::call_valid::invoke(user);
 	}
 
 	Logger logger;
 
-	std::cout << "invocable: " << has_valid<Logger>::value << std::endl;
+	std::cout << "invocable: " << reproweb::has_valid<Logger>::value << std::endl;
 
-	if ( has_valid<Logger>::value )
+	if ( reproweb::has_valid<Logger>::value )
 	{
-		call_valid::invoke(logger);
+		reproweb::call_valid::invoke(logger);
 	}
 
 }

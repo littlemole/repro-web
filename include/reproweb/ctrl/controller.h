@@ -15,6 +15,37 @@ typedef ::repro::Future<> Async;
 
 #endif
 
+template <typename T>
+class has_valid
+{
+    typedef char one;
+    typedef long two;
+
+    template <typename C> static one test( decltype(&C::validate) ) ;
+    template <typename C> static two test(...);    
+
+public:
+    enum { value = sizeof(test<T>(0)) == sizeof(char) };
+};
+
+class call_valid
+{
+public:
+
+    template <class T, typename std::enable_if<has_valid<T>::value>::type* = nullptr >
+	static bool invoke( T& t) 
+	{
+		return t.validate();
+	}
+
+    template <class T , typename  std::enable_if<!has_valid<T>::value>::type* = nullptr >
+	static bool invoke( T& t) 
+	{
+		return false;
+	}
+};
+
+
 inline void output_json(prio::Response& res,Json::Value json)
 {
 	res
@@ -97,6 +128,8 @@ repro::Future<> coro_handler_input_output(FrontController& fc, T& t, repro::Futu
 		R r;
 		fromJson(r,json);
 
+		call_valid::invoke(r);
+
 		V v = co_await(t.*fun)(r, req, res);
 
 		output_json(res,v);
@@ -142,6 +175,7 @@ repro::Future<> coro_handler_input_void(FrontController& fc, T& t, Async (C::*fu
 
 		R r;
 		fromJson(r,json);
+		call_valid::invoke(r);
 
 		co_await(t.*fun)(r, req, res);
 
@@ -333,9 +367,12 @@ private:
 	{
 		fc.registerHandler(m,p, [this,&fc,fun]( prio::Request& req,  prio::Response& res)
 		{
+			std::cout << "body:" << req.body << std::endl;
 			Json::Value json = JSON::parse(req.body());
 			V v;
 			fromJson(v,json);
+			call_valid::invoke(v);
+
 
 			C& c = prepare_controller<C>(req);
 
@@ -380,6 +417,7 @@ private:
 			Json::Value json = JSON::parse(req.body());
 			V v;
 			fromJson(v,json);
+			call_valid::invoke(v);
 
 			C& c = prepare_controller<C>(req);
 			(c.*fun)(v,req,res);
