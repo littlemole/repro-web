@@ -95,55 +95,74 @@ inline std::string valid(const std::string& s, const std::regex& r, const std::s
 	return valid<ValidationEx>(s,r,msg);
 }
 
-
 template<class E>
-inline std::string valid_int(const std::string& s,const std::string& msg)
+std::vector<std::string>& valid( std::vector<std::string>& v, const std::regex& r, const std::string& msg)
 {
-	validator<E> v(std::regex("[0-9]*"));
-	return v.getString(s,msg);
+	for ( auto& i : v)
+	{
+		valid<E>(i,r,msg);
+	}
+	return v;
+}
+
+inline std::vector<std::string>& valid( std::vector<std::string>& v, const std::regex& r, const std::string& msg)
+{
+	for ( auto& i : v)
+	{
+		valid<ValidationEx>(i,r,msg);
+	}
+	return v;
 }
 
 
 template<class E>
-inline std::string valid_int(const std::string& s)
+inline int valid_int(const std::string& s,const std::string& msg)
+{
+	validator<E> v(std::regex("[0-9]*"));
+	return v.getInteger(s,msg);
+}
+
+
+template<class E>
+inline int valid_int(const std::string& s)
 {
 	static const std::string msg("integer validation failed!");
 	return valid_int<E>(s,msg);
 }
 
-inline std::string valid_int(const std::string& s)
+inline int valid_int(const std::string& s)
 {
 	return valid_int<ValidationEx>(s);
 }
 
-inline std::string valid_int(const std::string& s,const std::string& msg)
+inline int valid_int(const std::string& s,const std::string& msg)
 {
 	return valid_int<ValidationEx>(s,msg);
 }
 
 template<class E>
-inline std::string valid_double(const std::string& s,const std::string& msg)
+inline double valid_double(const std::string& s,const std::string& msg)
 {
 	validator<E> v(std::regex("[0-9\\.]*"));
-	return v.getString(s,msg);
+	return v.getDouble(s,msg);
 }
 
 
 template<class E>
-inline std::string valid_double(const std::string& s)
+inline double valid_double(const std::string& s)
 {
 	static const std::string msg("double validation failed!");
 	return valid_double<E>(s,msg);
 }
 
 
-inline std::string valid_double(const std::string& s,const std::string& msg)
+inline double valid_double(const std::string& s,const std::string& msg)
 {
-	return valid_double<ValidationEx>(s),msg;
+	return valid_double<ValidationEx>(s,msg);
 }
 
 
-inline std::string valid_double(const std::string& s)
+inline double valid_double(const std::string& s)
 {
 	return valid_double<ValidationEx>(s);
 }

@@ -100,6 +100,36 @@ public:
 
 			content->register_static_handler(ctx.get());
 		}
+
+
+		if( json().isMember("ssi"))
+		{
+			Json::Value ssi = getString("ssi");
+
+			std::string path = ssi["htdocs"].asString();
+			std::string filter = ssi["filter"].asString();
+	
+			http_handler_t handler = [path,filter](prio::Request& req, prio::Response& res)
+			{
+				res.contentType("text/html");
+
+				std::string tmpl = SSIResolver::tmpl(req,path);
+
+				reproweb::SSIResolver::resolve(req,tmpl)
+				.then( [&res](std::string s)
+				{
+					res.body(s);
+					res.ok().flush();
+				})
+				.otherwise([&res](const std::exception& ex)
+				{
+					res.error().flush();
+				});
+			};
+
+			auto fc = diy::inject<FrontController>(*ctx);
+			fc->registerStaticHandler("GET",filter,handler);
+		}		
 	}
 
 };

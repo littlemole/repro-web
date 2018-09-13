@@ -1,11 +1,5 @@
 #include "gtest/gtest.h"
-#include <memory>
-#include <list>
-#include <utility>
-#include <iostream>
-#include <string>
-#include <exception>
-#include <functional>
+
 #include "test.h"
 #include "priocpp/loop.h"
 #include "priocpp/api.h"
@@ -16,6 +10,9 @@
 #include "priohttp/conversation.h"
 #include "priohttp/client_conversation.h"
 #include "priohttp/client.h"
+#define MOL_ENABLE_UGLY_HELPER_MACROS
+#include <reproweb/json/json.h>
+#undef MOL_ENABLE_UGLY_HELPER_MACROS
 #include <reproweb/ctrl/controller.h>
 #include <reproweb/tools/config.h>
 #include <reproweb/json/jwt.h>
@@ -62,6 +59,10 @@ class BasicTest : public ::testing::Test {
 }; // end test setup
 
 
+//#define TO_JSON(clazz,member) #member, &clazz::member
+
+
+
 
 struct User
 {
@@ -83,16 +84,12 @@ public:
 		return jsonizer;
 	}
 
-	bool validate()
+	void validate()
 	{
 		reproweb::valid( username, std::regex("[^<>&]+"), "invalid username");
 		reproweb::valid( login, std::regex("[^<>&]+"), "invalid login");
 		reproweb::valid( pwd, std::regex(".+"), "invalid pwd");
-		for ( auto& i : tags)
-		{
-			reproweb::valid( i, std::regex("[0-9a-zA-Z]+"), "invalid pwd");
-		}
-		return true;
+		reproweb::valid( tags, std::regex("[0-9a-zA-Z]+"), "invalid tags");
 	}
 };
 
@@ -905,7 +902,7 @@ TEST_F(BasicTest, ResolveSSI)
 		reproweb::WebServer server(ctx);
 
 		nextTick()
-		.then( [&result,&server,&ctx,ssisrc]()
+		.then( [&ctx,ssisrc]()
 		{
 
 			auto fc = inject<FrontController>(ctx);
@@ -1021,7 +1018,7 @@ TEST_F(BasicTest, autoHandleSSI)
 }
 
 
-
+ 
 
 TEST_F(BasicTest, SimpleInclude) 
 {
@@ -1039,7 +1036,7 @@ TEST_F(BasicTest, SimpleInclude)
 		reproweb::WebServer server(ctx);
 
 		nextTick()
-		.then( [&result,&server,&ctx]()
+		.then( [&ctx]()
 		{
 			auto fc = inject<FrontController>(ctx);
 
@@ -1196,7 +1193,7 @@ TEST_F(BasicTest, toJson)
 
 	std::string s = JSON::flatten(json); 
 
-	EXPECT_EQ("{\"login\":\"littlemole\",\"pwd\":\"secret\",\"tags\":[\"one\",\"two\",\"three\"],\"username\":\"mike\"}\n",s);
+	EXPECT_EQ("{\"login\":\"littlemole\",\"pwd\":\"secret\",\"tags\":[\"one\",\"two\",\"three\"],\"username\":\"mike\"}",s);
 
 	User other;
 	fromJson(other,json);
@@ -1247,7 +1244,7 @@ TEST_F(BasicTest, SimpleRest)
 		server.listen(8765);
 		theLoop().run();
 	}
-    EXPECT_EQ("{\n\t\"login\" : \"littlemole\",\n\t\"pwd\" : \"secret\",\n\t\"tags\" : \n\t[\n\t\t\"one\",\n\t\t\"two\",\n\t\t\"three\"\n\t],\n\t\"username\" : \"mike\"\n}",result);
+    EXPECT_EQ("{\"login\":\"littlemole\",\"pwd\":\"secret\",\"tags\":[\"one\",\"two\",\"three\"],\"username\":\"mike\"}",result);
     MOL_TEST_ASSERT_CNTS(0,0);
 }
 
@@ -1288,7 +1285,7 @@ TEST_F(BasicTest, SimpleRestPost)
 		server.listen(8765);
 		theLoop().run();
 	}
-    EXPECT_EQ("{\n\t\"login\" : \"littlemole\",\n\t\"pwd\" : \"secret\",\n\t\"tags\" : \n\t[\n\t\t\"one\",\n\t\t\"two\",\n\t\t\"three\"\n\t],\n\t\"username\" : \"mike\"\n}",result);
+    EXPECT_EQ("{\"login\":\"littlemole\",\"pwd\":\"secret\",\"tags\":[\"one\",\"two\",\"three\"],\"username\":\"mike\"}",result);
     MOL_TEST_ASSERT_CNTS(0,0);
 }
 
@@ -1329,7 +1326,7 @@ TEST_F(BasicTest, SimpleRestPostJson)
 		server.listen(8765);
 		theLoop().run();
 	}
-    EXPECT_EQ("{\n\t\"login\" : \"littlemole\",\n\t\"pwd\" : \"secret\",\n\t\"tags\" : \n\t[\n\t\t\"one\",\n\t\t\"two\",\n\t\t\"three\"\n\t],\n\t\"username\" : \"mike\"\n}",result);
+    EXPECT_EQ("{\"login\":\"littlemole\",\"pwd\":\"secret\",\"tags\":[\"one\",\"two\",\"three\"],\"username\":\"mike\"}",result);
     MOL_TEST_ASSERT_CNTS(0,0);
 }
 
@@ -1375,7 +1372,7 @@ TEST_F(BasicTest, SimpleRestCoro)
 		server.listen(8765);
 		theLoop().run();
 	}
-    EXPECT_EQ("{\n\t\"login\" : \"littlemole\",\n\t\"pwd\" : \"secret\",\n\t\"tags\" : \n\t[\n\t\t\"one\",\n\t\t\"two\",\n\t\t\"three\"\n\t],\n\t\"username\" : \"mike\"\n}",result);
+    EXPECT_EQ("{\"login\":\"littlemole\",\"pwd\":\"secret\",\"tags\":[\"one\",\"two\",\"three\"],\"username\":\"mike\"}",result);
     MOL_TEST_ASSERT_CNTS(0,0);
 }
 
@@ -1398,7 +1395,7 @@ TEST_F(BasicTest, SimpleRestPostCoro)
 		.then( [&result,&server]()
 		{
 			HttpClient::url("http://localhost:8765/path/a")
-			->POST("{\"login\" : \"littlemole\",\"pwd\" : \"secret\",\"tags\" : [\"one\",\"two\",\"three\"],\"username\" : \"mike\"\n}")
+			->POST("{\"login\":\"littlemole\",\"pwd\":\"secret\",\"tags\":[\"one\",\"two\",\"three\"],\"username\":\"mike\"}")
 			.then([&result,&server](prio::Response& res)
 			{
 				result = res.body();
@@ -1416,7 +1413,7 @@ TEST_F(BasicTest, SimpleRestPostCoro)
 		server.listen(8765);
 		theLoop().run();
 	}
-    EXPECT_EQ("{\n\t\"login\" : \"littlemole\",\n\t\"pwd\" : \"secret\",\n\t\"tags\" : \n\t[\n\t\t\"one\",\n\t\t\"two\",\n\t\t\"three\"\n\t],\n\t\"username\" : \"mike\"\n}",result);
+    EXPECT_EQ("{\"login\":\"littlemole\",\"pwd\":\"secret\",\"tags\":[\"one\",\"two\",\"three\"],\"username\":\"mike\"}",result);
     MOL_TEST_ASSERT_CNTS(0,0);
 }
 
@@ -1457,7 +1454,7 @@ TEST_F(BasicTest, SimpleRestPostJsonCoro)
 		server.listen(8765);
 		theLoop().run();
 	}
-    EXPECT_EQ("{\n\t\"login\" : \"littlemole\",\n\t\"pwd\" : \"secret\",\n\t\"tags\" : \n\t[\n\t\t\"one\",\n\t\t\"two\",\n\t\t\"three\"\n\t],\n\t\"username\" : \"mike\"\n}",result);
+    EXPECT_EQ("{\"login\":\"littlemole\",\"pwd\":\"secret\",\"tags\":[\"one\",\"two\",\"three\"],\"username\":\"mike\"}",result);
     MOL_TEST_ASSERT_CNTS(0,0);
 }
 

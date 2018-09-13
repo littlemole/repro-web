@@ -49,8 +49,10 @@ inline const std::string stringify(Json::Value value)
 
 inline const std::string flatten(Json::Value value)
 {
-	Json::FastWriter writer;
-	return writer.write( value );
+	Json::StreamWriterBuilder wbuilder;
+	wbuilder["commentStyle"] = "None";
+	wbuilder["indentation"] = ""; 
+	return Json::writeString(wbuilder, value);
 }
 
 
@@ -129,9 +131,39 @@ inline Json::Value toJson(int i)
 	return Json::Value(i);
 }
 
+inline Json::Value toJson(long i)
+{
+	return Json::Value(i);
+}
+
+
+inline Json::Value toJson(double i)
+{
+	return Json::Value(i);
+}
+
+inline Json::Value toJson(float i)
+{
+	return Json::Value(i);
+}
+
+
 inline Json::Value toJson(const std::string& s)
 {
 	return Json::Value(s);
+}
+
+inline Json::Value toJson(const std::exception& ex)
+{
+	Json::Value result(Json::objectValue);
+
+	Json::Value error(Json::objectValue);
+	error["msg"] = ex.what();
+	error["type"] = typeid(ex).name();
+	
+	result["error"] = error;
+	
+	return result;
 }
 
 template<class T>
@@ -169,13 +201,9 @@ void fromJson( std::vector<T>& v, Json::Value& json )
 	}
 }
 
-
-
+#ifdef MOL_ENABLE_UGLY_HELPER_MACROS
 #define TO_JSON(clazz,member) #member, &clazz::member
-//#define FROM_JSON(obj,member,json) fromJson(obj.member,json[ #member ])
-
-
-
+#endif
 
 class JsonMemberBase
 {

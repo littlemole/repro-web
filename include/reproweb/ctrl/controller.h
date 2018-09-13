@@ -33,23 +33,21 @@ class call_valid
 public:
 
     template <class T, typename std::enable_if<has_valid<T>::value>::type* = nullptr >
-	static bool invoke( T& t) 
+	static void invoke( T& t) 
 	{
-		return t.validate();
+		t.validate();
 	}
 
     template <class T , typename  std::enable_if<!has_valid<T>::value>::type* = nullptr >
-	static bool invoke( T& t) 
-	{
-		return false;
-	}
+	static void invoke( T& t) 
+	{}
 };
 
 
 inline void output_json(prio::Response& res,Json::Value json)
 {
 	res
-	.body(JSON::stringify(json))
+	.body(JSON::flatten(json))
 	.contentType("application/json")
 	.ok()
 	.flush();
@@ -367,7 +365,6 @@ private:
 	{
 		fc.registerHandler(m,p, [this,&fc,fun]( prio::Request& req,  prio::Response& res)
 		{
-			std::cout << "body:" << req.body << std::endl;
 			Json::Value json = JSON::parse(req.body());
 			V v;
 			fromJson(v,json);
