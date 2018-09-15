@@ -1,6 +1,6 @@
 {
     "sqlite" : "./user.db",
-    "cert"   : "pem/server.pem",
+    "cert"   : "pem/server.pem"
 }
 
  

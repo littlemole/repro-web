@@ -23,13 +23,22 @@ int main(int argc, char **argv)
 		POST ( "/register",			&Controller::register_user),
 		POST ( "/login",			&Controller::login_user),
 
+		ex_handler(&Exceptions::on_user_not_found_ex),
+		ex_handler(&Exceptions::on_login_ex),
+		ex_handler(&Exceptions::on_login_already_taken_ex),
+		ex_handler(&Exceptions::on_bad_request_ex),
+		ex_handler(&Exceptions::on_register_ex),
+		ex_handler(&Exceptions::on_std_ex),
+
 		singleton<AppConfig()>(),
 		singleton<UserPool(AppConfig)>(),
 
 		singleton<UserRepository(UserPool)>(),
 
 		singleton<Model(UserRepository)>(),
-		singleton<Controller(Model)>()
+		singleton<Controller(Model)>(),
+
+		singleton<Exceptions()>()
 	};	
 
 	std::string cert = diy::inject<AppConfig>(ctx)->getString("cert");

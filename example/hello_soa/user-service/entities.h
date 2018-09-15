@@ -12,29 +12,14 @@ using namespace repro;
 using namespace prio;
 
 
-class AuthEx : public repro::Ex 
-{
-public:
-	AuthEx() {}
-	AuthEx(const std::string& s) : Ex(s) {}
-};
-
-class LoginEx : public repro::Ex 
-{
-public:
-	LoginEx() {}
-	LoginEx(const std::string& s) : Ex(s) {}
-};
-
-class RegistrationEx : public repro::Ex 
-{
-public:
-	RegistrationEx() {}
-	RegistrationEx(const std::string& s) : Ex(s) {}
-};
+MAKE_REPRO_EX(BadRequestEx)
+MAKE_REPRO_EX(UserNotFoundEx)
+MAKE_REPRO_EX(LoginEx)
+MAKE_REPRO_EX(LoginAlreadyTakenEx)
+MAKE_REPRO_EX(RegistrationEx)
 
 
-class Valid
+class Valid 
 {
 public:
 
@@ -45,26 +30,24 @@ public:
 		if(name.empty())
 			throw RegistrationEx("error.msg.username.empty");
 
-		return valid<RegistrationEx>(name, r, "error.msg.username.invalid");
+		return valid<BadRequestEx>(name, r, "error.msg.username.invalid");
 	}
 
-	template<class E>
 	static const std::string passwd( const std::string& pwd)
 	{
 		static std::regex r(".*");
 
-		return valid<E>(pwd, r , "error.msg.password.empty");
+		return valid<BadRequestEx>(pwd, r , "error.msg.password.empty");
 	}
 
-	template<class E>
 	static const std::string login( const std::string& email)
 	{
 		static std::regex r("^[a-zA-Z0-9.!#$%&’*+/=?^_`{|}~-]+@[a-zA-Z0-9-]+(?:\\.[a-zA-Z0-9-]+)*$");
 
 		if(email.empty())
-			throw E("error.msg.login.empty");
+			throw BadRequestEx("error.msg.login.empty");
 
-		return valid<E>(email, r, "error.msg.login.invalid.email" );
+		return valid<BadRequestEx>(email, r, "error.msg.login.invalid.email" );
 	}
 
 	static const std::string avatar( const std::string& url)
@@ -74,13 +57,51 @@ public:
 		if(url.empty())
 			return "https://upload.wikimedia.org/wikipedia/commons/e/e4/Elliot_Grieveson.png";
 
-		return valid<RegistrationEx>(url, r, "error.msg.avatar.invalid.url" );
+		return valid<BadRequestEx>(url, r, "error.msg.avatar.invalid.url" );
 	}	
    
 };
 
+class Login
+{
+public:
 
-class User
+	Login() {}
+
+	Login( 
+		const std::string& login,
+		const std::string& hash
+	)
+	  :  login_(login),
+		 hash_(hash)
+	{}
+
+	std::string login() const 	  		{ return login_; }
+	std::string hash() const  	 		{ return hash_; }
+
+	void validate()
+	{
+		Valid::login(login_);
+		Valid::passwd(hash_);
+	}
+
+	static reproweb::Jsonizer<Login>& jsonize()
+	{
+		static Jsonizer<Login> jsonizer {
+			"login", 		&Login::login_,
+			"pwd", 			&Login::hash_
+		};
+		return jsonizer;
+	}
+
+	
+protected:
+	std::string login_;	
+	std::string hash_;	
+};
+
+
+class User : public Login
 {
 public:
 
@@ -92,23 +113,18 @@ public:
 		const std::string& hash,
 		const std::string& avatar_url
 	)
-	  :  name_(name),
-		 login_(login),
-		 hash_(hash),
+	  :  Login(login,hash),
+	  	 name_(name),
 		 avatar_url_(avatar_url)
 	{}
 
-	std::string username() const 	  { return name_; }
-	std::string login() const 	  { return login_; }
-	std::string hash() const  	  { return hash_; }
-	std::string avatar_url() const  { return avatar_url_; }
-
+	std::string username() const 	  		{ return name_; }
+	std::string avatar_url() const  	 	{ return avatar_url_; }
 
 	void validate()
 	{
+		Login::validate();
 		Valid::username(name_);
-		Valid::login<LoginEx>(login_);
-		Valid::passwd<LoginEx>(hash_);
 		Valid::avatar(avatar_url_);
 	}
 
@@ -126,8 +142,6 @@ public:
 	
 private:
 	std::string name_;	
-	std::string login_;	
-	std::string hash_;	
 	std::string avatar_url_;	
 };
 

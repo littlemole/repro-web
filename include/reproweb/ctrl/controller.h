@@ -231,11 +231,18 @@ private:
 	template<class C>
 	void registerController(FrontController& fc, const std::string& m, const std::string& p, void (C::*fun)(prio::Request&, prio::Response&))
 	{
-		fc.registerHandler(m,p, [this,fun]( prio::Request& req,  prio::Response& res)
+		fc.registerHandler(m,p, [this,fun,&fc]( prio::Request& req,  prio::Response& res)
 		{
-			C& c = prepare_controller<C>(req);
+			try 
+			{	
+				C& c = prepare_controller<C>(req);
 
-			(c.*fun)(req,res);
+				(c.*fun)(req,res);
+			}
+			catch(std::exception& ex)
+			{
+				fc.handle_exception(ex, req, res);
+			}
 		});
 	}
 
@@ -327,17 +334,24 @@ private:
 	{
 		fc.registerHandler(m,p, [this,&fc,fun]( prio::Request& req,  prio::Response& res)
 		{
-			C& c = prepare_controller<C>(req);
-
-			(c.*fun)(req,res)
-			.then([&res](T t)
+			try
 			{
-				output_json(res,t);
-			})
-			.otherwise([&fc,&req,&res](const std::exception& ex)
+				C& c = prepare_controller<C>(req);
+
+				(c.*fun)(req,res)
+				.then([&res](T t)
+				{
+					output_json(res,t);
+				})
+				.otherwise([&fc,&req,&res](const std::exception& ex)
+				{
+					fc.handle_exception(ex, req, res);
+				});
+			}
+			catch(std::exception& ex)
 			{
 				fc.handle_exception(ex, req, res);
-			});
+			}
 		});
 	}
 
@@ -346,17 +360,24 @@ private:
 	{
 		fc.registerHandler(m,p, [this,&fc,fun]( prio::Request& req,  prio::Response& res)
 		{
-			C& c = prepare_controller<C>(req);
-
-			(c.*fun)(req,res)
-			.then([&res](Json::Value json)
+			try
 			{
-				output_json(res,json);
-			})
-			.otherwise([&fc,&req,&res](const std::exception& ex)
+				C& c = prepare_controller<C>(req);
+
+				(c.*fun)(req,res)
+				.then([&res](Json::Value json)
+				{
+					output_json(res,json);
+				})
+				.otherwise([&fc,&req,&res](const std::exception& ex)
+				{
+					fc.handle_exception(ex, req, res);
+				});
+			}
+			catch(std::exception& ex)
 			{
 				fc.handle_exception(ex, req, res);
-			});
+			}				
 		});
 	}
 
@@ -365,23 +386,29 @@ private:
 	{
 		fc.registerHandler(m,p, [this,&fc,fun]( prio::Request& req,  prio::Response& res)
 		{
-			Json::Value json = JSON::parse(req.body());
-			V v;
-			fromJson(v,json);
-			call_valid::invoke(v);
-
-
-			C& c = prepare_controller<C>(req);
-
-			(c.*fun)(v,req,res)
-			.then([&res](T t)
+			try
 			{
-				output_json(res,t);
-			})
-			.otherwise([&fc,&req,&res](const std::exception& ex)
+				Json::Value json = JSON::parse(req.body());
+				V v;
+				fromJson(v,json);
+				call_valid::invoke(v);
+
+				C& c = prepare_controller<C>(req);
+
+				(c.*fun)(v,req,res)
+				.then([&res](T t)
+				{
+					output_json(res,t);
+				})
+				.otherwise([&fc,&req,&res](const std::exception& ex)
+				{
+					fc.handle_exception(ex, req, res);
+				});
+			}
+			catch(std::exception& ex)
 			{
 				fc.handle_exception(ex, req, res);
-			});
+			}				
 		});
 	}
 
@@ -390,46 +417,67 @@ private:
 	{
 		fc.registerHandler(m,p, [this,&fc,fun]( prio::Request& req,  prio::Response& res)
 		{
-			Json::Value json = JSON::parse(req.body());
-
-			C& c = prepare_controller<C>(req);
-
-			(c.*fun)(json,req,res)
-			.then([&res](Json::Value value)
+			try
 			{
-				output_json(res,value);
-			})
-			.otherwise([&fc,&req,&res](const std::exception& ex)
+				Json::Value json = JSON::parse(req.body());
+
+				C& c = prepare_controller<C>(req);
+
+				(c.*fun)(json,req,res)
+				.then([&res](Json::Value value)
+				{
+					output_json(res,value);
+				})
+				.otherwise([&fc,&req,&res](const std::exception& ex)
+				{
+					fc.handle_exception(ex, req, res);
+				});
+			}
+			catch(std::exception& ex)
 			{
 				fc.handle_exception(ex, req, res);
-			});
+			}
 		});
 	}
 
 	template<class C,class V>
 	void registerController(FrontController& fc, const std::string& m, const std::string& p, void (C::*fun)(V v, prio::Request&, prio::Response&))
 	{
-		fc.registerHandler(m,p, [this,fun]( prio::Request& req,  prio::Response& res)
+		fc.registerHandler(m,p, [this,&fc,fun]( prio::Request& req,  prio::Response& res)
 		{
-			Json::Value json = JSON::parse(req.body());
-			V v;
-			fromJson(v,json);
-			call_valid::invoke(v);
+			try
+			{
+				Json::Value json = JSON::parse(req.body());
+				V v;
+				fromJson(v,json);
+				call_valid::invoke(v);
 
-			C& c = prepare_controller<C>(req);
-			(c.*fun)(v,req,res);
+				C& c = prepare_controller<C>(req);
+				(c.*fun)(v,req,res);
+			}
+			catch(std::exception& ex)
+			{
+				fc.handle_exception(ex, req, res);
+			}
 		});
 	}
 
 	template<class C>
 	void registerController(FrontController& fc, const std::string& m, const std::string& p, void (C::*fun)(Json::Value, prio::Request&, prio::Response&))
 	{
-		fc.registerHandler(m,p, [this,fun]( prio::Request& req,  prio::Response& res)
+		fc.registerHandler(m,p, [this,&fc,fun]( prio::Request& req,  prio::Response& res)
 		{
-			Json::Value json = JSON::parse(req.body());
+			try
+			{
+				Json::Value json = JSON::parse(req.body());
 
-			C& c = prepare_controller<C>(req);
-			(c.*fun)(json,req,res);
+				C& c = prepare_controller<C>(req);
+				(c.*fun)(json,req,res);
+			}
+			catch(std::exception& ex)
+			{
+				fc.handle_exception(ex, req, res);
+			}
 		});
 	}
 

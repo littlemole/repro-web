@@ -152,7 +152,7 @@ inline Json::Value toJson( std::string s)
 	return Json::Value(s);
 }
 
-inline Json::Value toJson(const std::exception& ex)
+inline Json::Value exToJson(const std::exception& ex)
 {
 	Json::Value result(Json::objectValue);
 
@@ -164,6 +164,7 @@ inline Json::Value toJson(const std::exception& ex)
 	
 	return result;
 }
+
 
 template<class T>
 Json::Value toJson( std::vector<T>& v)

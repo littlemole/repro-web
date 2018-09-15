@@ -13,7 +13,7 @@ miconv::miconv( const char* from, const char* to)
 {
     ict_ = iconv_open( to, from );
     if ( (size_t)ict_ == (size_t)-1 ) {
-        throw repro::Ex("encoding not supported ", from, to);
+        throw repro::Ex("encoding not supported ");
     }
 }
 

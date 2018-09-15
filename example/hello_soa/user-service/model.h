@@ -14,7 +14,17 @@ public:
 
 	Future<User> get_user( const std::string& email )
 	{
-		return userRepository->get_user(email);
+		auto p = promise<User>();
+
+		userRepository->get_user(email)
+		.then([p](User user)
+		{
+			User result(user.username(),user.login(),"",user.avatar_url());
+			p.resolve(result);
+		})
+		.otherwise(reject(p));		
+
+		return p.future();
 	}
 
 	Future<User> login_user( std::string login, std::string pwd )
@@ -29,12 +39,19 @@ public:
 
 			if(!verified) 
 			{
-				throw LoginEx("error.msg.login.failed");
+				//throw LoginEx("error.msg.login.failed");
+				p.reject(LoginEx("error.msg.login.failed"));
+				return;
 			}
 
-			p.resolve(user);
+			User result(user.username(),user.login(),"",user.avatar_url());
+			p.resolve(result);
 		})
-		.otherwise(reject(p));
+		.otherwise([p](const std::exception& ex)
+		{
+			std::cout << "---------- " << typeid(ex).name() << ex.what() << std::endl;
+			p.reject(ex);
+		});
 
 		return p.future();
 	}

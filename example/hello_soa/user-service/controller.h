@@ -18,24 +18,7 @@ public:
 
 	Future<User> get_user( Request& req, Response& res)
 	{
-		std::string email;
-
-		// todo handle ex in fc. just throw!
-		try
-		{
-			email = Valid::login<LoginEx>(req.path.args().get("email"));
-		}
-		catch(const std::exception& ex)
-		{
-			auto p = promise<User>();
-
-			LoginEx lex(ex.what());
-			nextTick([p,lex]()
-			{
-				p.reject(lex);
-			});
-			return p.future();
-		}
+		std::string email = Valid::login(req.path.args().get("email"));
 
 		return model_->get_user(email);
 	}
@@ -44,56 +27,34 @@ public:
 	{
 		auto p = promise<User>();
 
-		std::string login;
-		std::string pwd;
+		Json::Value json  = JSON::parse(req.body());
 
-		try
+		std::string login = Valid::login(json["login"].asString());
+		std::string pwd   = Valid::passwd(json["pwd"].asString());
+
+		std::cout << login << "|" << pwd << std::endl;
+
+		 model_->login_user(login,pwd)
+		.then([p](User user)
 		{
-			Json::Value json = JSON::parse(req.body());
-			login = Valid::login<LoginEx>(json["login"].asString());
-			pwd   = Valid::passwd<LoginEx>(json["pwd"].asString());
-		}
-		catch(const std::exception& ex)
+			p.resolve(user);
+		})
+		.otherwise([p](const std::exception& ex)
 		{
-			auto p = promise<User>();
-
-			LoginEx lex(ex.what());
-			nextTick([p,lex]()
-			{
-				p.reject(lex);
-			});
-			return p.future();
-		}		
-
-		return model_->login_user(login,pwd);
+			std::cout << "---------- " << typeid(ex).name() << ex.what() << std::endl;
+			p.reject(ex);
+		});	
+		return p.future();
 	}
 
 	Future<User> register_user( Request& req, Response& res)
 	{
-		std::string username;
-		std::string login;
-		std::string pwd;
-		std::string avatar_url;
+		Json::Value json = JSON::parse(req.body());
 
-		try
-		{
-			Json::Value json = JSON::parse(req.body());
-			username   = Valid::username(json["username"].asString());
-			login      = Valid::login<RegistrationEx>(json["login"].asString());
-			pwd        = Valid::passwd<RegistrationEx>(json["pwd"].asString());
-			avatar_url = Valid::avatar(json["avatar_url"].asString());
-		}
-		catch(const std::exception& ex)
-		{
-			auto p = promise<User>();
-
-			LoginEx lex(ex.what());
-			nextTick([p,lex]()
-			{
-				p.reject(lex);
-			});
-			return p.future();
-		}		
+		std::string username   = Valid::username(json["username"].asString());
+		std::string login      = Valid::login(json["login"].asString());
+		std::string pwd        = Valid::passwd(json["pwd"].asString());
+		std::string avatar_url = Valid::avatar(json["avatar_url"].asString());
 
 		User user(username,login,pwd,avatar_url);
 
@@ -101,11 +62,62 @@ public:
 	}
 
 private:
-
 	std::shared_ptr<Model> model_;
-
 };
 
+
+
+class Exceptions
+{
+public:
+
+	Exceptions()
+	{}
+
+	void on_user_not_found_ex(const UserNotFoundEx& ex,Request& req, Response& res)
+	{
+		render_error(ex,res.not_found());
+	}		
+
+	void on_bad_request_ex(const BadRequestEx& ex,Request& req, Response& res)
+	{
+		render_error(ex,res.bad_request());
+	}	
+
+	void on_login_ex(const LoginEx& ex,Request& req, Response& res)
+	{
+		render_error(ex,res.forbidden());
+	}	
+
+	void on_login_already_taken_ex(const LoginAlreadyTakenEx& ex,Request& req, Response& res)
+	{
+		render_error(ex,res.forbidden());
+	}	
+
+	void on_register_ex(const RegistrationEx& ex,Request& req, Response& res)
+	{
+		render_error(ex,res.bad_request());
+	}	
+
+	void on_std_ex(const std::exception& ex,Request& req, Response& res)
+	{
+		render_error(ex,res.error());
+	}
+
+private:
+
+	template<class E>
+	void render_error(const E& ex, Response& res)
+	{
+		std::cout << typeid(ex).name() << ":" << ex.what() << std::endl;
+		Json::Value json = exToJson(ex);
+
+		res
+		.body(JSON::flatten(json))
+		.contentType("application/json")
+		.flush();
+	}
+};
 
 
 #endif

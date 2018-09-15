@@ -7,11 +7,11 @@ namespace reproweb {
 
 
 
-class ValidationEx : public repro::Ex 
+class ValidationEx : public repro::ReproEx<ValidationEx> 
 {
 public:
 	ValidationEx() {}
-	ValidationEx(const std::string& s) : Ex(s) {}
+	ValidationEx(const std::string& s) : repro::ReproEx<ValidationEx> (s) {}
 };
 
 
