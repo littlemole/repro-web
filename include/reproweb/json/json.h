@@ -153,6 +153,11 @@ inline Json::Value toJson(const std::string& s)
 	return Json::Value(s);
 }
 
+inline Json::Value toJson( std::string s)
+{
+	return Json::Value(s);
+}
+
 inline Json::Value toJson(const std::exception& ex)
 {
 	Json::Value result(Json::objectValue);
