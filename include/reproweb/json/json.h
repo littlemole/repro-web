@@ -147,12 +147,6 @@ inline Json::Value toJson(float i)
 	return Json::Value(i);
 }
 
-
-inline Json::Value toJson(const std::string& s)
-{
-	return Json::Value(s);
-}
-
 inline Json::Value toJson( std::string s)
 {
 	return Json::Value(s);
