@@ -166,7 +166,7 @@ inline Json::Value toJson(const std::exception& ex)
 }
 
 template<class T>
-Json::Value toJson(const std::vector<T>& v)
+Json::Value toJson( std::vector<T>& v)
 {
 	Json::Value json(Json::arrayValue);
 
