@@ -58,6 +58,8 @@ public:
 
 		User user(username,login,pwd,avatar_url);
 
+		std::cout << "register:" << JSON::stringify(toJson(user)) << std::endl;
+
 		return model_->register_user(user);
 	}
 

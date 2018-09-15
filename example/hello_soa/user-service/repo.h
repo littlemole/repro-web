@@ -23,13 +23,14 @@ public:
 
 		if(user.username().empty() || user.login().empty() || user.hash().empty())
 		{
-			nextTick( [p]() 
+			throw BadRequestEx("username, login and password may not be empty");
+/*			nextTick( [p]() 
 			{
 				p.reject(BadRequestEx("username, login and password may not be empty"));
 			});
 
 			return p.future();
-		}
+*/		}
 
 		cryptoneat::Password pass;
 		std::string hash = pass.hash(user.hash());
@@ -68,9 +69,9 @@ public:
 		{
 			if ( r.rows() < 1) 
 			{
-				//throw UserNotFoundEx("user not found");
-				p.reject(UserNotFoundEx("user not found"));
-				return;
+				throw UserNotFoundEx("user not found");
+				//p.reject(UserNotFoundEx("user not found"));
+				//return;
 			}
 
 			User result(

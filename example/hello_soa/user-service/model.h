@@ -39,20 +39,16 @@ public:
 
 			if(!verified) 
 			{
-				//throw LoginEx("error.msg.login.failed");
-				p.reject(LoginEx("error.msg.login.failed"));
-				return;
+				throw LoginEx("error.msg.login.failed");
+				//p.reject(LoginEx("error.msg.login.failed"));
+				//return;
 			}
 
 			User result(user.username(),user.login(),"",user.avatar_url());
 			p.resolve(result);
 		})
-		.otherwise([p](const std::exception& ex)
-		{
-			std::cout << "---------- " << typeid(ex).name() << ex.what() << std::endl;
-			p.reject(ex);
-		});
-
+		.otherwise(reject(p));	
+		
 		return p.future();
 	}
 
