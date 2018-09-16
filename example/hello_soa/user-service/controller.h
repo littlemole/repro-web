@@ -42,7 +42,7 @@ public:
 
 			if(!verified) 
 			{
-				throw LoginEx("authentication failed - bad login/password combination");
+				throw LoginEx("error.msg.login.failed");
 			}
 
 			p.resolve(scrub(user));

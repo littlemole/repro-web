@@ -50,5 +50,5 @@ error.msg.password.empty=password shall not be empty
 error.msg.login.empty=login may not be empty
 error.msg.login.invalid.email=login must be valid email address
 error.msg.avatar.invalid.url=avatar url must be emty or a valid htpp/https url.
-error.msg.login.alreaady.taken=login is already taken.
+error.msg.login.already.taken=login is already taken.
 

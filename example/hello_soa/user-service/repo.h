@@ -39,7 +39,7 @@ public:
 		})
 		.otherwise([p](const std::exception& ex)
 		{
-			p.reject(LoginAlreadyTakenEx("username already taken"));
+			p.reject(LoginAlreadyTakenEx("error.msg.login.already.taken"));
 		});
 
 		return p.future();
@@ -57,7 +57,7 @@ public:
 		{
 			if ( r.rows() < 1) 
 			{
-				throw UserNotFoundEx("user not found");
+				throw UserNotFoundEx("error.msg.login.failed");
 			}
 
 			User result(
@@ -70,7 +70,7 @@ public:
 		})
 		.otherwise([p](const std::exception& ex)
 		{
-			p.reject(UserNotFoundEx("login not found"));
+			p.reject(UserNotFoundEx("error.msg.login.failed"));
 		});
 
 		return p.future();

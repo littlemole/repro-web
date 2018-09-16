@@ -3,7 +3,6 @@
 
 #include "model.h"
 #include "view.h"
-#include "repo.h"
 #include "valid.h"
 
 #include "cryptoneat/cryptoneat.h"
@@ -20,17 +19,7 @@ public:
 
 	void index( Request& req, Response& res)
 	{
-		std::string sid;
-
-		try
-		{
-			sid = Valid::session_id(req.headers.cookies());
-		}
-		catch(const std::exception& ex)
-		{
-			view_->redirect_to_login(res);
-			return;
-		}
+		std::string sid = Valid::session_id(req.headers.cookies());
 
 		model_->chat(sid)
 		.then([this,&req,&res](Json::Value viewModel)
@@ -55,20 +44,9 @@ public:
 
 	void login( Request& req, Response& res)
 	{
-		std::string login;
-		std::string pwd;
-
-		try
-		{
-			QueryParams qp(req.body());
-			login = Valid::login<LoginEx>(qp);
-			pwd   = Valid::passwd<LoginEx>(qp);
-		}
-		catch(const std::exception& ex)
-		{
-			view_->render_login(req,res,ex.what());
-			return;
-		}		
+		QueryParams qp(req.body());
+		std::string login = Valid::login<LoginEx>(qp);
+		std::string pwd   = Valid::passwd<LoginEx>(qp);
 
 		model_->login(login,pwd)
 		.then([this,&res](std::string sid)
@@ -77,23 +55,14 @@ public:
 		})
 		.otherwise([this,&req,&res](const std::exception& ex)
 		{
+			std::cout << "login: " << ex.what() << std::endl;
 			view_->render_login(req,res,ex.what());
 		});
 	}
 
 	void logout( Request& req, Response& res)
 	{
-		std::string sid;
-
-		try
-		{
-			sid = Valid::session_id(req.headers.cookies());
-		}
-		catch(const std::exception& ex)
-		{
-			view_->redirect_to_login(res);
-			return;
-		}	
+		std::string sid = Valid::session_id(req.headers.cookies());
 
 		model_->logout(sid)
 		.then([this,&res]()
@@ -108,26 +77,15 @@ public:
 
 	void register_user( Request& req, Response& res)
 	{
-		std::string username;
-		std::string login;
-		std::string pwd;
-		std::string avatar_url;
+		QueryParams qp(req.body());
+		std::string username   = Valid::username(qp);
+		std::string login      = Valid::login<RegistrationEx>(qp);
+		std::string pwd        = Valid::passwd<RegistrationEx>(qp);
+		std::string avatar_url = Valid::avatar(qp);
 
-		try
-		{
-			QueryParams qp(req.body());
-			username   = Valid::username(qp);
-			login      = Valid::login<RegistrationEx>(qp);
-			pwd        = Valid::passwd<RegistrationEx>(qp);
-			avatar_url = Valid::avatar(qp);
-		}
-		catch(const std::exception& ex)
-		{
-			view_->render_registration(req,res,ex.what());
-			return;
-		}		
+		User user(username,login,pwd,avatar_url);
 
-		model_->register_user(username,login,pwd,avatar_url)
+		model_->register_user(user)
 		.then([this,&res](std::string sid)
 		{
 			view_->redirect_to_index(res,sid);
@@ -144,6 +102,39 @@ private:
 	std::shared_ptr<View> view_;
 };
 
+
+class Exceptions
+{
+public:
+
+	Exceptions(std::shared_ptr<View> v)
+		: view(v)
+	{}
+
+	void on_auth_ex(const AuthEx& ex, prio::Request& req, prio::Response& res)
+	{
+		view->render_login(req,res,ex.what());
+	}		
+
+	void on_login_ex(const LoginEx& ex,prio::Request& req, prio::Response& res)
+	{
+		view->render_login(req,res,ex.what());
+	}	
+
+	void on_register_ex(const RegistrationEx& ex,prio::Request& req, prio::Response& res)
+	{
+		view->render_registration(req,res,ex.what());
+	}	
+
+	void on_std_ex(const std::exception& ex,prio::Request& req, prio::Response& res)
+	{
+		view->render_error(ex,res);
+	}
+
+private:
+
+	std::shared_ptr<View> view;
+};
 
 
 #endif

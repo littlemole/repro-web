@@ -21,15 +21,15 @@ public:
 		 avatar_url_(avatar_url)
 	{}
 
-	std::string username() const 	  { return name_; }
-	std::string login() const 	  { return login_; }
+	std::string username() const 	{ return name_; }
+	std::string login() const 	  	{ return login_; }
 	std::string avatar_url() const  { return avatar_url_; }
 
 	static reproweb::Jsonizer<User>& jsonize()
 	{
 		static Jsonizer<User> jsonizer {
 			"login", 		&User::login_,
-			"name", 		&User::name_,
+			"username", 	&User::name_,
 			"avatar_url", 	&User::avatar_url_
 		};
 		return jsonizer;

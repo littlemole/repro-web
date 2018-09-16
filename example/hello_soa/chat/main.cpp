@@ -7,7 +7,7 @@
 #include "model.h"
 #include "valid.h"
 #include "view.h"
-#include "repo.h"
+#include "service.h"
 #include "controller.h"
 #include "ws.h"
 
@@ -32,23 +32,27 @@ int main(int argc, char **argv)
 
 		ws_controller<WebSocketController> ("/ws"),
 
+		ex_handler(&Exceptions::on_auth_ex),
+		ex_handler(&Exceptions::on_login_ex),
+		ex_handler(&Exceptions::on_register_ex),
+		ex_handler(&Exceptions::on_std_ex),
+
 		singleton<AppConfig(diy::Context)>(),
-		singleton<SessionPool(AppConfig)>(),
-		singleton<UserPool(AppConfig)>(),
 
-		singleton<SessionRepository(SessionPool)>(),
-		singleton<UserRepository(UserPool)>(),
+		singleton<SessionService(AppConfig)>(),
+		singleton<UserService(AppConfig)>(),
 
-		singleton<Model(SessionRepository,UserRepository)>(),
+		singleton<Model(SessionService,UserService)>(),
 		singleton<View(TplStore,I18N)>(),
 		singleton<Controller(Model,View)>(),
 
 		singleton<EventBus()>(),
-		singleton<WebSocketController(SessionRepository,EventBus)>()
-	};	
+		singleton<WebSocketController(SessionService,EventBus)>(),
 
+		singleton<Exceptions(View)>()
+	};	
+ 
 	std::string cert = diy::inject<AppConfig>(ctx)->getString("cert");
-std::cout << cert << std::endl;
 
 	Http2SslCtx sslCtx;
 	sslCtx.load_cert_pem(cert);

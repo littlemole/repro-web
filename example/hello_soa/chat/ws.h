@@ -3,7 +3,7 @@
 #define _MOL_DEF_GUARD_DEFINE_CHAT_PROMISE_EXAMPLE_WS_DEF_
 
 #include "model.h"
-#include "repo.h"
+#include "service.h"
 #include "reproweb/ws/ws.h"
 #include "reproweb/json/json.h"
 
@@ -15,7 +15,7 @@ public:
 
 	// c'tor
 	WebSocketController(
-		std::shared_ptr<SessionRepository> s, 
+		std::shared_ptr<SessionService> s, 
 		std::shared_ptr<EventBus> bus
 	)
 	  : session_(s), 
@@ -95,7 +95,7 @@ private:
 		return ws->attributes.attr<std::string>("subscription-id");
 	}
 
-    std::shared_ptr<SessionRepository> session_;
+    std::shared_ptr<SessionService> session_;
     std::shared_ptr<EventBus> eventBus_;
 };
 

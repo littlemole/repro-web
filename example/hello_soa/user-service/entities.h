@@ -25,16 +25,16 @@ public:
 		static std::regex r("[^<>]*");
 
 		if(name.empty())
-			throw RegistrationEx("username may not be empty");
+			throw BadRequestEx("error.msg.username.empty");
 
-		return valid<BadRequestEx>(name, r, "username may not contain <> tags");
+		return valid<BadRequestEx>(name, r, "error.msg.username.invalid");
 	}
 
 	static const std::string passwd( const std::string& pwd)
 	{
 		static std::regex r(".*");
 
-		return valid<BadRequestEx>(pwd, r , "password may not be empty");
+		return valid<BadRequestEx>(pwd, r , "error.msg.password.empty");
 	}
 
 	static const std::string login( const std::string& email)
@@ -42,9 +42,9 @@ public:
 		static std::regex r("^[a-zA-Z0-9.!#$%&’*+/=?^_`{|}~-]+@[a-zA-Z0-9-]+(?:\\.[a-zA-Z0-9-]+)*$");
 
 		if(email.empty())
-			throw BadRequestEx("login may not be empty");
+			throw BadRequestEx("error.msg.login.empty");
 
-		return valid<BadRequestEx>(email, r, "login must be valid email address" );
+		return valid<BadRequestEx>(email, r, "error.msg.login.invalid.email" );
 	}
 
 	static const std::string avatar( const std::string& url)
@@ -54,7 +54,7 @@ public:
 		if(url.empty())
 			return "https://upload.wikimedia.org/wikipedia/commons/e/e4/Elliot_Grieveson.png";
 
-		return valid<BadRequestEx>(url, r, "avatar_url must be valid http/https url" );
+		return valid<BadRequestEx>(url, r, "error.msg.avatar.invalid.url" );
 	}	
    
 };

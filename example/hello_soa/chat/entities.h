@@ -1,32 +1,17 @@
 #ifndef _DEF_GUARD_DEFINE_REPROWEB_HELLO_WORLD_MODEL_ENTITIES_DEFINE_
 #define _DEF_GUARD_DEFINE_REPROWEB_HELLO_WORLD_MODEL_ENTITIES_DEFINE_
 
-#include <string>
-#include <memory>
 
 #include "reproweb/tools/config.h"
+#include "reproweb/json/json.h"
 
+using namespace prio;
+using namespace repro;
+using namespace reproweb;
 
-class AuthEx : public repro::Ex 
-{
-public:
-	AuthEx() {}
-	AuthEx(const std::string& s) : Ex(s) {}
-};
-
-class LoginEx : public repro::Ex 
-{
-public:
-	LoginEx() {}
-	LoginEx(const std::string& s) : Ex(s) {}
-};
-
-class RegistrationEx : public repro::Ex 
-{
-public:
-	RegistrationEx() {}
-	RegistrationEx(const std::string& s) : Ex(s) {}
-};
+MAKE_REPRO_EX(AuthEx)
+MAKE_REPRO_EX(LoginEx)
+MAKE_REPRO_EX(RegistrationEx)
 
 
 class User
@@ -52,14 +37,16 @@ public:
 	std::string hash() const  	  { return hash_; }
 	std::string avatar_url() const  { return avatar_url_; }
 
-	Json::Value toJson() const
+	static reproweb::Jsonizer<User>& jsonize()
 	{
-		Json::Value result(Json::objectValue);
-		result["username"] = name_;
-		result["login"] = login_;
-		result["avatar_url"] = avatar_url_;
-		return result;
-	}
+		static Jsonizer<User> jsonizer {
+			"username", 	&User::name_,
+			"login", 		&User::login_,
+			"pwd", 			&User::hash_,
+			"avatar_url", 	&User::avatar_url_
+		};
+		return jsonizer;
+	}	
 	
 private:
 	std::string name_;	
@@ -114,7 +101,47 @@ public:
 			get("redis") = oss.str();
 		}
 		std::cout << "REDIS: " << get("redis") << std::endl;
+
+		std::ostringstream oss1;
+		oss1 << getString("session-service") << "/session";
+		sessionService_ = oss1.str();		
+
+		std::ostringstream oss2;
+		oss2 << getString("user-service") << "/register";
+		registrationService_ = oss2.str();		
+
+		std::ostringstream oss3;
+		oss3 << getString("user-service") << "/login";
+		loginService_ = oss3.str();		
 	}
+
+	std::string sessionService(const std::string& sid)
+	{
+		std::ostringstream oss;
+		oss << getString("session-service") << "/session/" << sid;
+		return oss.str();
+	}
+
+	std::string sessionService()
+	{
+		return sessionService_;
+	}		
+
+	std::string registrationService()
+	{
+		return registrationService_;
+	}	
+
+	std::string loginService()
+	{
+		return loginService_;
+	}		
+
+private:
+
+	std::string sessionService_;
+	std::string registrationService_;
+	std::string loginService_;
 };
 
 #endif
