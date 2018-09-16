@@ -2,7 +2,7 @@
 #define _DEF_GUARD_DEFINE_REPROWEB_HELLO_WORLD_REPO_DEFINE_
 
 #include "reprosqlite/sqlite.h"
-#include "model.h"
+#include "entities.h"
 
 using namespace prio;
 using namespace repro;
@@ -17,41 +17,29 @@ public:
 		: sqlite(sqlitePool)
 	{}
 
-	Future<User> register_user( User & user )
+	Future<> register_user( User user )
 	{
-		auto p = promise<User>();
+		auto p = promise<>();
 
 		if(user.username().empty() || user.login().empty() || user.hash().empty())
 		{
 			throw BadRequestEx("username, login and password may not be empty");
-/*			nextTick( [p]() 
-			{
-				p.reject(BadRequestEx("username, login and password may not be empty"));
-			});
-
-			return p.future();
-*/		}
+		}
 
 		cryptoneat::Password pass;
 		std::string hash = pass.hash(user.hash());
 
 		sqlite->query(
-					"INSERT INTO users (username,login,avatar_url) VALUES ( ? , ? , ? , ? )",
+					"INSERT INTO users (username,login,pwd,avatar_url) VALUES ( ? , ? , ? , ? )",
 					user.username(),user.login(),hash,user.avatar_url()
 		)
-		.then([p](reprosqlite::Result r)
+		.then([p,user](reprosqlite::Result r)
 		{
-			User result(
-				r[0][0],
-				r[0][1],
-				"",
-				r[0][2]
-			);
-			p.resolve(result);
+			p.resolve();
 		})
 		.otherwise([p](const std::exception& ex)
 		{
-			p.reject(LoginAlreadyTakenEx("error.msg.login.already.taken"));
+			p.reject(LoginAlreadyTakenEx("username already taken"));
 		});
 
 		return p.future();
@@ -70,8 +58,6 @@ public:
 			if ( r.rows() < 1) 
 			{
 				throw UserNotFoundEx("user not found");
-				//p.reject(UserNotFoundEx("user not found"));
-				//return;
 			}
 
 			User result(
@@ -84,7 +70,7 @@ public:
 		})
 		.otherwise([p](const std::exception& ex)
 		{
-			p.reject(UserNotFoundEx("error.msg.login.failed"));
+			p.reject(UserNotFoundEx("login not found"));
 		});
 
 		return p.future();

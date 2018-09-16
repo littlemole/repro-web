@@ -152,6 +152,12 @@ inline Json::Value toJson( std::string s)
 	return Json::Value(s);
 }
 
+
+inline Json::Value toJson( Json::Value json)
+{
+	return json;
+}
+
 inline Json::Value exToJson(const std::exception& ex)
 {
 	Json::Value result(Json::objectValue);
@@ -187,6 +193,12 @@ inline void fromJson( int& i, Json::Value& json )
 inline void fromJson( std::string& s, Json::Value& json )
 {
 	s = json.asString();
+}
+
+
+inline void fromJson( Json::Value& member, Json::Value& json )
+{
+	member = json;
 }
 
 template<class T>

@@ -1,9 +1,7 @@
 #ifndef _DEF_GUARD_DEFINE_REPROWEB_HELLO_WORLD_CONTROLLER_DEFINE_
 #define _DEF_GUARD_DEFINE_REPROWEB_HELLO_WORLD_CONTROLLER_DEFINE_
 
-#include "model.h"
 #include "repo.h"
-
 #include "cryptoneat/cryptoneat.h"
 
 using namespace reproweb;
@@ -12,59 +10,69 @@ class Controller
 {
 public:
 
-	Controller( std::shared_ptr<Model> model)
-		: model_(model)
+	Controller( std::shared_ptr<UserRepository> repo)
+		: userRepository(repo)
 	{}
 
 	Future<User> get_user( Request& req, Response& res)
 	{
 		std::string email = Valid::login(req.path.args().get("email"));
 
-		return model_->get_user(email);
-	}
-
-	Future<User> login_user( Request& req, Response& res)
-	{
 		auto p = promise<User>();
 
-		Json::Value json  = JSON::parse(req.body());
-
-		std::string login = Valid::login(json["login"].asString());
-		std::string pwd   = Valid::passwd(json["pwd"].asString());
-
-		std::cout << login << "|" << pwd << std::endl;
-
-		 model_->login_user(login,pwd)
+		userRepository->get_user(email)
 		.then([p](User user)
 		{
-			p.resolve(user);
+			p.resolve(scrub(user));
 		})
-		.otherwise([p](const std::exception& ex)
-		{
-			std::cout << "---------- " << typeid(ex).name() << ex.what() << std::endl;
-			p.reject(ex);
-		});	
+		.otherwise(reject(p));		
+
 		return p.future();
 	}
 
-	Future<User> register_user( Request& req, Response& res)
+	Future<User> login_user( Login login, Request& req, Response& res)
 	{
-		Json::Value json = JSON::parse(req.body());
+		auto p = promise<User>();
 
-		std::string username   = Valid::username(json["username"].asString());
-		std::string login      = Valid::login(json["login"].asString());
-		std::string pwd        = Valid::passwd(json["pwd"].asString());
-		std::string avatar_url = Valid::avatar(json["avatar_url"].asString());
+		userRepository->get_user(login.login())
+		.then([p,login](User user)
+		{
+			cryptoneat::Password pass;
+			bool verified = pass.verify(login.hash(), user.hash() );
 
-		User user(username,login,pwd,avatar_url);
+			if(!verified) 
+			{
+				throw LoginEx("authentication failed - bad login/password combination");
+			}
 
-		std::cout << "register:" << JSON::stringify(toJson(user)) << std::endl;
+			p.resolve(scrub(user));
+		})
+		.otherwise(reject(p));	
+		
+		return p.future();
+	}
 
-		return model_->register_user(user);
+	Future<User> register_user( User user, Request& req, Response& res)
+	{
+		auto p = promise<User>();
+
+		userRepository->register_user(user)
+		.then([p,user]()
+		{
+			p.resolve(scrub(user));
+		})
+		.otherwise(reject(p));
+
+		return p.future();
 	}
 
 private:
-	std::shared_ptr<Model> model_;
+	std::shared_ptr<UserRepository> userRepository;
+
+	static User scrub(const User& user) 
+	{
+		return User(user.username(),user.login(),"",user.avatar_url());
+	}
 };
 
 
@@ -112,6 +120,7 @@ private:
 	void render_error(const E& ex, Response& res)
 	{
 		std::cout << typeid(ex).name() << ":" << ex.what() << std::endl;
+
 		Json::Value json = exToJson(ex);
 
 		res

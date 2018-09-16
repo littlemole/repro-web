@@ -1,9 +1,6 @@
 #ifndef _DEF_GUARD_DEFINE_REPROWEB_HELLO_WORLD_MODEL_ENTITIES_DEFINE_
 #define _DEF_GUARD_DEFINE_REPROWEB_HELLO_WORLD_MODEL_ENTITIES_DEFINE_
 
-#include <string>
-#include <memory>
-
 #include "reproweb/tools/config.h"
 #include "reproweb/tools/validation.h"
 
@@ -28,16 +25,16 @@ public:
 		static std::regex r("[^<>]*");
 
 		if(name.empty())
-			throw RegistrationEx("error.msg.username.empty");
+			throw RegistrationEx("username may not be empty");
 
-		return valid<BadRequestEx>(name, r, "error.msg.username.invalid");
+		return valid<BadRequestEx>(name, r, "username may not contain <> tags");
 	}
 
 	static const std::string passwd( const std::string& pwd)
 	{
 		static std::regex r(".*");
 
-		return valid<BadRequestEx>(pwd, r , "error.msg.password.empty");
+		return valid<BadRequestEx>(pwd, r , "password may not be empty");
 	}
 
 	static const std::string login( const std::string& email)
@@ -45,9 +42,9 @@ public:
 		static std::regex r("^[a-zA-Z0-9.!#$%&’*+/=?^_`{|}~-]+@[a-zA-Z0-9-]+(?:\\.[a-zA-Z0-9-]+)*$");
 
 		if(email.empty())
-			throw BadRequestEx("error.msg.login.empty");
+			throw BadRequestEx("login may not be empty");
 
-		return valid<BadRequestEx>(email, r, "error.msg.login.invalid.email" );
+		return valid<BadRequestEx>(email, r, "login must be valid email address" );
 	}
 
 	static const std::string avatar( const std::string& url)
@@ -57,7 +54,7 @@ public:
 		if(url.empty())
 			return "https://upload.wikimedia.org/wikipedia/commons/e/e4/Elliot_Grieveson.png";
 
-		return valid<BadRequestEx>(url, r, "error.msg.avatar.invalid.url" );
+		return valid<BadRequestEx>(url, r, "avatar_url must be valid http/https url" );
 	}	
    
 };
@@ -93,7 +90,6 @@ public:
 		};
 		return jsonizer;
 	}
-
 	
 protected:
 	std::string login_;	
@@ -138,7 +134,6 @@ public:
 		};
 		return jsonizer;
 	}
-
 	
 private:
 	std::string name_;	

@@ -1,8 +1,6 @@
 #ifndef _DEF_GUARD_DEFINE_REPROWEB_HELLO_WORLD_CONTROLLER_DEFINE_
 #define _DEF_GUARD_DEFINE_REPROWEB_HELLO_WORLD_CONTROLLER_DEFINE_
 
-#include "model.h"
-#include "view.h"
 #include "repo.h"
 #include "valid.h"
 
@@ -14,136 +12,103 @@ class Controller
 {
 public:
 
-	Controller( std::shared_ptr<Model> model, std::shared_ptr<View> view)
-		: model_(model), view_(view)
+	Controller( std::shared_ptr<SessionRepository> repo)
+		: sessionRepository(repo)
 	{}
 
-	void index( Request& req, Response& res)
+	Future<Json::Value> get_session( Request& req, Response& res)
+	{
+		std::string sid = Valid::session_id(req.path.args().get("sid"));
+
+		auto p = promise<Json::Value>();
+
+		sessionRepository->get_user_session(sid)
+		.then([p](Session session)
+		{
+			p.resolve(session.profile());
+		})
+		.otherwise(reject(p));
+
+		return p.future();
+	}
+
+	Future<Json::Value> write_session( User user, Request& req, Response& res)
+	{
+		auto p = promise<Json::Value>();
+
+		sessionRepository->write_user_session(user)
+		.then([p](Session session)
+		{
+			p.resolve(toJson(session));
+		})
+		.otherwise(reject(p));
+
+		return p.future();	
+	}	
+
+	void remove_session( Request& req, Response& res)
 	{
 		std::string sid;
-
 		try
 		{
-			sid = Valid::session_id(req.headers.cookies());
+			sid = Valid::session_id(req.path.args().get("sid"));
 		}
 		catch(const std::exception& ex)
 		{
-			view_->redirect_to_login(res);
+			res.bad_request().flush();
 			return;
 		}
 
-		model_->chat(sid)
-		.then([this,&req,&res](Json::Value viewModel)
+		sessionRepository->remove_user_session(sid)
+		.then([&res]()
 		{
-			view_->render_index(req,res,viewModel);
+			res.ok().flush();
 		})
-		.otherwise([this,&res](const std::exception& ex)
+		.otherwise([&res](const std::exception& ex)
 		{
-			view_->redirect_to_login(res);
-		});
-	}
-
-	void show_login( Request& req, Response& res)
-	{
-		view_->render_login(req,res,"");
-	}
-
-	void show_registration( Request& req, Response& res)
-	{
-		view_->render_registration(req,res,"");		
-	}
-
-	void login( Request& req, Response& res)
-	{
-		std::string login;
-		std::string pwd;
-
-		try
-		{
-			QueryParams qp(req.body());
-			login = Valid::login<LoginEx>(qp);
-			pwd   = Valid::passwd<LoginEx>(qp);
-		}
-		catch(const std::exception& ex)
-		{
-			view_->render_login(req,res,ex.what());
-			return;
-		}		
-
-		model_->login(login,pwd)
-		.then([this,&res](std::string sid)
-		{
-			view_->redirect_to_index(res,sid);
-		})
-		.otherwise([this,&req,&res](const std::exception& ex)
-		{
-			view_->render_login(req,res,ex.what());
-		});
-	}
-
-	void logout( Request& req, Response& res)
-	{
-		std::string sid;
-
-		try
-		{
-			sid = Valid::session_id(req.headers.cookies());
-		}
-		catch(const std::exception& ex)
-		{
-			view_->redirect_to_login(res);
-			return;
-		}	
-
-		model_->logout(sid)
-		.then([this,&res]()
-		{
-			view_->redirect_to_login(res);
-		})
-		.otherwise([this,&res](const std::exception& ex)
-		{
-			view_->render_error(ex,res);
-		});	
-	}
-
-	void register_user( Request& req, Response& res)
-	{
-		std::string username;
-		std::string login;
-		std::string pwd;
-		std::string avatar_url;
-
-		try
-		{
-			QueryParams qp(req.body());
-			username   = Valid::username(qp);
-			login      = Valid::login<RegistrationEx>(qp);
-			pwd        = Valid::passwd<RegistrationEx>(qp);
-			avatar_url = Valid::avatar(qp);
-		}
-		catch(const std::exception& ex)
-		{
-			view_->render_registration(req,res,ex.what());
-			return;
-		}		
-
-		model_->register_user(username,login,pwd,avatar_url)
-		.then([this,&res](std::string sid)
-		{
-			view_->redirect_to_index(res,sid);
-		})
-		.otherwise([this,&req,&res](const std::exception& ex)
-		{
-			view_->render_registration(req,res,ex.what());
+			res.not_found().flush();
 		});
 	}
 
 private:
 
-	std::shared_ptr<Model> model_;
-	std::shared_ptr<View> view_;
+	std::shared_ptr<SessionRepository> sessionRepository;
 };
 
+
+class Exceptions
+{
+public:
+
+	Exceptions()
+	{}
+
+	void on_no_session_ex(const NoSessionEx& ex,Request& req, Response& res)
+	{
+		std::cout << typeid(ex).name() << ":" << ex.what() << std::endl;
+
+		Json::Value json = exToJson(ex);
+
+		res
+		.not_found()
+		.body(JSON::flatten(json))
+		.contentType("application/json")
+		.flush();
+	}	
+
+	void on_std_ex(const std::exception& ex,Request& req, Response& res)
+	{
+		std::cout << typeid(ex).name() << ":" << ex.what() << std::endl;
+
+		Json::Value json = exToJson(ex);
+
+		res
+		.error()
+		.body(JSON::flatten(json))
+		.contentType("application/json")
+		.flush();
+	}		
+};
 
 
 #endif

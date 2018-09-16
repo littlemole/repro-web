@@ -1,33 +1,9 @@
 #ifndef _DEF_GUARD_DEFINE_REPROWEB_HELLO_WORLD_MODEL_ENTITIES_DEFINE_
 #define _DEF_GUARD_DEFINE_REPROWEB_HELLO_WORLD_MODEL_ENTITIES_DEFINE_
 
-#include <string>
-#include <memory>
-
 #include "reproweb/tools/config.h"
-
-
-class AuthEx : public repro::Ex 
-{
-public:
-	AuthEx() {}
-	AuthEx(const std::string& s) : Ex(s) {}
-};
-
-class LoginEx : public repro::Ex 
-{
-public:
-	LoginEx() {}
-	LoginEx(const std::string& s) : Ex(s) {}
-};
-
-class RegistrationEx : public repro::Ex 
-{
-public:
-	RegistrationEx() {}
-	RegistrationEx(const std::string& s) : Ex(s) {}
-};
-
+#include "reproweb/json/json.h"
+#include "valid.h"
 
 class User
 {
@@ -38,33 +14,30 @@ public:
 	User( 
 		const std::string& name,
 		const std::string& login,
-		const std::string& hash,
 		const std::string& avatar_url
 	)
 	  :  name_(name),
 		 login_(login),
-		 hash_(hash),
 		 avatar_url_(avatar_url)
 	{}
 
 	std::string username() const 	  { return name_; }
 	std::string login() const 	  { return login_; }
-	std::string hash() const  	  { return hash_; }
 	std::string avatar_url() const  { return avatar_url_; }
 
-	Json::Value toJson() const
+	static reproweb::Jsonizer<User>& jsonize()
 	{
-		Json::Value result(Json::objectValue);
-		result["username"] = name_;
-		result["login"] = login_;
-		result["avatar_url"] = avatar_url_;
-		return result;
-	}
+		static Jsonizer<User> jsonizer {
+			"login", 		&User::login_,
+			"name", 		&User::name_,
+			"avatar_url", 	&User::avatar_url_
+		};
+		return jsonizer;
+	}	
 	
 private:
 	std::string name_;	
 	std::string login_;	
-	std::string hash_;	
 	std::string avatar_url_;	
 };
 
@@ -83,8 +56,17 @@ public:
 		:sid_(sid), profile_(profile)
 	{}
 
-	std::string sid() const  { return sid_; }
-	Json::Value profile() const     { return profile_; }
+	std::string sid() const  	{ return sid_; }
+	Json::Value profile() const { return profile_; }
+
+	static reproweb::Jsonizer<Session>& jsonize()
+	{
+		static Jsonizer<Session> jsonizer {
+			"sid", 		&Session::sid_,
+			"profile", 	&Session::profile_
+		};
+		return jsonizer;
+	}		
 
 private:
 	std::string sid_;

@@ -3,7 +3,6 @@
 #include "reproweb/web_webserver.h"
 #include <signal.h>
   
-#include "model.h"
 #include "repo.h"
 #include "controller.h"
 
@@ -32,11 +31,9 @@ int main(int argc, char **argv)
 
 		singleton<AppConfig()>(),
 		singleton<UserPool(AppConfig)>(),
-
 		singleton<UserRepository(UserPool)>(),
 
-		singleton<Model(UserRepository)>(),
-		singleton<Controller(Model)>(),
+		singleton<Controller(UserRepository)>(),
 
 		singleton<Exceptions()>()
 	};	
