@@ -3,14 +3,9 @@
 #include "reproweb/web_webserver.h"
 #include <signal.h>
   
-#include "valid.h"
-#include "repo.h"
 #include "controller.h"
 
 using namespace diy;  
-using namespace prio;
-using namespace reproweb;
-
 
 int main(int argc, char **argv)
 {
@@ -36,11 +31,11 @@ int main(int argc, char **argv)
 		singleton<Exceptions()>()
 	};	
 
-	std::string cert = diy::inject<AppConfig>(ctx)->getString("cert");
+	std::string cert = inject<AppConfig>(ctx)->getString("cert");
 
 	Http2SslCtx sslCtx;
 	sslCtx.load_cert_pem(cert);
-	//sslCtx.enableHttp2();
+	sslCtx.enableHttp2();
 
 	WebServer server(ctx);
 	server.listen(sslCtx,9878);

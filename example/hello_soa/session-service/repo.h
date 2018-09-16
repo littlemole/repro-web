@@ -4,11 +4,6 @@
 #include "reproredis/redis.h"
 #include "entities.h"
 
-using namespace prio;
-using namespace repro;
-using namespace reproweb;
-
-
 class SessionRepository
 {
 public:
