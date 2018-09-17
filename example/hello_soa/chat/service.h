@@ -53,6 +53,9 @@ public:
 	{
 		reprocurl::request req( serviceUrl );
 
+		std::cout << serviceUrl << ":" << std::endl;
+		std::cout << JSON::flatten(toJson(t))  << std::endl;
+
 		req.data( JSON::flatten(toJson(t))).method("POST");
 
 		return invoke<E>(req);
@@ -75,7 +78,7 @@ private:
 	{
 		auto p = promise<Json::Value>();
 				
-		req.insecure();
+		req.insecure();//.verbose();
 
 		reprocurl::fetch(req)
 		.then([p](reprocurl::response res)

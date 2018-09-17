@@ -2,7 +2,7 @@
 FROM littlemole/reproweb_gpp_libevent_make
 MAINTAINER me <little.mole@oha7.org>
 
-RUN DEBIAN_FRONTEND=noninteractive apt-get install -y redis-server libsqlite3-dev
+#RUN DEBIAN_FRONTEND=noninteractive apt-get install -y redis-server 
 
 ARG CXX=g++
 ENV CXX=${CXX}
@@ -16,14 +16,13 @@ ENV BUILDCHAIN=${BUILDCHAIN}
 ENV REDIS_HOST=redis
 
 RUN /usr/local/bin/install.sh  repro-redis
-RUN /usr/local/bin/install.sh  repro-sqlite
 
 RUN mkdir -p /usr/local/src/reproweb-example
 ADD . /usr/local/src/reproweb-example
 
 RUN cd /usr/local/src/reproweb-example && (if [ "$BUILDCHAIN" != "cmake" ] ; then make -e; else (mkdir -p build && cd build && cmake .. && make) fi)
 
-CMD bash -c " cd /usr/local/src/reproweb-example && valgrind build/hello_world.bin"
+CMD bash -c " cd /usr/local/src/reproweb-example &&  build/hello_world.bin"
 
 
 

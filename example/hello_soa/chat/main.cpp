@@ -10,6 +10,7 @@
 #include "service.h"
 #include "controller.h"
 #include "ws.h"
+#include <curl/curl.h>
 
 using namespace diy;  
 using namespace prio;
@@ -20,6 +21,7 @@ int main(int argc, char **argv)
 {
 	prio::init();
 	cryptoneat::SSLUser useSSL;
+	curl_global_init(CURL_GLOBAL_ALL);
 
 	WebApplicationContext ctx {
 

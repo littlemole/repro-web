@@ -92,15 +92,26 @@ public:
 	AppConfig(std::shared_ptr<diy::Context> ctx)
 	  : WebAppConfig("config.json",ctx)
 	{
-		const char* redis = getenv("REDIS_HOST");
-		if(redis)
+		const char* user = getenv("USER_SERVICE_HOST");
+		if(user)
 		{
 			std::ostringstream oss;
-			oss << "redis://" << redis << ":6379";
+			oss << "https://" << user << ":9877";
 
-			get("redis") = oss.str();
+			get("user-service") = oss.str();
 		}
-		std::cout << "REDIS: " << get("redis") << std::endl;
+		std::cout << "USER_SERVICE: " << get("user-service") << std::endl;
+
+		const char* session = getenv("SESSION_SERVICE_HOST");
+		if(session)
+		{
+			std::ostringstream oss;
+			oss << "https://" << session << ":9878";
+
+			get("session-service") = oss.str();
+		}
+		std::cout << "SESSION_SERVICE: " << get("session-service") << std::endl;
+
 
 		std::ostringstream oss1;
 		oss1 << getString("session-service") << "/session";
