@@ -61,7 +61,7 @@ std::string I18N::render(std::string locale, const std::string& txt)
             std::string key = match[1];
             if( props.count(key)==0 && map_[""].count(key)==0 )
             {
-                result << "key: '" << key << "' not found for i18n using locale " << locale;
+                result << key;
             }
             else
             {
@@ -82,7 +82,11 @@ std::string I18N::get_key(std::string locale, const std::string& k)
     {
         return map_[locale][k];
     }
-    return map_[""][k];
+    if( map_[""].count(k) > 0 )
+    {
+        return map_[""][k];
+    }
+    return k;
 }
 
 void I18N::parse(const std::string& locale,const std::string& content)

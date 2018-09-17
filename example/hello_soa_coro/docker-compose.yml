@@ -1,0 +1,35 @@
+version: '2'
+services:
+  web:
+    build: 
+      context: ./chat
+      dockerfile: Dockerfile
+      args:
+        CXX: ${CXX}
+        BACKEND: ${BACKEND}
+        BUILDCHAIN: ${BUILDCHAIN}
+    ports:
+     - "9876:9876"
+  user:
+    build: 
+      context: ./user-service
+      dockerfile: Dockerfile
+      args:
+        CXX: ${CXX}
+        BACKEND: ${BACKEND}
+        BUILDCHAIN: ${BUILDCHAIN}
+    ports:
+     - "9877:9877"
+  session:
+    build: 
+      context: ./session-service
+      dockerfile: Dockerfile
+      args:
+        CXX: ${CXX}
+        BACKEND: ${BACKEND}
+        BUILDCHAIN: ${BUILDCHAIN}
+    ports:
+     - "9879:9879"          
+  redis:
+    image: "redis:alpine"
+    

@@ -1,0 +1,15 @@
+{
+    "user-service" : "https://localhost:9877",
+    "session-service" : "https://localhost:9878",
+    "redis"  : "redis://localhost:6379/",
+    "sqlite" : "./user.db",
+    "cert"   : "pem/server.pem",
+    "view"   : "/view/",
+    "htdocs" : "/htdocs/",
+    "i18n"   : {
+        "path"    : "/locale/properties", 
+        "locales" : ["en", "de"]
+    }
+}
+
+ 
