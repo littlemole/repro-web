@@ -30,10 +30,10 @@ int main(int argc, char **argv)
 		ex_handler(&Exceptions::on_std_ex),
 
 		singleton<AppConfig()>(),
-		singleton<UserPool(AppConfig)>(),
-		singleton<UserRepository(UserPool)>(),
+		singleton<UserMysqlPool(AppConfig)>(),
+		singleton<UserMysqlRepository(UserMysqlPool)>(),
 
-		singleton<Controller(UserRepository)>(),
+		singleton<Controller(UserMysqlRepository)>(),
 
 		singleton<Exceptions()>()
 	};	

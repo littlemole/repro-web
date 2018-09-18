@@ -37,8 +37,8 @@ OPTIONS = -g -fpic -Wno-write-strings -pthread -D_REENTRANT $(DEFAULT_OPTS) $(PK
 CPPFLAGS = -Wall -I../include $(DEBUG) $(OPTIONS) $(PROMISE_IMPL)
 
 # target
-LIB = -lreprowebd -lpriohttpd  -lreprocurld  -lreprosqlited -lpriocppd
-DEBUG_LIB = -lreproweb -lpriohttp  -lreprocurl  -lreprosqlite -lpriocpp
+LIB = -lreprowebd -lpriohttpd  -lreprocurld  -lreprosqlited -lpriocppd -repromysqld -lmysqlclient
+DEBUG_LIB = -lreproweb -lpriohttp  -lreprocurl  -lreprosqlite -lpriocpp -repromysql -lmysqlclient
 
 BIN_SRC   = .
 BIN_BUILD = ./build

@@ -32,4 +32,3 @@ services:
      - "9879:9879"          
   redis:
     image: "redis:alpine"
-    

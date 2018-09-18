@@ -32,4 +32,10 @@ services:
      - "9879:9879"          
   redis:
     image: "redis:alpine"
-    
+  mysql:
+    build: 
+      context: ./mysql
+      dockerfile: Dockerfile
+    environment:
+      - MYSQL_ALLOW_EMPTY_PASSWORD=yes 
+      

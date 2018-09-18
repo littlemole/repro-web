@@ -81,34 +81,18 @@ private:
 
 		std::string locale = Valid::locale(req);
 		std::string view = templates_->get(page);
-
-		//std::cout << "---------------------------------" << std::endl;
-		//std::cout << locale << ":" << view << std::endl;
  
-		SSIResolver::resolve(req,view)
-		.then( [this,&res,value,locale](std::string txt)
-		{
+		std::string txt = co_await SSIResolver::resolve(req,view);
 
-			//std::cout << "---------------------------------" << std::endl;
-			std::string tmpl = i18n_->render(locale,txt);
-			//std::cout << tmpl << std::endl;
- 	
-	 		//std::cout << "---------------------------------" << std::endl;
-			std::string content = mustache::render(tmpl,value);
-			//std::cout << content << std::endl;
-			//std::cout << "---------------------------------" << std::endl;
+		std::string tmpl = i18n_->render(locale,txt);
 
-			res
-			.body(content)
-			.contentType("text/html")
-			.ok()
-			.flush();
-		})
-		.otherwise([&res](const std::exception& ex)
-		{
-			std::cout << ex.what() << std::endl;
-			res.error().flush();
-		});
+		std::string content = mustache::render(tmpl,value);
+
+		res
+		.body(content)
+		.contentType("text/html")
+		.ok()
+		.flush();
 	}
 
 	Json::Value error_msg(const std::string& locale, const std::string& msg )

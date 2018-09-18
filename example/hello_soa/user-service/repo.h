@@ -1,20 +1,19 @@
 #ifndef _DEF_GUARD_DEFINE_REPROWEB_HELLO_WORLD_REPO_DEFINE_
 #define _DEF_GUARD_DEFINE_REPROWEB_HELLO_WORLD_REPO_DEFINE_
 
-#include "reprosqlite/sqlite.h"
-#include "entities.h"
-
+#include "repromysql/mysql-async.h"
+#include "entities.h" 
+ 
 using namespace prio;
 using namespace repro;
 using namespace reproweb;
 
-
-class UserRepository
+class UserMysqlRepository
 {
 public:
 
-	UserRepository(std::shared_ptr<reprosqlite::SqlitePool> sqlitePool)
-		: sqlite(sqlitePool)
+	UserMysqlRepository(std::shared_ptr<repromysql::MysqlPool> mp)
+		: mysql(mp)
 	{}
 
 	Future<> register_user( User user )
@@ -29,16 +28,17 @@ public:
 		cryptoneat::Password pass;
 		std::string hash = pass.hash(user.hash());
 
-		sqlite->query(
-					"INSERT INTO users (username,login,pwd,avatar_url) VALUES ( ? , ? , ? , ? )",
+		mysql->execute(
+					"INSERT INTO users (username,email,pwd,avatar_url) VALUES ( ? , ? , ? , ? )",
 					user.username(),user.login(),hash,user.avatar_url()
 		)
-		.then([p,user](reprosqlite::Result r)
+		.then([p,user](repromysql::mysql_async::Ptr)
 		{
 			p.resolve();
 		})
 		.otherwise([p](const std::exception& ex)
 		{
+			std::cout << "register failed: " << ex.what() << std::endl;
 			p.reject(LoginAlreadyTakenEx("error.msg.login.already.taken"));
 		});
 
@@ -49,24 +49,27 @@ public:
 	{
 		auto p = promise<User>();
 
-		sqlite->query(
-				"SELECT username,login,pwd,avatar_url FROM users WHERE login = ? ;",
+		mysql->query(
+				"SELECT username,email,pwd,avatar_url FROM users WHERE email = ? ;",
 				login
 		)
-		.then([p](reprosqlite::Result r)
+		.then([p](repromysql::result_async::Ptr r)
 		{
-			if ( r.rows() < 1) 
+			if( r->fetch() )
+			{
+				User result( 
+					r->field(0).getString(), 
+					r->field(1).getString(), 
+					r->field(2).getString(),
+					r->field(3).getString()
+				);
+
+				p.resolve(result);
+			}
+			else
 			{
 				throw UserNotFoundEx("error.msg.login.failed");
 			}
-
-			User result(
-				r[0][0],
-				r[0][1],
-				r[0][2],
-				r[0][3]
-			);
-			p.resolve(result);
 		})
 		.otherwise([p](const std::exception& ex)
 		{
@@ -78,13 +81,14 @@ public:
 
 private:
 
-	std::shared_ptr<reprosqlite::SqlitePool> sqlite;
+	std::shared_ptr<repromysql::MysqlPool> mysql;
 };
 
-struct UserPool : public reprosqlite::SqlitePool
+
+struct UserMysqlPool : public repromysql::MysqlPool 
 {
-	UserPool(std::shared_ptr<Config> config) 
-	  : SqlitePool(config->getString("sqlite")) 
+	UserMysqlPool(std::shared_ptr<Config> config) 
+	  : MysqlPool(config->getString("mysql")) 
 	{}
 };
 

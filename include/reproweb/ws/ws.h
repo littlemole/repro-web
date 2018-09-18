@@ -8,6 +8,50 @@
 
 namespace reproweb   {
 
+template<class T,class ... Args >
+void ws_callback(WsConnection::Ptr ws, void (T::*fun)(WsConnection::Ptr), const Args& ... args )
+{
+	try
+	{
+		auto ptr = ws->attributes.attr<std::shared_ptr<diy::Context>>("ctx")->resolve<T>();
+		T* t = ptr.get();
+		(t->*fun)(ws,args...);
+	}
+	catch(const std::exception& ex)
+	{
+		prio::nextTick([ws]()
+		{
+			ws->close();
+		});
+	}
+};
+
+template<class T,class ... Args>
+void ws_callback(WsConnection::Ptr ws, repro::Future<> (T::*fun)(WsConnection::Ptr), const Args& ... args )
+{
+	try
+	{
+		auto ptr = ws->attributes.attr<std::shared_ptr<diy::Context>>("ctx")->resolve<T>();
+		T* t = ptr.get();
+		(t->*fun)(ws,args...)
+		.then([]()
+		{
+			// all good
+		})
+		.otherwise([ws](const std::exception& ex)
+		{
+			ws->close();
+		});
+	}
+	catch(const std::exception& ex)
+	{
+		prio::nextTick([ws]()
+		{
+			ws->close();
+		});
+	}
+};
+
 
 template<class T>
 class ws_controller
@@ -52,20 +96,17 @@ private:
 
 	    ws->onConnect([](WsConnection::Ptr ws)
 	    {
-	    	auto ptr = ws->attributes.attr<std::shared_ptr<diy::Context>>("ctx")->resolve<T>();
-	    	ptr->onConnect(ws);
+			ws_callback(ws,&T::onConnect);
 	    });
 
 	    ws->onClose([](WsConnection::Ptr ws)
 	    {
-	    	auto ptr = ws->attributes.attr<std::shared_ptr<diy::Context>>("ctx")->resolve<T>();
-	    	ptr->onClose(ws);
+			ws_callback(ws,&T::onClose);
 	    });
 
 	    ws->onMsg([](WsConnection::Ptr ws, const std::string& data)
 		{
-	    	auto ptr = ws->attributes.attr<std::shared_ptr<diy::Context>>("ctx")->resolve<T>();
-	    	ptr->onMsg(ws,data);
+			ws_callback(ws,&T::onMsg,data);
 		});
 
 	    res

@@ -10,7 +10,7 @@ class Controller
 {
 public:
 
-	Controller( std::shared_ptr<UserRepository> repo)
+	Controller( std::shared_ptr<UserMysqlRepository> repo)
 		: userRepository(repo)
 	{}
 
@@ -67,7 +67,7 @@ public:
 	}
 
 private:
-	std::shared_ptr<UserRepository> userRepository;
+	std::shared_ptr<UserMysqlRepository> userRepository;
 
 	static User scrub(const User& user) 
 	{

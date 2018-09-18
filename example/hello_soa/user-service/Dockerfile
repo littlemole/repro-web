@@ -2,7 +2,7 @@
 FROM littlemole/reproweb_gpp_libevent_make
 MAINTAINER me <little.mole@oha7.org>
 
-RUN DEBIAN_FRONTEND=noninteractive apt-get install -y libsqlite3-dev
+RUN DEBIAN_FRONTEND=noninteractive apt-get install -y mysql-client libmysqlclient-dev
 
 ARG CXX=g++
 ENV CXX=${CXX}
@@ -15,7 +15,7 @@ ENV BUILDCHAIN=${BUILDCHAIN}
 
 #ENV REDIS_HOST=redis
 
-RUN /usr/local/bin/install.sh  repro-sqlite
+RUN /usr/local/bin/install.sh  repro-mysql 
 
 RUN mkdir -p /usr/local/src/reproweb-example
 ADD . /usr/local/src/reproweb-example

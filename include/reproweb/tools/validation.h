@@ -167,8 +167,54 @@ inline double valid_double(const std::string& s)
 	return valid_double<ValidationEx>(s);
 }
 
-    
+template<class E>
+std::string valid_email(const std::string& email, const std::string& msg)
+{
+	validator<E> v( std::regex("^[a-zA-Z0-9.!#$%&’*+/=?^_`{|}~-]+@[a-zA-Z0-9-]+(?:\\.[a-zA-Z0-9-]+)*$"));
+	return v.getString(email,msg);
 }
+
+template<class E>
+std::string valid_email(const std::string& email)
+{
+	return valid_email(email,"invalid email");
+}
+
+inline std::string valid_email(const std::string& email, const std::string& msg)
+{
+	return valid_email<ValidationEx>(email,msg);
+}
+
+
+inline std::string valid_email(const std::string& email)
+{
+	return valid_email<ValidationEx>(email);
+}
+
+template<class E>
+std::string valid_url(const std::string& url, const std::string& msg)
+{
+	validator<E> v( std::regex("(http|https)://(\\w+:{0,1}\\w*@)?(\\S+)(:[0-9]+)?(/|/([\\w#!:.?+=&%@!-/]))?"));
+	return v.getString(url,msg);
+}
+
+template<class E>
+std::string valid_url(const std::string& url)
+{
+	return valid_email<E>(url,"invalid url");
+}
+
+inline std::string valid_url(const std::string& url, const std::string& msg)
+{
+	return valid_email<ValidationEx>(url,msg);
+}
+
+inline std::string valid_url(const std::string& url)
+{
+	return valid_email<ValidationEx>(url);
+}
+
+} // end namespace
 
 
 #endif

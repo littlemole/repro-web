@@ -10,8 +10,8 @@ update-dockerfile:
 
 build: update-dockerfile ## run the docker image and open a shell
 	cd chat && make build CXX=$(CXX) BACKEND=$(BACKEND) BUILDCHAIN=$(BUILDCHAIN)
-	cd user-service && make CXX=$(CXX) BACKEND=$(BACKEND) BUILDCHAIN=$(BUILDCHAIN)
-	cd session-service && make CXX=$(CXX) BACKEND=$(BACKEND) BUILDCHAIN=$(BUILDCHAIN)
+	cd user-service && make build  CXX=$(CXX) BACKEND=$(BACKEND) BUILDCHAIN=$(BUILDCHAIN)
+	cd session-service && make build CXX=$(CXX) BACKEND=$(BACKEND) BUILDCHAIN=$(BUILDCHAIN)
 
 up: update-dockerfile ## run the docker image and open a shell
 	CXX=$(CXX) BACKEND=$(BACKEND) BUILDCHAIN=$(BUILDCHAIN) docker-compose up -d --build

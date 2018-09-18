@@ -6,24 +6,25 @@
 #include "valid.h"
 
 #include "cryptoneat/cryptoneat.h"
+#include "reproweb/ctrl/controller.h"
 
 using namespace reproweb;
 
 class Controller
-{
+{ 
 public:
 
 	Controller( std::shared_ptr<Model> model, std::shared_ptr<View> view)
 		: model_(model), view_(view)
 	{}
-
+     
 	Async index( Request& req, Response& res)
 	{
 		std::string sid = Valid::session_id(req.headers.cookies());
 
 		Json::Value viewModel = co_await model_->chat(sid);
 
-		view_->render_index(req,res,viewModel);
+		view_->render_index(req,res,viewModel); 
 
 		co_return;
 	}
