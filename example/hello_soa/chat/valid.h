@@ -54,26 +54,22 @@ public:
 	template<class E>
 	static const std::string login( QueryParams& params)
 	{
-		static std::regex r("^[a-zA-Z0-9.!#$%&’*+/=?^_`{|}~-]+@[a-zA-Z0-9-]+(?:\\.[a-zA-Z0-9-]+)*$");
-
 		std::string login = params.get("login");
 
 		if(login.empty())
 			throw E("error.msg.login.empty");
 
-		return valid<E>(login, r, "error.msg.login.invalid.email" );
+		return valid_email<E>(login, "error.msg.login.invalid.email" );
 	}
 
 	static const std::string avatar( QueryParams& params)
 	{
-		static std::regex r("(http|https)://(\\w+:{0,1}\\w*@)?(\\S+)(:[0-9]+)?(/|/([\\w#!:.?+=&%@!-/]))?");
-
 		std::string avatar = params.get("avatar_url");
 
 		if(avatar.empty())
 			return "https://upload.wikimedia.org/wikipedia/commons/e/e4/Elliot_Grieveson.png";
 
-		return valid<RegistrationEx>(avatar, r, "error.msg.avatar.invalid.url" );
+		return valid_url<RegistrationEx>(avatar, "error.msg.avatar.invalid.url" );
 	}	
 
 	static std::string locale(Request& req)
