@@ -9,7 +9,7 @@
 namespace reproweb   {
 
 template<class T,class ... Args >
-void ws_callback(WsConnection::Ptr ws, void (T::*fun)(WsConnection::Ptr), const Args& ... args )
+void ws_callback(WsConnection::Ptr ws, void (T::*fun)(WsConnection::Ptr, const Args& ... args), const Args& ... args )
 {
 	try
 	{
@@ -27,7 +27,7 @@ void ws_callback(WsConnection::Ptr ws, void (T::*fun)(WsConnection::Ptr), const 
 };
 
 template<class T,class ... Args>
-void ws_callback(WsConnection::Ptr ws, repro::Future<> (T::*fun)(WsConnection::Ptr), const Args& ... args )
+void ws_callback(WsConnection::Ptr ws, repro::Future<> (T::*fun)(WsConnection::Ptr, const Args& ... args), const Args& ... args )
 {
 	try
 	{

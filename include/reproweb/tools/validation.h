@@ -177,7 +177,7 @@ std::string valid_email(const std::string& email, const std::string& msg)
 template<class E>
 std::string valid_email(const std::string& email)
 {
-	return valid_email(email,"invalid email");
+	return valid_email<E>(email,"invalid email");
 }
 
 inline std::string valid_email(const std::string& email, const std::string& msg)
