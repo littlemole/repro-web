@@ -8,9 +8,9 @@
 #include "repo.h"
 #include "controller.h"
 
-using namespace diy;  
-using namespace prio;
-using namespace reproweb;
+
+#define TO_STR_HELPER(x) #x
+#define TO_STR(x) TO_STR_HELPER(x)
 
 class AppConfig : public Config
 {
@@ -28,7 +28,7 @@ public:
 
 			get("redis") = oss.str();
 		}
-
+		json()["version"] = TO_STR(VERSION);
 	}
 };
 
@@ -93,21 +93,6 @@ int main(int argc, char **argv)
 
 	WebServer server(ctx);
 	server.listen(sslCtx,9876);
-
-	timeout([&ctx]()
-	{
-		std::shared_ptr<SessionPool> redis = inject<SessionPool>(ctx);
-		redis->cmd("INFO")
-		.then( [](reproredis::RedisResult::Ptr r)
-		{
-			std::cout << r->str() << std::endl;
-		})
-		.otherwise([](const std::exception& ex)
-		{
-			std::cout << ex.what() << std::endl;
-		});
-	}
-	,0,10);
      
 	theLoop().run();
 

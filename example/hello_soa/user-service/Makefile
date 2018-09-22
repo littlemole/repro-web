@@ -34,7 +34,7 @@ endif
 
 #final cpp options
 OPTIONS = -g -fpic -Wno-write-strings -pthread -D_REENTRANT $(DEFAULT_OPTS) $(PKG_INC)
-CPPFLAGS = -Wall -I../include $(DEBUG) $(OPTIONS) $(PROMISE_IMPL)
+CPPFLAGS = -Wall -I../include $(DEBUG) $(OPTIONS) $(PROMISE_IMPL) -DVERSION=$(CONTAINER)
 
 # target
 LIB = -lreprowebd -lpriohttpd  -lreprocurld  -lrepromysqld -lpriocppd  -lmysqlclient
@@ -59,9 +59,9 @@ BIN_BINS = $(BIN_BUILD)/hello_world_debug.bin $(BIN_BUILD)/hello_world.bin
 
 all:
 	make clean_obj
-	make $(BIN_BUILD)/hello_world_debug.bin
+	make $(BIN_BUILD)/hello_soa_userservice_debug.bin
 	make clean_obj
-	make $(BIN_BUILD)/hello_world.bin
+	make $(BIN_BUILD)/hello_soa_userservice.bin
 
 #################################################
 # rules to compile .o files from .cpp source
@@ -76,10 +76,10 @@ $(BIN_BUILD)/%.o: $(BIN_SRC)/%.cpp
 # rules to compile the artifacts from .o files
 #################################################
 
-$(BIN_BUILD)/hello_world_debug.bin: $(BIN_OBJFILES)
+$(BIN_BUILD)/hello_soa_userservice_debug.bin: $(BIN_OBJFILES)
 	$(CXX) $^ $(BIN_DEBUG_LIBS) -o $@ 
 
-$(BIN_BUILD)/hello_world.bin: $(BIN_OBJFILES)
+$(BIN_BUILD)/hello_soa_userservice.bin: $(BIN_OBJFILES)
 	$(CXX) $^ $(BIN_RELEASE_LIBS) -o $@ 
 
 			

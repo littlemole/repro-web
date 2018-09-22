@@ -1,7 +1,7 @@
 #ifndef _DEF_GUARD_DEFINE_REPROWEB_HELLO_WORLD_REPO_DEFINE_
 #define _DEF_GUARD_DEFINE_REPROWEB_HELLO_WORLD_REPO_DEFINE_
 
-#include "reprosqlite/sqlite.h"
+#include "repromysql/mysql-async.h"
 #include "entities.h"
 
 using namespace prio;
@@ -13,12 +13,14 @@ class UserRepository
 {
 public:
 
-	UserRepository(std::shared_ptr<reprosqlite::SqlitePool> sqlitePool)
-		: sqlite(sqlitePool)
+	UserRepository(std::shared_ptr<repromysql::MysqlPool> my)
+		: mysql(my)
 	{}
 
 	Future<> register_user( User user )
 	{
+		auto p = promise<>();
+
 		if(user.username().empty() || user.login().empty() || user.hash().empty())
 		{
 			throw BadRequestEx("username, login and password may not be empty");
@@ -29,58 +31,63 @@ public:
 
 		try
 		{
-			reprosqlite::Result r = co_await sqlite->query(
-						"INSERT INTO users (username,login,pwd,avatar_url) VALUES ( ? , ? , ? , ? )",
+			repromysql::mysql_async::Ptr r = co_await mysql->execute(
+						"INSERT INTO users (username,email,pwd,avatar_url) VALUES ( ? , ? , ? , ? )",
 						user.username(),user.login(),hash,user.avatar_url()
 			);
-
-			co_return;
 		}
 		catch(const std::exception& ex)
 		{
+			std::cout << "register failed: " << ex.what() << std::endl;
 			throw LoginAlreadyTakenEx("error.msg.login.already.taken");
 		}
+
+		co_return;
 	}
 
 	Future<User> get_user( const std::string& login )
 	{
+		auto p = promise<User>();
+
 		try
 		{
-			reprosqlite::Result r = co_await sqlite->query(
-					"SELECT username,login,pwd,avatar_url FROM users WHERE login = ? ;",
+			repromysql::result_async::Ptr r = co_await mysql->query(
+					"SELECT username,email,pwd,avatar_url FROM users WHERE email = ? ;",
 					login
 			);
 
-			if ( r.rows() < 1) 
+			if( r->fetch() )
+			{
+				User result( 
+					r->field(0).getString(), 
+					r->field(1).getString(), 
+					r->field(2).getString(),
+					r->field(3).getString()
+				);
+
+				co_return result;
+			}
+			else
 			{
 				throw UserNotFoundEx("error.msg.login.failed");
-			}
-
-			User result(
-				r[0][0],
-				r[0][1],
-				r[0][2],
-				r[0][3]
-			);
-
-			co_return result;
-
+			}		
 		}
 		catch(const std::exception& ex)
 		{
-			throw UserNotFoundEx("error.msg.login.failed");
+			 throw UserNotFoundEx("error.msg.login.failed");
 		}
+		co_return User();
 	}
 
 private:
 
-	std::shared_ptr<reprosqlite::SqlitePool> sqlite;
+	std::shared_ptr<repromysql::MysqlPool> mysql;
 };
 
-struct UserPool : public reprosqlite::SqlitePool
+struct UserPool : public repromysql::MysqlPool
 {
 	UserPool(std::shared_ptr<Config> config) 
-	  : SqlitePool(config->getString("sqlite")) 
+	  : MysqlPool(config->getString("mysql")) 
 	{}
 };
 

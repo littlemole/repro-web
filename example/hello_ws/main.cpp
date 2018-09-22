@@ -32,22 +32,7 @@ int main(int argc, char **argv)
 
 		ws_controller<WebSocketController> ("/ws"),
 
-		i18n_props("/locale/properties", {"en", "de"} ),
-
-		view_templates("/view/"),
-
-#ifndef _WIN32
-		static_content("/htdocs/","/etc/mime.types"),
-#else
-		static_content("/htdocs/","mime.types"),
-#endif
-
-		ex_handler(&Exceptions::on_auth_failed),
-		ex_handler(&Exceptions::on_login_failed),
-		ex_handler(&Exceptions::on_registration_failed),
-		ex_handler(&Exceptions::on_std_ex),
-
-		singleton<AppConfig(FrontController)>(),
+		singleton<AppConfig(diy::Context)>(),
 		singleton<SessionPool(AppConfig)>(),
 		singleton<UserPool(AppConfig)>(),
 
@@ -55,17 +40,18 @@ int main(int argc, char **argv)
 		singleton<UserRepository(UserPool)>(),
 
 		singleton<Model(SessionRepository,UserRepository)>(),
-		singleton<View(TplStore,I18N)>(),
+		singleton<View(AppConfig,TplStore,I18N)>(),
 		singleton<Controller(Model,View)>(),
 
 		singleton<EventBus()>(),
-		singleton<WebSocketController(SessionRepository,EventBus)>(),
-
-		singleton<Exceptions(View)>()
+		singleton<WebSocketController(SessionRepository,EventBus)>()
 	};	
 
+	std::string cert = diy::inject<AppConfig>(ctx)->getString("cert");
+std::cout << cert << std::endl;
+
 	Http2SslCtx sslCtx;
-	sslCtx.load_cert_pem("pem/server.pem");
+	sslCtx.load_cert_pem(cert);
 	//sslCtx.enableHttp2();
 
 	WebServer server(ctx);

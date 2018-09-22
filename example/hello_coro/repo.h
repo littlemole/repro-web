@@ -7,80 +7,7 @@
 #include "model.h"
 
 using namespace prio;
- 
-/*
-class SessionRepository
-{
-public:
 
-	SessionRepository(std::shared_ptr<reproredis::RedisPool> redisPool)
-		: redis(redisPool)
-	{}
-
-	Future<Session> get_user_session( std::string sid)
-	{
-		auto p = repro::promise<Session>();
-
-		redis->cmd("GET", sid) 
-		.then([p,sid](reproredis::RedisResult::Ptr reply)
-		{
-			if(reply->isError() || reply->isNill())
-			{
-				p.reject(repro::Ex("invalid session"));
-				return;
-			}
-
-			std::string payload = reply->str();
-			Json::Value json = reproweb::JSON::parse(payload);
-			
-			p.resolve( Session(sid,json) );
-		})
-		.otherwise(reject(p));
-
-		return p.future();
-	}
-
-	Future<Session> write_user_session(User user)
-	{
-		auto p = repro::promise<Session>();
-
-		Session session(user.toJson());
-
-		redis->cmd("SET", session.sid(), session.profile() )
-		.then([p,this,session](reproredis::RedisResult::Ptr reply)
-		{
-			return redis->cmd("EXPIRE", session.sid(), 60);
-		})
-		.then([p,session](reproredis::RedisResult::Ptr reply)
-		{
-			p.resolve(session);
-		})
-		.otherwise(reject(p));
-
-		return p.future();
-	}
-
-	Future<> remove_user_session(const std::string& sid)
-	{
-		auto p = repro::promise<>();
-
-		redis->cmd("DEL", sid)
-		.then([p](reproredis::RedisResult::Ptr reply)
-		{
-			p.resolve();
-		})
-		.otherwise(reject(p));
-
-		return p.future();
-	}
-
-private:
-
-	std::shared_ptr<reproredis::RedisPool> redis;
-};
-
-
-*/
 class SessionRepository
 {
 public:
@@ -125,10 +52,12 @@ public:
 
 			std::cout << "new sid: " << session.sid() << std::endl;
 
-			reproredis::RedisResult::Ptr reply = co_await redis->cmd("SET", session.sid(), session.profile());
+			reproredis::RedisResult::Ptr reply;
+			reply = co_await redis->cmd("SET", session.sid(), session.profile());
 			std::cout  << reply->isError() << " " << reply->str() << std::endl;
 
-			reproredis::RedisResult::Ptr reply2 = co_await redis->cmd("EXPIRE", session.sid(), 180);
+			reproredis::RedisResult::Ptr reply2;
+			reply2 = co_await redis->cmd("EXPIRE", session.sid(), 180);
 			std::cout << reply2->isError() << " " << reply2->str() << std::endl;
 
 			co_return session;

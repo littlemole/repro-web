@@ -103,6 +103,7 @@
 					<li>&copy; littlemole. All rights reserved.</li></li>
 				</ul>
 			</div>
+			<p> {{ version }} </p>
 </div>
 
 </body>

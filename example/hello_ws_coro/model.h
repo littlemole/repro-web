@@ -7,6 +7,10 @@
 #include "entities.h"
 #include "repo.h"
 
+
+#define TO_STR_HELPER(x) #x
+#define TO_STR(x) TO_STR_HELPER(x)
+
 class AppConfig : public Config
 {
 public:
@@ -22,6 +26,8 @@ public:
 			get("redis") = oss.str();
 		}
 		std::cout << "REDIS: " << get("redis") << std::endl;
+
+		json()["version"] = TO_STR(VERSION);
 	}
 };
 

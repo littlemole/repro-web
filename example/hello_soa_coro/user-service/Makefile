@@ -1,4 +1,4 @@
-CXX = g++
+CXX = clang++
 BACKEND=libevent
 BUILDCHAIN = make
 
@@ -11,8 +11,8 @@ DEBUG = -g -DMOL_PROMISE_DEBUG
 release : override DEBUG = -O3
 
 LIBEVENT=$(shell pkg-config libevent_pthreads --libs)
-PKG_INC=$(shell pkg-config cryptoneat reprocpp --cflags)
-PKG_LIB=$(shell pkg-config jsoncpp cryptoneat libnghttp2 sqlite3 zlib libcurl --libs)
+PKG_INC=$(shell pkg-config cryptoneat reprocpp mysqlclient --cflags)
+PKG_LIB=$(shell pkg-config jsoncpp cryptoneat libnghttp2 zlib libcurl --libs)
 
 # if not g++ we assume clang++
 DEFAULT_LIBS = -stdlib=libc++ -fcoroutines-ts  -lc++abi -std=c++14 
@@ -34,11 +34,11 @@ endif
 
 #final cpp options
 OPTIONS = -g -fpic -Wno-write-strings -pthread -D_REENTRANT $(DEFAULT_OPTS) $(PKG_INC)
-CPPFLAGS = -Wall -I../include $(DEBUG) $(OPTIONS) $(PROMISE_IMPL)
+CPPFLAGS = -Wall -I../include $(DEBUG) $(OPTIONS) $(PROMISE_IMPL) -DVERSION=$(CONTAINER)
 
 # target
-LIB = -lreprowebd -lpriohttpd  -lreprocurld  -lreprosqlited -lpriocppd -repromysqld -lmysqlclient
-DEBUG_LIB = -lreproweb -lpriohttp  -lreprocurl  -lreprosqlite -lpriocpp -repromysql -lmysqlclient
+LIB = -lreprowebd -lpriohttpd  -lreprocurld  -lrepromysqld -lpriocppd  -lmysqlclient
+DEBUG_LIB = -lreproweb -lpriohttp  -lreprocurl  -lrepromysql -lpriocpp -lmysqlclient
 
 BIN_SRC   = .
 BIN_BUILD = ./build
@@ -59,9 +59,9 @@ BIN_BINS = $(BIN_BUILD)/hello_world_debug.bin $(BIN_BUILD)/hello_world.bin
 
 all:
 	make clean_obj
-	make $(BIN_BUILD)/hello_world_debug.bin
+	make $(BIN_BUILD)/hello_soa_userservice_debug.bin
 	make clean_obj
-	make $(BIN_BUILD)/hello_world.bin
+	make $(BIN_BUILD)/hello_soa_userservice.bin
 
 #################################################
 # rules to compile .o files from .cpp source
@@ -76,10 +76,10 @@ $(BIN_BUILD)/%.o: $(BIN_SRC)/%.cpp
 # rules to compile the artifacts from .o files
 #################################################
 
-$(BIN_BUILD)/hello_world_debug.bin: $(BIN_OBJFILES)
+$(BIN_BUILD)/hello_soa_userservice_debug.bin: $(BIN_OBJFILES)
 	$(CXX) $^ $(BIN_DEBUG_LIBS) -o $@ 
 
-$(BIN_BUILD)/hello_world.bin: $(BIN_OBJFILES)
+$(BIN_BUILD)/hello_soa_userservice.bin: $(BIN_OBJFILES)
 	$(CXX) $^ $(BIN_RELEASE_LIBS) -o $@ 
 
 			

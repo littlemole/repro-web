@@ -80,9 +80,10 @@
 		-->
 			<div class="copyright">
 				<ul class="menu">
-					<li>&copy; littlemole. All rights reserved.</li></li>
+					<li>&copy; littlemole. All rights reserved.</li>
 				</ul>
 			</div>
+            <p>{{ version }}</p>            
 </div>
 
 </body>

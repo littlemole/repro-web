@@ -19,10 +19,11 @@ public:
 		templates_.load("/view/");
 	}
 
-	void render_index(Response& res, const Json::Value& profile)
+	void render_index(Response& res, Json::Value json)
 	{
+		json["version"] = config_->getString("version");
 		res
-		.body(templates_.render("index", profile ))
+		.body(templates_.render("index", json ))
 		.contentType("text/html")
 		.ok()
 		.flush();
@@ -30,11 +31,12 @@ public:
 
 	void render_login(Response& res, const std::string& msg )
 	{
-		Json::Value errorMsg(Json::objectValue);
-		errorMsg["errorMsg"] = msg;
+		Json::Value json(Json::objectValue);
+		json["errorMsg"] = msg;
+		json["version"] = config_->getString("version");
 
 		res
-		.body(templates_.render("login", errorMsg ))
+		.body(templates_.render("login", json ))
 		.contentType("text/html")
 		.ok()
 		.flush();
@@ -42,11 +44,12 @@ public:
 
 	void render_registration(Response& res, const std::string& msg )
 	{
-		Json::Value errorMsg(Json::objectValue);
-		errorMsg["errorMsg"] = msg;
+		Json::Value json(Json::objectValue);
+		json["errorMsg"] = msg;
+		json["version"] = config_->getString("version");
 
 		res
-		.body(templates_.render("register", errorMsg ))
+		.body(templates_.render("register", json ))
 		.contentType("text/html")
 		.ok()
 		.flush();

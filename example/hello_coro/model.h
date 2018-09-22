@@ -9,6 +9,11 @@
 
 
 
+using namespace diy;  
+using namespace prio;
+using namespace repro;
+using namespace reproweb;
+
 class AuthEx : public repro::Ex 
 {
 public:

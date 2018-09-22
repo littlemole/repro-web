@@ -12,6 +12,9 @@ using namespace diy;
 using namespace prio;
 using namespace reproweb;
 
+#define TO_STR_HELPER(x) #x
+#define TO_STR(x) TO_STR_HELPER(x)
+
 class AppConfig : public Config
 {
 public:
@@ -27,6 +30,7 @@ public:
 			get("redis") = oss.str();
 		}
 
+		json()["version"] = TO_STR(VERSION);
 	}
 };
 
@@ -45,8 +49,11 @@ struct UserPool : public reprosqlite::SqlitePool
 };
 
 
+
 int main(int argc, char **argv)
 {
+	std::cout << TO_STR(VERSION) << std::endl;
+
 	prio::init();
 	cryptoneat::SSLUser useSSL;
 

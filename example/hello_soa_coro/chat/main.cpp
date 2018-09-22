@@ -45,7 +45,7 @@ int main(int argc, char **argv)
 		singleton<UserService(AppConfig)>(),
 
 		singleton<Model(SessionService,UserService)>(),
-		singleton<View(TplStore,I18N)>(),
+		singleton<View(AppConfig,TplStore,I18N)>(),
 		singleton<Controller(Model,View)>(),
 
 		singleton<EventBus()>(),

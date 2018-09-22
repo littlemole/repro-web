@@ -13,5 +13,6 @@
 				<ul class="menu">
 					<li><!--#i18n key="generic.main.copyright" --></li>
 				</ul>
+				<p> {{ version }} </p>
 			</div>
 </div>

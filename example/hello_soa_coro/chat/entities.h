@@ -86,6 +86,9 @@ private:
 };
 
 
+#define TO_STR_HELPER(x) #x
+#define TO_STR(x) TO_STR_HELPER(x)
+
 class AppConfig : public reproweb::WebAppConfig
 {
 public:
@@ -112,6 +115,7 @@ public:
 		}
 		std::cout << "SESSION_SERVICE: " << get("session-service") << std::endl;
 
+		json()["version"] = TO_STR(VERSION);
 
 		std::ostringstream oss1;
 		oss1 << getString("session-service") << "/session";

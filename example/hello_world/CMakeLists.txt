@@ -184,7 +184,7 @@ message("+++++++++++++++++")
 
 set(CMAKE_EXE_LINKER_FLAGS  "${CMAKE_EXE_LINKER_FLAGS} ${LINKERFLAGS}" )
 set(CMAKE_CXX_FLAGS_DEBUG  	"${CMAKE_CXX_FLAGS_DEBUG} -DMOL_PROMISE_DEBUG")
-set(CMAKE_CXX_FLAGS  		"${CMAKE_CXX_FLAGS} ${BUILDFLAGS}")
+set(CMAKE_CXX_FLAGS  		"${CMAKE_CXX_FLAGS} ${BUILDFLAGS} -DVERSION=$ENV{VERSION}")
 
 
 ############################################
@@ -223,11 +223,11 @@ file(GLOB SOURCES "./*.cpp")
 # exe
 ############################################
 
-add_executable(${CMAKE_PROJECT_NAME} ./test.cpp)
+add_executable(${CMAKE_PROJECT_NAME}.bin ./main.cpp)
 
 ############################################
 # libs for exe
 ############################################
 
-target_link_libraries(${CMAKE_PROJECT_NAME}  ${LIBS} ${BACKEND} ${OSLIBS} )
+target_link_libraries(${CMAKE_PROJECT_NAME}.bin  ${LIBS} ${BACKEND} ${OSLIBS} )
 

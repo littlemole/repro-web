@@ -12,10 +12,13 @@ class View
 public:
 
 	View(
+		std::shared_ptr<AppConfig> config, 
 		std::shared_ptr<TplStore> tpls, 
 		std::shared_ptr<I18N> i18n )
 		: templates_(tpls), i18n_(i18n)
-	{}
+	{
+		version_ = config->getString("version");
+	}
 
 	void render_index(Request& req, Response& res, Json::Value profile)
 	{
@@ -69,6 +72,7 @@ private:
 
 	std::shared_ptr<TplStore> templates_;
 	std::shared_ptr<I18N> i18n_;
+	std::string version_;
 
 	void render(Request& req, Response& res, const std::string& page, const std::string& errMsg)
 	{
@@ -78,6 +82,7 @@ private:
 	void render(Request& req, Response& res, const std::string& page, Json::Value value)
 	{
 		value["page"] = page;
+		value["version"] = version_;
 
 		std::string locale = Valid::locale(req);
 		std::string view = templates_->get(page);

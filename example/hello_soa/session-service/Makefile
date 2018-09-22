@@ -63,11 +63,11 @@ all:
 
 debug:
 	make clean_obj
-	make -e $(BIN_BUILD)/hello_world_debug.bin
+	make -e $(BIN_BUILD)/hello_soa_sessionservice_debug.bin
 
 release:
 	make clean_obj
-	make $(BIN_BUILD)/hello_world.bin DEBUG=$(DEBUG)
+	make $(BIN_BUILD)/hello_soa_sessionservice.bin DEBUG=$(DEBUG)
 
 
 #################################################
@@ -83,10 +83,10 @@ $(BIN_BUILD)/%.o: $(BIN_SRC)/%.cpp
 # rules to compile the artifacts from .o files
 #################################################
 
-$(BIN_BUILD)/hello_world_debug.bin: $(BIN_OBJFILES)
+$(BIN_BUILD)/hello_soa_sessionservice_debug.bin: $(BIN_OBJFILES)
 	$(CXX) $^ $(BIN_DEBUG_LIBS) -o $@ 
 
-$(BIN_BUILD)/hello_world.bin: $(BIN_OBJFILES)
+$(BIN_BUILD)/hello_soa_sessionservice.bin: $(BIN_OBJFILES)
 	$(CXX) $^ $(BIN_RELEASE_LIBS) -o $@ 
 
 			

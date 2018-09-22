@@ -14,4 +14,5 @@
 					<li><!--#i18n key="generic.main.copyright" --></li>
 				</ul>
 			</div>
+			<p> {{ version }} </p>
 </div>

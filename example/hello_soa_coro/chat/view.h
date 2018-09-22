@@ -2,20 +2,22 @@
 #define _DEF_GUARD_DEFINE_REPROWEB_HELLO_WORLD_VIEW_DEFINE_
 
 #include "reproweb/tools/config.h"
+#include "reproweb/ctrl/ssi.h"
+#include "entities.h"
 
-using namespace prio;
-using namespace repro;
-using namespace reproweb;
 
 class View
 {
 public:
 
 	View(
+		std::shared_ptr<AppConfig> conf, 
 		std::shared_ptr<TplStore> tpls, 
 		std::shared_ptr<I18N> i18n )
 		: templates_(tpls), i18n_(i18n)
-	{}
+	{
+		version_ = conf->getString("version");
+	}
 
 	void render_index(Request& req, Response& res, Json::Value profile)
 	{
@@ -69,15 +71,17 @@ private:
 
 	std::shared_ptr<TplStore> templates_;
 	std::shared_ptr<I18N> i18n_;
+	std::string version_;
 
-	void render(Request& req, Response& res, const std::string& page, const std::string& errMsg)
+	Async render(Request& req, Response& res, const std::string& page, const std::string& errMsg)
 	{
 		return render(req,res,page,error_msg(Valid::locale(req),errMsg));
 	}
 
-	void render(Request& req, Response& res, const std::string& page, Json::Value value)
+	Async render(Request& req, Response& res, const std::string& page, Json::Value value)
 	{
 		value["page"] = page;
+		value["version"] = version_;
 
 		std::string locale = Valid::locale(req);
 		std::string view = templates_->get(page);
@@ -93,6 +97,8 @@ private:
 		.contentType("text/html")
 		.ok()
 		.flush();
+
+		co_return;
 	}
 
 	Json::Value error_msg(const std::string& locale, const std::string& msg )

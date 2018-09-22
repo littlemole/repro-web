@@ -20,9 +20,11 @@ RUN /usr/local/bin/install.sh  repro-mysql
 RUN mkdir -p /usr/local/src/reproweb-example
 ADD . /usr/local/src/reproweb-example
 
-RUN cd /usr/local/src/reproweb-example && (if [ "$BUILDCHAIN" != "cmake" ] ; then make -e; else (mkdir -p build && cd build && cmake .. && make) fi)
+#RUN cd /usr/local/src/reproweb-example && (if [ "$BUILDCHAIN" != "cmake" ] ; then make -e; else (mkdir -p build && cd build && cmake .. && make) fi)
 
-CMD bash -c " cd /usr/local/src/reproweb-example &&  build/hello_world.bin"
+RUN bash -c 'cd /usr/local/src/reproweb-example && SKIPTESTS=true VERSION="${CXX}_${BACKEND}_${BUILDCHAIN}" /usr/local/bin/compile.sh reproweb-example'
+
+CMD bash -c 'cd /usr/local/src/reproweb-example &&  (if [ "$BUILDCHAIN" != "cmake" ] ; then build/hello_soa_userservice.bin; else Release/hello_soa_userservice.bin; fi )'
 
 
 

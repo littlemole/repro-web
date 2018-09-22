@@ -1,4 +1,4 @@
-CXX = g++
+CXX = clang++
 BACKEND=libevent
 BUILDCHAIN = make
 
@@ -24,7 +24,7 @@ DEFAULT_LIBS =
 endif
 
 #backend switch libevent/boost_asio
-PROMISE_IMPL = -DPROMISE_USE_LIBEVENT
+PROMISE_IMPL = -DPROMISE_USE_LIBEVENT 
 PROMISE_3DPARTY = $(LIBEVENT) $(DEFAULT_LIBS)
 
 ifeq ($(BACKEND),boost_asio)
@@ -33,12 +33,12 @@ ifeq ($(BACKEND),boost_asio)
 endif
 
 #final cpp options
-OPTIONS = -g -fpic -Wno-write-strings -pthread -D_REENTRANT $(DEFAULT_OPTS) $(PKG_INC)
+OPTIONS = -g -fpic -Wno-write-strings -pthread -D_REENTRANT $(DEFAULT_OPTS) $(PKG_INC) -DVERSION=$(CONTAINER)
 CPPFLAGS = -Wall -I../include $(DEBUG) $(OPTIONS) $(PROMISE_IMPL)
 
 # target
-LIB = -lreprowebd -lpriohttpd  -lreprocurld  -lpriocppd
-DEBUG_LIB = -lreproweb -lpriohttp  -lreprocurl  -lpriocpp
+LIB = -lreprowebd -lpriohttpd  -lreprocurld -lreproredisd -lreprosqlited -lpriocppd
+DEBUG_LIB = -lreproweb -lpriohttp  -lreprocurl -lreproredis -lreprosqlite -lpriocpp
 
 BIN_SRC   = .
 BIN_BUILD = ./build
@@ -59,9 +59,9 @@ BIN_BINS = $(BIN_BUILD)/hello_world_debug.bin $(BIN_BUILD)/hello_world.bin
 
 all:
 	make clean_obj
-	make $(BIN_BUILD)/hello_world_debug.bin
+	make -e $(BIN_BUILD)/hello_world_debug.bin
 	make clean_obj
-	make $(BIN_BUILD)/hello_world.bin
+	make -e $(BIN_BUILD)/hello_world.bin
 
 #################################################
 # rules to compile .o files from .cpp source
@@ -97,8 +97,7 @@ clean: clean_obj
 
 release : all
 
-update-dockerfile:
-	echo $(CXX)
+update-dockerfile: clean
 	/bin/sed -i "s/FROM .*/FROM ${BASE_IMAGE}/" Dockerfile
 
 build: update-dockerfile ## run the docker image and open a shell
@@ -109,8 +108,7 @@ up: update-dockerfile ## run the docker image and open a shell
 
 down: ## stop running docker image, if any
 	CXX=$(CXX) BACKEND=$(BACKEND) BUILDCHAIN=$(BUILDCHAIN) docker-compose stop
-
-clean-logs:
-	sh -c "truncate -s 0 /var/lib/docker/containers/*/*-json.log"
 	
 .PHONY: build up down update-dockerfile
+ 
+ 

@@ -98,6 +98,8 @@ private:
 	}
 };
 
+#define TO_STR_HELPER(x) #x
+#define TO_STR(x) TO_STR_HELPER(x)
 
 class AppConfig : public reproweb::WebAppConfig
 {
@@ -114,6 +116,8 @@ public:
 			get("redis") = oss.str();
 		}
 		std::cout << "REDIS: " << get("redis") << std::endl;
+
+		json()["version"] = TO_STR(VERSION);
 	}
 };
 
