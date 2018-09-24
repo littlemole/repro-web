@@ -4,6 +4,7 @@
 
 namespace reproweb  {
 
+//////////////////////////////////////////////////////
 
 mustache::mustache( const std::string& tpl)
 	: template_(tpl)
@@ -66,6 +67,7 @@ mustache::Data mustache::fromJson(Json::Value& data)
 	return Data(data.asString());
 }
 
+//////////////////////////////////////////////////////
 
 
 TplStore::TplStore()
@@ -132,5 +134,214 @@ std::string TplStore::render(const std::string& tpl, const std::string& json)
 	Json::Value val = reproweb::JSON::parse(json);
 	return m.render(val);
 }
+
+//////////////////////////////////////////////////////
+
+
+view_templates::view_templates(const std::string& path)
+	: path_(path)
+{}
+
+void view_templates::ctx_register(diy::Context* ctx)
+{
+	auto tpls = std::make_shared<TplStore>();
+	tpls->load(path_);
+	ctx->registerFactory( typeid(TplStore), new diy::FactoryImpl<TplStore>(tpls) );
+}
+
+//////////////////////////////////////////////////////
+
+
+AbstractView::AbstractView( )
+{}
+
+AbstractView::~AbstractView( )
+{}
+
+std::string AbstractView::get_locale(prio::Request& req)
+{
+	auto h = req.headers.values("Accept-Language");
+	auto lang = h.value().main();
+	std::string locale = std::regex_replace (lang,std::regex("-"),"_");		
+
+	return locale;
+}  	
+
+void AbstractView::redirect(prio::Response& res, const std::string& url)
+{
+	res.redirect(url).flush();
+}
+
+repro::Future<> AbstractView::render(prio::Request& req, prio::Response& res, const std::string& page, Json::Value value)
+{
+	auto p = repro::promise<>();
+
+	this->render_content(req,page,value)
+	.then([this,p,&res](std::string content)
+	{
+		flush_content(res,content);
+	})
+	.otherwise([this,p,&res](const std::exception& ex)
+	{
+		render_error(res,ex);
+	});
+
+	return p.future();
+}
+
+void AbstractView::flush_content(prio::Response& res,const std::string& content)
+{
+	res
+	.body(content)
+	.contentType("text/html")
+	.ok()
+	.flush();
+}
+
+void AbstractView::render_error(prio::Response& res, const std::exception& ex)
+{
+	std::ostringstream oss;
+	oss << typeid(ex).name() << ":" << ex.what() << std::endl;
+
+	res
+	.body(oss.str())
+	.error()
+	.flush();
+}	
+
+//////////////////////////////////////////////////////
+
+TemplateView::TemplateView( std::shared_ptr<TplStore> tpls)
+	: templates_(tpls)
+{}
+
+repro::Future<std::string> TemplateView::render_content(prio::Request& req, const std::string& page, Json::Value value)
+{
+	auto p = repro::promise<std::string>();
+
+	prio::nextTick( [this,p,page,value]() 
+	{
+		// fetch template for page
+		std::string view = templates_->get(page);
+
+		p.resolve(view);
+	});
+
+	return p.future();
+}
+
+//////////////////////////////////////////////////////
+
+
+ViewI18nDecorator::ViewI18nDecorator( std::shared_ptr<I18N> i18n,  AbstractView* av)
+	: i18n_(i18n),view_(av)
+{}
+
+repro::Future<std::string> ViewI18nDecorator::render_content(prio::Request& req, const std::string& page, Json::Value value)
+{
+	auto p = repro::promise<std::string>();
+
+	view_->render_content(req,page,value)
+	.then([this,p,&req](std::string content)
+	{
+		std::string tmpl = i18n_->render(get_locale(req),content);
+
+		p.resolve(tmpl);
+	})
+	.otherwise([p](const std::exception& ex)
+	{
+		p.reject(ex);
+	});
+	
+	return p.future();
+}
+
+//////////////////////////////////////////////////////
+
+
+ViewMustacheDecorator::ViewMustacheDecorator(  AbstractView* av)
+	: view_(av)
+{}
+
+repro::Future<std::string> ViewMustacheDecorator::render_content(prio::Request& req, const std::string& page, Json::Value value)
+{
+	auto p = repro::promise<std::string>();
+
+	view_->render_content(req,page,value)
+	.then([p,value](std::string view)
+	{
+		std::string content = mustache::render(view,value);
+
+		p.resolve(content);
+	})
+	.otherwise([p](const std::exception& ex)
+	{
+		p.reject(ex);
+	});
+	
+	return p.future();
+}
+
+//////////////////////////////////////////////////////
+
+
+ViewSSIDecorator::ViewSSIDecorator( AbstractView* av)
+	: view_(av)
+{}
+
+repro::Future<std::string> ViewSSIDecorator::render_content(prio::Request& req, const std::string& page, Json::Value value)
+{
+	auto p = repro::promise<std::string>();
+
+	view_->render_content(req,page,value)
+	.then([&req](std::string content)
+	{
+		return SSIResolver::resolve(req,content);
+	})
+	.then([p](std::string txt)
+	{
+		p.resolve(txt);
+	})		
+	.otherwise([p](const std::exception& ex)
+	{
+		p.reject(ex);
+	});
+	
+	return p.future();
+}
+
+//////////////////////////////////////////////////////
+
+
+I18nSSIMustacheView::I18nSSIMustacheView(	
+	std::shared_ptr<TplStore> tpls, 
+	std::shared_ptr<I18N> i18n )
+	: ViewMustacheDecorator( 
+		new ViewI18nDecorator(
+			i18n,
+			new ViewSSIDecorator(
+				new TemplateView(tpls)
+			)
+		)
+	)
+{}
+
+I18nMustacheView::I18nMustacheView(	
+	std::shared_ptr<TplStore> tpls, 
+	std::shared_ptr<I18N> i18n )
+	: ViewMustacheDecorator( 
+		new ViewI18nDecorator(
+			i18n,
+			new TemplateView(tpls)
+		)
+	)
+{}
+
+MustacheView::MustacheView( std::shared_ptr<TplStore> tpls )
+	: ViewMustacheDecorator( 
+		new TemplateView(tpls)
+	)
+{}
+
 
 }

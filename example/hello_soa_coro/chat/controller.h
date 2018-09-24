@@ -116,7 +116,7 @@ public:
 
 	void on_std_ex(const std::exception& ex,prio::Request& req, prio::Response& res)
 	{
-		view->render_error(ex,res);
+		view->render_error(res,ex);
 	}
 
 private:

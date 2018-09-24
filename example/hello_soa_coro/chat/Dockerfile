@@ -2,8 +2,6 @@
 FROM littlemole/reproweb_clangpp_libevent_make
 MAINTAINER me <little.mole@oha7.org>
 
-RUN DEBIAN_FRONTEND=noninteractive apt-get install -y redis-server libsqlite3-dev
-
 ARG CXX=g++
 ENV CXX=${CXX}
 
@@ -12,9 +10,6 @@ ENV BACKEND=${BACKEND}
 
 ARG BUILDCHAIN=make
 ENV BUILDCHAIN=${BUILDCHAIN}
-
-RUN /usr/local/bin/install.sh  repro-redis
-RUN /usr/local/bin/install.sh  repro-sqlite
 
 RUN mkdir -p /usr/local/src/reproweb-example
 ADD . /usr/local/src/reproweb-example

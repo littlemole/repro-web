@@ -6,7 +6,7 @@
 #include "entities.h"
 
 
-class View
+class View : public I18nSSIMustacheView
 {
 public:
 
@@ -14,92 +14,59 @@ public:
 		std::shared_ptr<AppConfig> conf, 
 		std::shared_ptr<TplStore> tpls, 
 		std::shared_ptr<I18N> i18n )
-		: templates_(tpls), i18n_(i18n)
+		: I18nSSIMustacheView(tpls,i18n),i18n_(i18n)
 	{
 		version_ = conf->getString("version");
 	}
 
-	void render_index(Request& req, Response& res, Json::Value profile)
+	void render_index(Request& req, Response& res, Json::Value value)
 	{
-		render(req,res,"index",profile);
+		value["page"] = "index";
+		value["version"] = version_;
+
+		render(req,res,"index",value);
 	}
 
 	void render_login(Request& req, Response& res, const std::string& errMsg )
 	{
-		render(req,res,"login",errMsg);
+		Json::Value value = error_msg(get_locale(req),errMsg);
+		value["page"] = "login";
+		value["version"] = version_;
+
+		render(req,res,"login",value);
 	}
 
 	void render_registration(Request& req, Response& res, const std::string& errMsg )
 	{
-		render(req,res,"register",errMsg);
+		Json::Value value = error_msg(get_locale(req),errMsg);
+		value["page"] = "register";
+		value["version"] = version_;
+
+		render(req,res,"register",value);
 	}	
-
-	void render_error(const std::exception& ex, Response& res)
-	{
-		std::ostringstream oss;
-		oss << typeid(ex).name() << ":" << ex.what() << std::endl;
-
-		res
-		.body(oss.str())
-		.error()
-		.flush();
-	}
 
 	void redirect_to_index(Response& res, const std::string& sid)
 	{
-		res
-		.cookie(Cookie("repro_web_sid", sid))
-		.redirect("https://localhost:9876/")
-		.flush();
+		redirect(
+			res.cookie(Cookie("repro_web_sid", sid)),
+			"https://localhost:9876/"
+		);
 	}
 
 	void redirect_to_login(Response& res)
 	{
-		res
-		.redirect("https://localhost:9876/login")
-		.flush();
+		redirect(res,"https://localhost:9876/login");
 	}	
 
 	void redirect_to_registration(Response& res)
 	{
-		res
-		.redirect("https://localhost:9876/register")
-		.flush();
+		redirect(res,"https://localhost:9876/register");
 	}	
 
 private:
 
-	std::shared_ptr<TplStore> templates_;
 	std::shared_ptr<I18N> i18n_;
 	std::string version_;
-
-	Async render(Request& req, Response& res, const std::string& page, const std::string& errMsg)
-	{
-		return render(req,res,page,error_msg(Valid::locale(req),errMsg));
-	}
-
-	Async render(Request& req, Response& res, const std::string& page, Json::Value value)
-	{
-		value["page"] = page;
-		value["version"] = version_;
-
-		std::string locale = Valid::locale(req);
-		std::string view = templates_->get(page);
- 
-		std::string txt = co_await SSIResolver::resolve(req,view);
-
-		std::string tmpl = i18n_->render(locale,txt);
-
-		std::string content = mustache::render(tmpl,value);
-
-		res
-		.body(content)
-		.contentType("text/html")
-		.ok()
-		.flush();
-
-		co_return;
-	}
 
 	Json::Value error_msg(const std::string& locale, const std::string& msg )
 	{
@@ -113,6 +80,7 @@ private:
 
 		return errorMsg;
 	}	
+
 };
  
 #endif
