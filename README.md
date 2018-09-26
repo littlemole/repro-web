@@ -326,6 +326,6 @@ git clone https://github.com/littlemole/repro-web
 cd repro-web\examples\hello_world
 mkdir debug
 cd debug
-cmake .. -DCMAKE_BUILD_TYPE=debug -DCMAKE_TOOLCHAIN_FILE=..\..\..\vcpkg\scripts\buildsystems\vcpkg.cmake
+cmake .. -DCMAKE_BUILD_TYPE=Debug -DCMAKE_TOOLCHAIN_FILE=..\..\..\..\vcpkg\scripts\buildsystems\vcpkg.cmake
 
 ``` 

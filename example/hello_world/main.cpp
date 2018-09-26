@@ -48,23 +48,16 @@ struct UserPool : public reprosqlite::SqlitePool
 	{}
 };
 
-
-
-int main(int argc, char **argv)
+void server()
 {
-	std::cout << TO_STR(VERSION) << std::endl;
+	WebApplicationContext ctx{
 
-	prio::init();
-	cryptoneat::SSLUser useSSL;
-
-	WebApplicationContext ctx {
-
-		GET  ( "/",				&Controller::index),
-		GET  ( "/logout",		&Controller::logout),
-		GET  ( "/login",		&Controller::show_login),
-		GET  ( "/register",		&Controller::show_registration),
-		POST ( "/login",		&Controller::login),
-		POST ( "/register",		&Controller::register_user),
+		GET("/",				&Controller::index),
+		GET("/logout",		&Controller::logout),
+		GET("/login",		&Controller::show_login),
+		GET("/register",		&Controller::show_registration),
+		POST("/login",		&Controller::login),
+		POST("/register",		&Controller::register_user),
 
 #ifndef _WIN32
 		static_content("/htdocs/","/etc/mime.types"),
@@ -80,16 +73,38 @@ int main(int argc, char **argv)
 
 		singleton<View(AppConfig)>(),
 		singleton<Controller(View,SessionRepository,UserRepository)>(),
-	};	
+	};
 
 	Http2SslCtx sslCtx;
 	sslCtx.load_cert_pem("pem/server.pem");
 	//sslCtx.enableHttp2();
 
 	WebServer server(ctx);
-	server.listen(sslCtx,9876);
-     
+	server.listen(sslCtx, 9876);
+
 	theLoop().run();
+
+}
+
+int main(int argc, char **argv)
+{
+	try
+	{
+		std::cout << TO_STR(VERSION) << std::endl;
+
+		prio::init();
+		cryptoneat::SSLUser useSSL;
+
+		server();
+	}
+	catch (const std::exception& ex)
+	{
+		std::cout << typeid(ex).name() << ": " << ex.what() << std::endl;
+	}
+	catch (...)
+	{
+		std::cout << "abort with unknown exception." << std::endl;
+	}
 
 	MOL_TEST_PRINT_CNTS();	
     return 0;

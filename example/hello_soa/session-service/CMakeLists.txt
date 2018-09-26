@@ -29,6 +29,7 @@ set(LINKERFLAGS "")
 set(STDLIB "")
 set(FLAGS "")
 
+set(VERSION "$ENV{VERSION}")
 
 if ("${CMAKE_CXX_COMPILER_ID}" STREQUAL "Clang")
     set(STDLIB "c++abi")
@@ -42,13 +43,15 @@ endif()
 
 IF (WIN32)
 
-if(NOT CMAKE_BUILD_TYPE)
-  set(CMAKE_BUILD_TYPE "Debug" CACHE STRING "Choose the type of build, options are: Debug Release RelWithDebInfo MinSizeRel." FORCE)
-endif()
+	if(NOT CMAKE_BUILD_TYPE)
+	  set(CMAKE_BUILD_TYPE "Debug" CACHE STRING "Choose the type of build, options are: Debug Release RelWithDebInfo MinSizeRel." FORCE)
+	endif()
 
-message("+++++++++++++++++")
-message("${CMAKE_BUILD_TYPE}")
-message("+++++++++++++++++")
+	set(VERSION "${CMAKE_CXX_COMPILER_ID}_${CMAKE_BUILD_TYPE}")
+
+	message("+++++++++++++++++")
+	message("${CMAKE_BUILD_TYPE}")
+	message("+++++++++++++++++")
 
 	set(OSLIBS "Ws2_32" "Rpcrt4" "Shlwapi")
 	set(BUILDFLAGS "-await ${FLAGS}")
@@ -172,7 +175,7 @@ message("+++++++++++++++++")
 
 set(CMAKE_EXE_LINKER_FLAGS  "${CMAKE_EXE_LINKER_FLAGS} ${LINKERFLAGS}" )
 set(CMAKE_CXX_FLAGS_DEBUG  	"${CMAKE_CXX_FLAGS_DEBUG} -DMOL_PROMISE_DEBUG")
-set(CMAKE_CXX_FLAGS  		"${CMAKE_CXX_FLAGS} ${BUILDFLAGS}")
+set(CMAKE_CXX_FLAGS  		"${CMAKE_CXX_FLAGS} ${BUILDFLAGS} -DVERSION=${VERSION}")
 
 
 ############################################
@@ -205,6 +208,13 @@ message("+++++++++++++++++")
 ############################################
 
 file(GLOB SOURCES "./*.cpp")
+
+############################################
+# runtime config files
+############################################
+
+file(COPY pem DESTINATION .)
+file(COPY config.json DESTINATION .)
 
 
 ############################################
