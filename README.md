@@ -1,8 +1,18 @@
 # Modern C++ for web development. With Promises. And Coroutines.
 reactive non-blocking c++ web development with promises. coroutines optional.
 
+# disclaimer
+
+this is a private academic study on how future c++ apis for the web could look like, with an emphasis on promise/coroutine support.
+
+> this software is not considered production ready. use only on your own risk - you have been warned!
+
+for production usage relying on production-ready stacks, have a look at [Lukas Bergdoll](https://github.com/CppCon/CppCon2017/tree/master/Demos/Using%20IncludeOS%20to%20Write%20Fast%20and%20Secure%20Web%20Applications)
+
+
 # motivation
 study to explore modern c++' fitness for modern, server side web development.
+
 
 # target
 from a developer perspective, allow for server side web development at a level of convenience par to Node.js or Java Servlets.
@@ -10,14 +20,17 @@ from a developer perspective, allow for server side web development at a level o
 # requirements
 - nonblocking io
 - single thread model
-- no callback hell
-- support for HTTP,HTTPS,HTTP2
+- no callback hell thanks to promises (and - optionally with clang++ or msvc - coroutine sugar)
 - declarative http routing
 - http filters
 - support for JSON
 - support for templating
 - Dependency Injection
 - websockets
+- i18n support
+- ssi includes in templates
+- automagic JSON serialization for REST APIs
+- support for HTTP,HTTPS,HTTP2
 
 # dependencies
 - [repro](http://github.com/littlemole/repro) exposes the fundamental Promise abstraction to wrap async io
@@ -28,7 +41,15 @@ from a developer perspective, allow for server side web development at a level o
 - [jsoncpp](https://github.com/open-source-parsers/jsoncpp) for JSON support
 - [mustache](https://github.com/kainjow/Mustache) for templating
 
-# middleware
+# 3d party dependencies
+- libevent or boost_asio for main event loop and async IO
+- gtest for testing
+- jsoncpp for JSON support
+- nghttp2 for HTTP/2 support
+- openssl for SSL/TLS and crypto
+- zlib for compression
+
+# available middleware
 - [repro-curl](http://github.com/littlemole/repro-curl) for making HTTP client calls serverside
 - [repro-redis](http://github.com/littlemole/repro-redis) access to Redis key-value store
 - [repro-mysql](http://github.com/littlemole/repro-mysql) access MySQL databases 
@@ -329,3 +350,14 @@ cd debug
 cmake .. -DCMAKE_BUILD_TYPE=Debug -DCMAKE_TOOLCHAIN_FILE=..\..\..\..\vcpkg\scripts\buildsystems\vcpkg.cmake
 
 ``` 
+
+## about library and examples debug builds
+
+all libraries and examples do the debug build with -DMOL_PROMISE_DEBUG which conditionally enables
+counting of outstanding core entities, useful to track memory leaks during library development.
+
+with -DMOL_PROMISE_DEBUG defined your app has to setup the tracked counters as in [test.h](https://github.com/littlemole/repro-web/blob/master/t/test.h). 
+
+LINUX: for normal application development just link to release libs and do a debug build of your app only without defining -DMOL_PROMISE_DEBUG
+WIN32: due to the link-time incompat of debug and release builds there is currently no win32 setup to support debug builds without -DMOL_PROMISE_DEBUG. this is a limitation of
+the current implementation. 
