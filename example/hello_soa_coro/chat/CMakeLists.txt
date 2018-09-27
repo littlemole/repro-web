@@ -205,6 +205,10 @@ file(GLOB SOURCES "./*.cpp")
 
 add_executable(${CMAKE_PROJECT_NAME}.bin ./main.cpp)
 
+if(WIN32)
+	file(COPY ${CURL_LIBRARY} DESTINATION ${CMAKE_BINARY_DIR})
+endif()
+
 ############################################
 # libs for exe
 ############################################

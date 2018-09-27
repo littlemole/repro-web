@@ -28,7 +28,7 @@ public:
 
 		auto p = promise<>();
 				
-		req.insecure();
+		req.insecure().verbose();
 
 		reprocurl::fetch(req)
 		.then([p](reprocurl::response res)
@@ -78,7 +78,7 @@ private:
 	{
 		auto p = promise<Json::Value>();
 				
-		req.insecure();//.verbose();
+		req.insecure().verbose();
 
 		reprocurl::fetch(req)
 		.then([p](reprocurl::response res)
