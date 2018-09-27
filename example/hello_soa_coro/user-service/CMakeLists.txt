@@ -72,7 +72,7 @@ message("+++++++++++++++++")
 		find_library(REPROCURL_LIBRARY NAMES reprocurl)
 		find_library(REPROWEB_LIBRARY NAMES reproweb)
 		find_library(REPROMYSQL_LIBRARY NAMES repromysql)
-		find_library(MYSQL_LIBRARY NAMES mysql)
+		find_library(MYSQL_LIBRARY NAMES libmysql)
 
 		set(LIBS 
 			${REPROWEB_LIBRARY} 
@@ -110,7 +110,7 @@ message("+++++++++++++++++")
 		find_library(REPROWEBD_LIBRARY NAMES reprowebd)
 		find_library(REPROMYSQL_LIBRARY NAMES repromysql)
 		find_library(REPROMYSQLD_LIBRARY NAMES repromysqld)
-		find_library(MYSQL_LIBRARY NAMES mysql)
+		find_library(MYSQL_LIBRARY NAMES libmysql)
 
 
 		set(LIBS  
@@ -210,6 +210,14 @@ message("+++++++++++++++++")
 ############################################
 
 file(GLOB SOURCES "./*.cpp")
+
+############################################
+# runtime config files
+############################################
+
+file(COPY pem DESTINATION .)
+file(COPY config.json DESTINATION .)
+
 
 
 ############################################

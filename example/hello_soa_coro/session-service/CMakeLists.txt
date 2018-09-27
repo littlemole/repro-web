@@ -206,6 +206,12 @@ message("+++++++++++++++++")
 
 file(GLOB SOURCES "./*.cpp")
 
+############################################
+# runtime config files
+############################################
+
+file(COPY pem DESTINATION .)
+file(COPY config.json DESTINATION .)
 
 ############################################
 # exe
