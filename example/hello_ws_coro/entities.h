@@ -8,25 +8,25 @@
 #include "cryptoneat/cryptoneat.h"
 
 
-class AuthEx : public repro::Ex 
+class AuthEx : public repro::ReproEx<AuthEx> 
 {
 public:
 	AuthEx() {}
-	AuthEx(const std::string& s) : Ex(s) {}
+	AuthEx(const std::string& s) : ReproEx<AuthEx>(s) {}
 };
 
-class LoginEx : public repro::Ex 
+class LoginEx : public repro::ReproEx<LoginEx> 
 {
 public:
 	LoginEx() {}
-	LoginEx(const std::string& s) : Ex(s) {}
+	LoginEx(const std::string& s) : ReproEx<LoginEx> (s) {}
 };
 
-class RegistrationEx : public repro::Ex 
+class RegistrationEx : public repro::ReproEx<RegistrationEx> 
 {
 public:
 	RegistrationEx() {}
-	RegistrationEx(const std::string& s) : Ex(s) {}
+	RegistrationEx(const std::string& s) : ReproEx<RegistrationEx>(s) {}
 };
 
 
