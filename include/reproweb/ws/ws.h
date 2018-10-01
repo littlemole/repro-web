@@ -17,7 +17,7 @@ void ws_callback(WsConnection::Ptr ws, void (T::*fun)(WsConnection::Ptr, const A
 		T* t = ptr.get();
 		(t->*fun)(ws,args...);
 	}
-	catch(const std::exception& ex)
+	catch(...)
 	{
 		prio::nextTick([ws]()
 		{
@@ -43,7 +43,7 @@ void ws_callback(WsConnection::Ptr ws, repro::Future<> (T::*fun)(WsConnection::P
 			ws->close();
 		});
 	}
-	catch(const std::exception& ex)
+	catch(...)
 	{
 		prio::nextTick([ws]()
 		{
