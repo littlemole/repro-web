@@ -84,8 +84,6 @@ repro::Future<> coro_handler_output(FrontController& fc, T& t, repro::Future<V> 
 		V v = co_await(t.*fun)(req, res);
 
 		output_json(res,v);
-
-		co_return;
 	}
 	catch (const std::exception& ex)
 	{
@@ -104,8 +102,6 @@ repro::Future<> coro_handler_output_json(FrontController& fc, T& t, repro::Futur
 		Json::Value v = co_await(t.*fun)(req, res);
 
 		output_json(res,v);
-
-		co_return;
 	}
 	catch (const std::exception& ex)
 	{
@@ -131,8 +127,6 @@ repro::Future<> coro_handler_input_output(FrontController& fc, T& t, repro::Futu
 		V v = co_await(t.*fun)(r, req, res);
 
 		output_json(res,v);
-
-		co_return;
 	}
 	catch (const std::exception& ex)
 	{
@@ -153,8 +147,6 @@ repro::Future<> coro_handler_input_output_json(FrontController& fc, T& t, repro:
 		Json::Value v = co_await(t.*fun)(json, req, res);
 
 		output_json(res,v);
-
-		co_return;
 	}
 	catch (const std::exception& ex)
 	{
@@ -176,8 +168,6 @@ repro::Future<> coro_handler_input_void(FrontController& fc, T& t, Async (C::*fu
 		call_valid::invoke(r);
 
 		co_await(t.*fun)(r, req, res);
-
-		co_return;
 	}
 	catch (const std::exception& ex)
 	{
@@ -195,8 +185,6 @@ repro::Future<> coro_handler_input_void_json(FrontController& fc, T& t, Async (C
 		Json::Value json = JSON::parse(req.body());
 
 		co_await(t.*fun)(json, req, res);
-
-		co_return;
 	}
 	catch (const std::exception& ex)
 	{

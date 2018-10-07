@@ -1,5 +1,5 @@
 # This is a comment
-FROM littlemole/reproweb_gpp_boost_asio_cmake
+FROM littlemole/reproweb_gpp_libevent_make
 MAINTAINER me <little.mole@oha7.org>
 
 RUN DEBIAN_FRONTEND=noninteractive apt-get install -y redis-server libsqlite3-dev
