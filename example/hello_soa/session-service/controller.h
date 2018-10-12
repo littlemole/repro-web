@@ -30,11 +30,11 @@ public:
 		return p.future();
 	}
 
-	Future<Json::Value> write_session( User user, Request& req, Response& res)
+	Future<Json::Value> write_session( Entity<User> user, Request& req, Response& res)
 	{
 		auto p = promise<Json::Value>();
 
-		sessionRepository->write_user_session(user)
+		sessionRepository->write_user_session(user.value)
 		.then([p](Session session)
 		{
 			p.resolve(toJson(session));

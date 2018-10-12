@@ -23,12 +23,12 @@ public:
 		co_return scrub(user);
 	}
 
-	Future<User> login_user( Login login, Request& req, Response& res)
+	Future<User> login_user( Entity<Login> login, Request& req, Response& res)
 	{
-		User user = co_await userRepository->get_user(login.login());
+		User user = co_await userRepository->get_user(login.value.login());
 
 		cryptoneat::Password pass;
-		bool verified = pass.verify(login.hash(), user.hash() );
+		bool verified = pass.verify(login.value.hash(), user.hash() );
 
 		if(!verified) 
 		{
@@ -38,11 +38,11 @@ public:
 		co_return scrub(user);
 	}
 
-	Future<User> register_user( User user, Request& req, Response& res)
+	Future<User> register_user( Entity<User> user, Request& req, Response& res)
 	{
-		co_await userRepository->register_user(user);
+		co_await userRepository->register_user(user.value);
 
-		co_return user;
+		co_return user.value;
 	}
 
 private:

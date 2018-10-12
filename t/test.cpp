@@ -116,6 +116,14 @@ public:
 
 singleton<Logger()> LoggerComponent;
 
+/*
+struct MyQueryParam : public reproweb::QueryParam 
+{ 
+	MyQueryParam()
+		: reproweb::QueryParam("param")
+	{}
+};
+*/
 
 class TestController
 {
@@ -201,6 +209,19 @@ public:
 		});
 	}	
 
+	void queryParams( QueryParams qp, prio::Request& req, prio::Response& res)
+	{
+		res.body( qp.get("param") );
+		res.ok().flush();
+	}
+
+	QUERY_PARAM(param);
+
+	void queryParam( param test, prio::Request& req, prio::Response& res)
+	{
+		res.body( test.value );
+		res.ok().flush();
+	}	
 
 	repro::Future<User> getUser(prio::Request& req, prio::Response& res)
 	{
@@ -216,13 +237,13 @@ public:
 	}
 
 
-	repro::Future<User> postUser(User user, prio::Request& req, prio::Response& res)
+	repro::Future<User> postUser(Entity<User> user, prio::Request& req, prio::Response& res)
 	{
 		auto p = promise<User>();
 
 		nextTick( [p,user]()
 		{
-			p.resolve(user);
+			p.resolve(user.value);
 		});
 
 		return p.future();
@@ -252,10 +273,10 @@ public:
 	}
 
 
-	repro::Future<User> postUserCoro(User user, prio::Request& req, prio::Response& res)
+	repro::Future<User> postUserCoro(Entity<User> user, prio::Request& req, prio::Response& res)
 	{
 		//co_await nextTick();
-		co_return user;
+		co_return user.value;
 	}
 
 
@@ -1247,6 +1268,89 @@ TEST_F(BasicTest, SimpleRest)
     EXPECT_EQ("{\"login\":\"littlemole\",\"pwd\":\"secret\",\"tags\":[\"one\",\"two\",\"three\"],\"username\":\"mike\"}",result);
     MOL_TEST_ASSERT_CNTS(0,0);
 }
+
+TEST_F(BasicTest, SimpleRestQueryParams) 
+{
+	std::string result;
+
+	WebApplicationContext ctx {
+
+		LoggerComponent,
+		TestControllerComponent,
+
+		GET ("/path/a",&TestController::queryParams)
+	};
+
+	{
+		reproweb::WebServer server(ctx);
+
+		nextTick()
+		.then( [&result,&server]()
+		{
+			HttpClient::url("http://localhost:8765/path/a?param=test")
+			->GET()
+			.then([&result,&server](prio::Response& res)
+			{
+				result = res.body();
+				server.shutdown();
+				theLoop().exit();
+			})
+			.otherwise([&server](const std::exception& ex)
+			{
+				std::cout << ex.what() << std::endl;
+				server.shutdown();
+				theLoop().exit();
+			});
+		});
+
+		server.listen(8765);
+		theLoop().run();
+	}
+    EXPECT_EQ("test",result);
+    MOL_TEST_ASSERT_CNTS(0,0);
+}
+
+TEST_F(BasicTest, SimpleRestQueryParam) 
+{
+	std::string result;
+
+	WebApplicationContext ctx {
+
+		LoggerComponent,
+		TestControllerComponent,
+
+		GET ("/path/a",&TestController::queryParam)
+	};
+
+	{
+		reproweb::WebServer server(ctx);
+
+		nextTick()
+		.then( [&result,&server]()
+		{
+			HttpClient::url("http://localhost:8765/path/a?param=testit")
+			->GET()
+			.then([&result,&server](prio::Response& res)
+			{
+				result = res.body();
+				server.shutdown();
+				theLoop().exit();
+			})
+			.otherwise([&server](const std::exception& ex)
+			{
+				std::cout << ex.what() << std::endl;
+				server.shutdown();
+				theLoop().exit();
+			});
+		});
+
+		server.listen(8765);
+		theLoop().run();
+	}
+    EXPECT_EQ("testit",result);
+    MOL_TEST_ASSERT_CNTS(0,0);
+}
+
 
 TEST_F(BasicTest, SimpleRestPost) 
 {

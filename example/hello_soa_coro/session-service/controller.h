@@ -23,9 +23,9 @@ public:
 		co_return session.profile();
 	}
 
-	Future<Json::Value> write_session( User user, Request& req, Response& res)
+	Future<Json::Value> write_session( Entity<User> user, Request& req, Response& res)
 	{
-		Session session = co_await sessionRepository->write_user_session(user);
+		Session session = co_await sessionRepository->write_user_session(user.value);
 
 		co_return toJson(session);
 	}	

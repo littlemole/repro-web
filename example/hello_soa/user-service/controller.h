@@ -30,15 +30,15 @@ public:
 		return p.future();
 	}
 
-	Future<User> login_user( Login login, Request& req, Response& res)
+	Future<User> login_user( Entity<Login> login, Request& req, Response& res)
 	{
 		auto p = promise<User>();
 
-		userRepository->get_user(login.login())
+		userRepository->get_user(login.value.login())
 		.then([p,login](User user)
 		{
 			cryptoneat::Password pass;
-			bool verified = pass.verify(login.hash(), user.hash() );
+			bool verified = pass.verify(login.value.hash(), user.hash() );
 
 			if(!verified) 
 			{
@@ -52,14 +52,14 @@ public:
 		return p.future();
 	}
 
-	Future<User> register_user( User user, Request& req, Response& res)
+	Future<User> register_user( Entity<User> user, Request& req, Response& res)
 	{
 		auto p = promise<User>();
 
-		userRepository->register_user(user)
+		userRepository->register_user(user.value)
 		.then([p,user]()
 		{
-			p.resolve(scrub(user));
+			p.resolve(scrub(user.value));
 		})
 		.otherwise(reject(p));
 
