@@ -79,10 +79,47 @@ struct QueryParam
 	std::string value;
 };
 
+struct FormParam
+{
+	FormParam(const std::string& n)
+		: name(n)
+	{}
+
+	std::string name;
+	std::string value;
+};
+
 template<class T>
 struct Entity
 {
 	T value;
+
+	T* operator->()
+	{
+		return &value;
+	}
+
+	T& operator*()
+	{
+		return value;
+	}
+};
+
+
+template<class T>
+struct Form
+{
+	T value;
+
+	T* operator->()
+	{
+		return &value;
+	}
+
+	T& operator*()
+	{
+		return value;
+	}
 };
 
 template<class T,class E = void>
@@ -99,6 +136,23 @@ public:
 
 		Entity<T> t;
 		fromJson(t.value,json);
+		call_valid::invoke(t.value);
+
+		return t;
+	}
+};
+
+template<class T>
+class HandlerParam<Form<T>>
+{
+public:
+
+	static Form<T> get(prio::Request& req,  prio::Response& res)
+	{
+		prio::QueryParams qp(req.body());
+
+		Form<T> t;
+		fromParams(t.value,qp);
 		call_valid::invoke(t.value);
 
 		return t;
@@ -160,9 +214,14 @@ public:
 
 	static T get(prio::Request& req,  prio::Response& res)
 	{
-		prio::QueryParams qp = req.path.queryParams();
+		if( !req.attributes.exists("__queryparams"))
+		{
+			prio::QueryParams qp = req.path.queryParams();
+			req.attributes.set("__queryparams",qp);
+		}
+		
 		T param;
-		param.value = qp.get(param.name);
+		param.value = req.attributes.attr<prio::QueryParams>("__queryparams").get(param.name);
 		return param;
 	}
 };
@@ -177,6 +236,58 @@ struct name : public reproweb::QueryParam 	\
 
 
 #define QUERY_PARAM(name) QUERY_PARAM_DEF(name,#name)					
+
+
+class FormParams : public prio::QueryParams
+{
+public:
+	FormParams() {};
+	FormParams(const std::string& s) : prio::QueryParams(s) {}
+};
+
+
+template<>
+class HandlerParam<FormParams>
+{
+public:
+
+	static FormParams get(prio::Request& req,  prio::Response& res)
+	{
+		FormParams fp(req.body());
+		return fp;
+	}
+};
+
+
+template<class T>
+class HandlerParam<T,typename std::enable_if<std::is_base_of<FormParam,T>::value>::type>
+{
+public:
+
+	static T get(prio::Request& req,  prio::Response& res)
+	{
+		if( !req.attributes.exists("__formparams"))
+		{
+			FormParams fp(req.body());
+			req.attributes.set("__formparams",fp);
+		}
+		
+		T param;
+		param.value = req.attributes.attr<FormParams>("__formparams").get(param.name);
+		return param;
+	}
+};
+
+#define FORM_PARAM_DEF(name,val) 			\
+struct name : public reproweb::FormParam 	\
+{ 											\
+	name()									\
+		: reproweb::FormParam(val)			\
+	{}										\
+};
+
+
+#define FORM_PARAM(name) FORM_PARAM_DEF(name,#name)					
 
 
 template<class T>

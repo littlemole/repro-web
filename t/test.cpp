@@ -73,15 +73,15 @@ public:
 	std::string pwd;
 	std::vector<std::string> tags;
 
-	static reproweb::Jsonizer<User>& jsonize()
+	static reproweb::Serializer<User>& serialize()
 	{
-		static Jsonizer<User> jsonizer {
-			TO_JSON(User,username), 
-			TO_JSON(User,login), 
-			TO_JSON(User,pwd),
-			TO_JSON(User,tags) 
+		static Serializer<User> serializer {
+			SERIALIZE(User,username), 
+			SERIALIZE(User,login), 
+			SERIALIZE(User,pwd),
+			SERIALIZE(User,tags) 
 		};
-		return jsonizer;
+		return serializer;
 	}
 
 	void validate()
@@ -1203,7 +1203,21 @@ TEST_F(BasicTest, I18NtplWithMarkup)
 }
 
 
+TEST_F(BasicTest, fromParams) 
+{
+	QueryParams qp("username=mike,thumes&login=littlemole&pwd=secret&tags=one,two,three");
 
+	User user;
+	fromParams(user,qp);
+
+	EXPECT_EQ("mike,thumes",user.username);
+	EXPECT_EQ("littlemole",user.login);
+	EXPECT_EQ("secret",user.pwd);
+
+	EXPECT_EQ("one",user.tags[0]);
+	EXPECT_EQ("two",user.tags[1]);
+	EXPECT_EQ("three",user.tags[2]);
+}
 
 
 

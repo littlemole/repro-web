@@ -4,14 +4,9 @@
 
 #include "reproweb/tools/config.h"
 #include "reproweb/json/json.h"
+#include "valid.h"
 
-using namespace prio;
-using namespace repro;
-using namespace reproweb;
 
-MAKE_REPRO_EX(AuthEx)
-MAKE_REPRO_EX(LoginEx)
-MAKE_REPRO_EX(RegistrationEx)
 
 
 class User
@@ -32,21 +27,45 @@ public:
 		 avatar_url_(avatar_url)
 	{}
 
-	std::string username() const 	  { return name_; }
-	std::string login() const 	  { return login_; }
-	std::string hash() const  	  { return hash_; }
-	std::string avatar_url() const  { return avatar_url_; }
+	std::string username() const 	  	{ return name_; }
+	std::string login() const 	  		{ return login_; }
+	std::string hash() const  	  		{ return hash_; }
+	std::string avatar_url() const  	{ return avatar_url_; }
 
-	static reproweb::Jsonizer<User>& jsonize()
+	static reproweb::Serializer<User>& serialize()
 	{
-		static Jsonizer<User> jsonizer {
+		static Serializer<User> serializer {
 			"username", 	&User::name_,
 			"login", 		&User::login_,
 			"pwd", 			&User::hash_,
 			"avatar_url", 	&User::avatar_url_
 		};
-		return jsonizer;
+		return serializer;
 	}	
+
+	void validate()
+	{
+		static std::regex r_username("[^<>]*");
+		static std::regex r_email("^[a-zA-Z0-9.!#$%&’*+/=?^_`{|}~-]+@[a-zA-Z0-9-]+(?:\\.[a-zA-Z0-9-]+)*$");
+		static std::regex r_pwd(".*");
+		static std::regex r_url("(http|https)://(\\w+:{0,1}\\w*@)?(\\S+)(:[0-9]+)?(/|/([\\w#!:.?+=&%@!-/]))?");
+
+		if(name_.empty())
+			throw RegistrationEx("error.msg.username.empty");
+
+		if(login_.empty())
+			throw RegistrationEx("error.msg.login.empty");
+
+		if(avatar_url_.empty())
+		{
+			avatar_url_ = "https://upload.wikimedia.org/wikipedia/commons/e/e4/Elliot_Grieveson.png";
+		}
+
+		valid<RegistrationEx>(name_, 		r_username, "error.msg.username.invalid");
+		valid<RegistrationEx>(login_, 		r_email, 	"error.msg.login.invalid.email" );
+		valid<RegistrationEx>(hash_, 		r_pwd , 	"error.msg.password.empty");
+		valid<RegistrationEx>(avatar_url_, 	r_url, 		"error.msg.avatar.invalid.url" );
+	}
 	
 private:
 	std::string name_;	

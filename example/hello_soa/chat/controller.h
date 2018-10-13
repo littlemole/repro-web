@@ -6,6 +6,7 @@
 #include "valid.h"
 
 #include "cryptoneat/cryptoneat.h"
+#include "reproweb/ctrl/controller.h"
 
 using namespace reproweb;
 
@@ -42,11 +43,10 @@ public:
 		view_->render_registration(req,res,"");		
 	}
 
-	void login( Request& req, Response& res)
+	void login( FormParams params, Request& req, Response& res)
 	{
-		QueryParams qp(req.body());
-		std::string login = Valid::login<LoginEx>(qp);
-		std::string pwd   = Valid::passwd<LoginEx>(qp);
+		std::string login = Valid::login<LoginEx>(params);
+		std::string pwd   = Valid::passwd<LoginEx>(params);
 
 		model_->login(login,pwd)
 		.then([this,&res](std::string sid)
@@ -75,13 +75,12 @@ public:
 		});	
 	}
 
-	void register_user( Request& req, Response& res)
+	void register_user( FormParams params, Request& req, Response& res)
 	{
-		QueryParams qp(req.body());
-		std::string username   = Valid::username(qp);
-		std::string login      = Valid::login<RegistrationEx>(qp);
-		std::string pwd        = Valid::passwd<RegistrationEx>(qp);
-		std::string avatar_url = Valid::avatar(qp);
+		std::string username   = Valid::username(params);
+		std::string login      = Valid::login<RegistrationEx>(params);
+		std::string pwd        = Valid::passwd<RegistrationEx>(params);
+		std::string avatar_url = Valid::avatar(params);
 
 		User user(username,login,pwd,avatar_url);
 

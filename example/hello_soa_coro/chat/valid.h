@@ -2,12 +2,15 @@
 #define _DEF_GUARD_DEFINE_REPROWEB_HELLO_WORLD_VALID_CONTROLLER_DEFINE_
 
 #include "reproweb/tools/validation.h"
-#include "entities.h"
+//#include "entities.h"
 
 using namespace reproweb;
 using namespace repro;
 using namespace prio;
 
+MAKE_REPRO_EX(AuthEx)
+MAKE_REPRO_EX(LoginEx)
+MAKE_REPRO_EX(RegistrationEx)
 
 class Valid
 {

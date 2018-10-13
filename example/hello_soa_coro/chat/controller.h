@@ -43,11 +43,11 @@ public:
 		co_return;
 	}
 
-	Async login( Request& req, Response& res)
+	Async login( QueryParams params, Request& req, Response& res)
 	{
-		QueryParams qp(req.body());
-		std::string login = Valid::login<LoginEx>(qp);
-		std::string pwd   = Valid::passwd<LoginEx>(qp);
+//		QueryParams qp(req.body());
+		std::string login = Valid::login<LoginEx>(params);
+		std::string pwd   = Valid::passwd<LoginEx>(params);
 
 		std::string sid = co_await model_->login(login,pwd);
 
@@ -67,17 +67,19 @@ public:
 		co_return;
 	}
 
-	Async register_user( Request& req, Response& res)
+	Async register_user( Form<User> user, Request& req, Response& res)
 	{
+		/*
 		QueryParams qp(req.body());
 		std::string username   = Valid::username(qp);
 		std::string login      = Valid::login<RegistrationEx>(qp);
 		std::string pwd        = Valid::passwd<RegistrationEx>(qp);
 		std::string avatar_url = Valid::avatar(qp);
+		*/
 
-		User user(username,login,pwd,avatar_url);
+		//User user(username,login,pwd,avatar_url);
 
-		std::string sid = co_await model_->register_user(user);
+		std::string sid = co_await model_->register_user(user.value);
 
 		view_->redirect_to_index(res,sid);
 

@@ -12,6 +12,7 @@
 #include <set>
 #include <priocpp/api.h>
 #include <cryptoneat/cryptoneat.h>
+#include <priohttp/queryparams.h>
 
 namespace reproweb  {
 
@@ -190,9 +191,22 @@ inline void fromJson( int& i, Json::Value& json )
 	i = json.asInt();
 }
 
+template<class T>
+inline void fromParam( T& i, const std::string& v  )
+{
+	std::istringstream iss(v);
+	i << v;
+}
+
+
 inline void fromJson( std::string& s, Json::Value& json )
 {
 	s = json.asString();
+}
+
+inline void fromParam( std::string& s, const std::string& v )
+{
+	s = v;
 }
 
 
@@ -213,27 +227,43 @@ void fromJson( std::vector<T>& v, Json::Value& json )
 	}
 }
 
+
+template<class T>
+void fromParam( std::vector<T>& v, const std::string& value )
+{
+	auto values = prio::split( value, ',' );
+
+	unsigned int size = values.size();
+	for ( unsigned int i = 0; i < size; i++)
+	{
+		T t;
+		fromParam(t,values[i]);
+		v.push_back( std::move(t) );
+	}
+}
+
 #ifdef MOL_ENABLE_UGLY_HELPER_MACROS
-#define TO_JSON(clazz,member) #member, &clazz::member
+#define SERIALIZE(clazz,member) #member, &clazz::member
 #endif
 
-class JsonMemberBase
+class SerializedMemberBase
 {
 public:
 
-	virtual ~JsonMemberBase(){}
+	virtual ~SerializedMemberBase(){}
 
  	virtual void toJson( void* p, Json::Value &json) = 0;
 	virtual void fromJson( void* p, Json::Value& json ) = 0;
+	virtual void fromParams( void* p, prio::QueryParams& qp ) = 0;
 };
 
 
 template<class T, class M>
-class JsonMember : public JsonMemberBase
+class SerializedMember : public SerializedMemberBase
 {
 public:
 
-	JsonMember(const char* m, M T::*p)
+	SerializedMember(const char* m, M T::*p)
 		: member(m), mp(p)
 	{}
 
@@ -250,24 +280,32 @@ public:
 		}
 	}
 
+	void fromParams( void* t, prio::QueryParams& qp )
+	{
+		if(qp.exists(member))
+		{
+			 reproweb::fromParam( ((T*)t)->*mp, qp.get(member) );
+		}
+	}
+
 	std::string member;
 	M T::* mp;
 };
 
 template<class T,class M>
-JsonMember<T,M>* json_member(const char* m, M T::* p)
+SerializedMember<T,M>* serialized_member(const char* m, M T::* p)
 {
-	return new JsonMember<T,M>(m,p);
+	return new SerializedMember<T,M>(m,p);
 }
 
 template<class T>
-class Jsonizer
+class Serializer
 {
 public:
 	template<class ...Args>
-	Jsonizer(Args... args)
+	Serializer(Args... args)
 	{
-		jsonize(args...);
+		serialize(args...);
 	}
 
  	Json::Value toJson( T& t)
@@ -290,36 +328,52 @@ public:
 		}
 	}
 
+
+	void fromParams( T& t, prio::QueryParams& qp )
+	{
+		for( auto& m : members)
+		{
+			m->fromParams(&t,qp);
+		}
+	}	
+
 protected:
 
-	std::vector<std::unique_ptr<JsonMemberBase>> members;
+	std::vector<std::unique_ptr<SerializedMemberBase>> members;
 
 private:
 
-	void jsonize()
+	void serialize()
 	{
 		// terminator
 	}
 
 	template<class M, class ...Args>
-	void jsonize(const char* member, M mp, Args ... args )
+	void serialize(const char* member, M mp, Args ... args )
 	{
-		auto jmp = json_member(member,mp);
-		members.push_back(std::unique_ptr<JsonMemberBase>(jmp));
-		jsonize(args...);
+		auto jmp = serialized_member(member,mp);
+		members.push_back(std::unique_ptr<SerializedMemberBase>(jmp));
+		serialize(args...);
 	}
 };
 
 template<class T>
 Json::Value toJson(T& t)
 {
-	return t.jsonize().toJson(t);
+	return t.serialize().toJson(t);
 }
 
 template<class T>
 void fromJson(T& t, Json::Value& json)
 {
-	t.jsonize().fromJson(t,json);
+	t.serialize().fromJson(t,json);
+}
+
+
+template<class T>
+void fromParams(T& t, prio::QueryParams& qp)
+{
+	t.serialize().fromParams(t,qp);
 }
 
 }
