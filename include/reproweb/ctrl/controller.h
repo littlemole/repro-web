@@ -89,6 +89,17 @@ struct FormParam
 	std::string value;
 };
 
+
+struct CookieValue
+{
+	FormParam(const std::string& n)
+		: name(n)
+	{}
+
+	std::string  name;
+	prio::Cookie value;
+};
+
 template<class T>
 struct Entity
 {
@@ -193,6 +204,49 @@ public:
 		return res;
 	}
 };
+
+template<>
+class HandlerParam<prio::Cookies>
+{
+public:
+
+	static prio::Cookies get(prio::Request& req,  prio::Response& res)
+	{
+		return req.path.cookies();
+	}
+};
+
+template<class T>
+class HandlerParam<T,typename std::enable_if<std::is_base_of<CookieValue,T>::value>::type>
+{
+public:
+
+	static T get(prio::Request& req,  prio::Response& res)
+	{
+		if( !req.attributes.exists("__cookies"))
+		{
+			prio::Cookies cookies = req.path.queryParams();
+			req.attributes.set("__cookies",cookies);
+		}
+		
+		T param;
+		param.value = req.attributes.attr<prio::Cookies >("__cookies").get(param.name);
+		return param;
+	}
+};
+
+
+#define COOKIE_DEF(name,val) 				\
+struct name : public reproweb::CookieValue 	\
+{ 											\
+	name()									\
+		: reproweb::CookieValue(val)		\
+	{}										\
+};
+
+
+#define COOKIE(name) COOKIE_DEF(name,#name)	
+
 
 
 template<>

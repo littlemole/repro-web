@@ -358,22 +358,29 @@ private:
 };
 
 template<class T>
+Serializer<T>& serializer_of(T& t)
+{
+	static Serializer<T> serializer = t.serialize();
+	return serializer;
+}
+
+template<class T>
 Json::Value toJson(T& t)
 {
-	return t.serialize().toJson(t);
+	return serializer_of(t).toJson(t);
 }
 
 template<class T>
 void fromJson(T& t, Json::Value& json)
 {
-	t.serialize().fromJson(t,json);
+	serializer_of(t).fromJson(t,json);
 }
 
 
 template<class T>
 void fromParams(T& t, prio::QueryParams& qp)
 {
-	t.serialize().fromParams(t,qp);
+	serializer_of(t).fromParams(t,qp);
 }
 
 }

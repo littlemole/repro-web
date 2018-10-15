@@ -64,6 +64,7 @@ class BasicTest : public ::testing::Test {
 
 
 
+
 struct User
 {
 public:
@@ -73,15 +74,15 @@ public:
 	std::string pwd;
 	std::vector<std::string> tags;
 
-	static reproweb::Serializer<User>& serialize()
+	reproweb::Serializer<User> serialize()
 	{
-		static Serializer<User> serializer {
+		return {
+ 
 			SERIALIZE(User,username), 
 			SERIALIZE(User,login), 
 			SERIALIZE(User,pwd),
 			SERIALIZE(User,tags) 
 		};
-		return serializer;
 	}
 
 	void validate()
@@ -92,7 +93,7 @@ public:
 		reproweb::valid( tags, std::regex("[0-9a-zA-Z]+"), "invalid tags");
 	}
 };
-
+ 
 
 class Logger
 {
