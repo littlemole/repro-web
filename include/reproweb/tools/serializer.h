@@ -18,8 +18,9 @@
 #include <reproweb/json/json.h>
 
 namespace reproweb {
-    
+
 ///////////////////////////////////////////////////////////////////////////////////////////
+
 
 inline Json::Value toJson(int i)
 {
@@ -42,13 +43,13 @@ inline Json::Value toJson(float i)
 	return Json::Value(i);
 }
 
-inline Json::Value toJson( std::string s)
+inline Json::Value toJson( const std::string& s)
 {
 	return Json::Value(s);
 }
 
 
-inline Json::Value toJson( Json::Value json)
+inline Json::Value toJson( Json::Value& json)
 {
 	return json;
 }
@@ -88,6 +89,24 @@ inline void fromJson( int& i, Json::Value& json )
 	i = json.asInt();
 }
 
+inline void fromJson( long& i, Json::Value& json )
+{
+	i = json.asInt();
+}
+
+
+inline void fromJson( double& i, Json::Value& json )
+{
+	i = json.asDouble();
+}
+
+
+inline void fromJson( float& i, Json::Value& json )
+{
+	i = json.asFloat();
+}
+
+
 inline void fromJson( std::string& s, Json::Value& json )
 {
 	s = json.asString();
@@ -99,13 +118,13 @@ inline void fromJson( Json::Value& member, Json::Value& json )
 	member = json;
 }
 
-
+/*
 inline void fromJson( Json::Value& member, const std::string& value )
 {
 	member = JSON::parse(value);
 }
 
-
+*/
 
 template<class T>
 void fromJson( std::vector<T>& v, Json::Value& json )
@@ -140,9 +159,10 @@ inline void fromParam( std::string& s, const std::string& v )
 	s = v;
 }
 
-inline void fromParam( std::string& s, const prio::Cookie& v )
+template<class T>
+inline void fromParam( T& t, const prio::Cookie& c )
 {
-	s = v.value();
+    fromParam(t,c.value());
 }
 
 
