@@ -16,6 +16,7 @@ MAKE_REPRO_EX(LoginAlreadyTakenEx)
 MAKE_REPRO_EX(RegistrationEx)
 
 
+
 class Valid 
 {
 public:
@@ -59,6 +60,26 @@ public:
    
 };
 
+class Input
+{
+public:
+
+	std::string email;
+
+	reproweb::Serializer<Input> serialize()
+	{
+		return {
+			"email", 		&Input::email
+		};
+	}	
+
+	void validate()
+	{
+		Valid::login(email);
+	}
+};
+
+
 class Login
 {
 public:
@@ -82,13 +103,12 @@ public:
 		Valid::passwd(hash_);
 	}
 
-	static reproweb::Jsonizer<Login>& jsonize()
+	reproweb::Serializer<Login> serialize()
 	{
-		static Jsonizer<Login> jsonizer {
+		return {
 			"login", 		&Login::login_,
 			"pwd", 			&Login::hash_
 		};
-		return jsonizer;
 	}
 	
 protected:
@@ -124,15 +144,14 @@ public:
 		Valid::avatar(avatar_url_);
 	}
 
-	static reproweb::Jsonizer<User>& jsonize()
+	reproweb::Serializer<User> serialize()
 	{
-		static Jsonizer<User> jsonizer {
+		return {
 			"username", 	&User::name_,
 			"login", 		&User::login_,
 			"pwd", 			&User::hash_,
 			"avatar_url", 	&User::avatar_url_
 		};
-		return jsonizer;
 	}
 	
 private:

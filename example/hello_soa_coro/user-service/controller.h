@@ -14,21 +14,21 @@ public:
 		: userRepository(repo)
 	{}
 
-	Future<User> get_user( Request& req, Response& res)
+	Future<User> get_user( Parameter<Input> params, Request& req, Response& res)
 	{
-		std::string email = Valid::login(req.path.args().get("email"));
+		//std::string email = Valid::login(req.path.args().get("email"));
 
-		User user = co_await userRepository->get_user(email);
+		User user = co_await userRepository->get_user(params->email);
 
 		co_return scrub(user);
 	}
 
 	Future<User> login_user( Entity<Login> login, Request& req, Response& res)
 	{
-		User user = co_await userRepository->get_user(login.value.login());
+		User user = co_await userRepository->get_user(login->login());
 
 		cryptoneat::Password pass;
-		bool verified = pass.verify(login.value.hash(), user.hash() );
+		bool verified = pass.verify(login->hash(), user.hash() );
 
 		if(!verified) 
 		{
@@ -40,7 +40,7 @@ public:
 
 	Future<User> register_user( Entity<User> user, Request& req, Response& res)
 	{
-		co_await userRepository->register_user(user.value);
+		co_await userRepository->register_user(*user);
 
 		co_return user.value;
 	}

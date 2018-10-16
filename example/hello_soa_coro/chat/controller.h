@@ -18,11 +18,11 @@ public:
 		: model_(model), view_(view)
 	{}
      
-	Async index( Request& req, Response& res)
+	Async index( Parameter<Input> params,Request& req, Response& res)
 	{
-		std::string sid = Valid::session_id(req.headers.cookies());
+		//std::string sid = Valid::session_id(req.headers.cookies());
 
-		Json::Value viewModel = co_await model_->chat(sid);
+		Json::Value viewModel = co_await model_->chat(params->sid);
 
 		view_->render_index(req,res,viewModel); 
 
@@ -43,13 +43,13 @@ public:
 		co_return;
 	}
 
-	Async login( QueryParams params, Request& req, Response& res)
+	Async login( Form<Login> form, Request& req, Response& res)
 	{
 //		QueryParams qp(req.body());
-		std::string login = Valid::login<LoginEx>(params);
-		std::string pwd   = Valid::passwd<LoginEx>(params);
+		//std::string login = Valid::login<LoginEx>(params);
+		//std::string pwd   = Valid::passwd<LoginEx>(params);
 
-		std::string sid = co_await model_->login(login,pwd);
+		std::string sid = co_await model_->login(form->login(),form->hash());
 
 		view_->redirect_to_index(res,sid);
 
@@ -79,7 +79,7 @@ public:
 
 		//User user(username,login,pwd,avatar_url);
 
-		std::string sid = co_await model_->register_user(user.value);
+		std::string sid = co_await model_->register_user(*user);
 
 		view_->redirect_to_index(res,sid);
 

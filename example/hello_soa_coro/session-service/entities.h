@@ -3,7 +3,49 @@
 
 #include "reproweb/tools/config.h"
 #include "reproweb/json/json.h"
-#include "valid.h"
+//#include "valid.h"
+#include "reproweb/tools/validation.h"
+
+using namespace reproweb;
+using namespace repro;
+using namespace prio;
+
+
+class NoSessionEx : public repro::ReproEx<NoSessionEx> 
+{
+public:
+	NoSessionEx() {}
+	NoSessionEx(const std::string& s) : repro::ReproEx<NoSessionEx> (s) {}
+};
+
+
+class Input
+{
+public:
+
+	std::string sid;
+
+	reproweb::Serializer<Input> serialize()
+	{
+		return {
+			"sid", 		&Input::sid
+		};
+	}	
+
+	void validate()
+	{
+		static std::regex r("repro_web_sid::[0-9a-f]*");
+
+		if(sid.empty())
+			throw NoSessionEx("no session found");
+
+		valid<NoSessionEx>( 
+			sid, 
+			r,
+			"invalid session id."
+		);			
+	}
+};
 
 class User
 {
@@ -25,22 +67,23 @@ public:
 	std::string login() const 	  	{ return login_; }
 	std::string avatar_url() const  { return avatar_url_; }
 
-	static reproweb::Jsonizer<User>& jsonize()
-	{
-		static Jsonizer<User> jsonizer {
-			"login", 		&User::login_,
-			"username", 	&User::name_,
-			"avatar_url", 	&User::avatar_url_
-		};
-		return jsonizer;
-	}	
+	reproweb::Serializer<User> serialize();
 	
 private:
 	std::string name_;	
 	std::string login_;	
 	std::string avatar_url_;	
 };
+ 
 
+reproweb::Serializer<User> User::serialize()
+{
+	return {
+		"login", 		&User::login_,
+		"username", 	&User::name_,
+		"avatar_url", 	&User::avatar_url_
+	};
+}
 
 class Session
 {
@@ -59,13 +102,12 @@ public:
 	std::string sid() const  	{ return sid_; }
 	Json::Value profile() const { return profile_; }
 
-	static reproweb::Jsonizer<Session>& jsonize()
+	reproweb::Serializer<Session> serialize()
 	{
-		static Jsonizer<Session> jsonizer {
+		return {
 			"sid", 		&Session::sid_,
 			"profile", 	&Session::profile_
 		};
-		return jsonizer;
 	}		
 
 private:

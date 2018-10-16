@@ -6,7 +6,75 @@
 #include "reproweb/json/json.h"
 #include "valid.h"
 
+class Input
+{
+public:
 
+	std::string sid;
+
+	reproweb::Serializer<Input> serialize()
+	{
+		return {
+			"repro_web_sid", 		&Input::sid
+		};
+	}	
+
+	void validate()
+	{
+		static std::regex r("repro_web_sid::[0-9a-f]*");
+
+		if(sid.empty())
+			throw AuthEx("no session found");
+
+		valid<AuthEx>( 
+			sid, 
+			r,
+			"invalid session id."
+		);			
+	}
+};
+
+class Login
+{
+public:
+
+	Login() {}
+
+	Login( 
+		const std::string& login,
+		const std::string& hash
+	)
+	  :  login_(login),
+		 hash_(hash)
+	{}
+
+	std::string login() const 	  		{ return login_; }
+	std::string hash() const  	  		{ return hash_; }
+
+	reproweb::Serializer<Login> serialize()
+	{
+		return {
+			"login", 		&Login::login_,
+			"pwd", 			&Login::hash_
+		};
+	}	
+
+	void validate()
+	{
+		static std::regex r_email("^[a-zA-Z0-9.!#$%&’*+/=?^_`{|}~-]+@[a-zA-Z0-9-]+(?:\\.[a-zA-Z0-9-]+)*$");
+		static std::regex r_pwd(".*");
+
+		if(login_.empty())
+			throw RegistrationEx("error.msg.login.empty");
+
+		valid<RegistrationEx>(login_, 		r_email, 	"error.msg.login.invalid.email" );
+		valid<RegistrationEx>(hash_, 		r_pwd , 	"error.msg.password.empty");
+	}
+	
+private:
+	std::string login_;	
+	std::string hash_;	
+};
 
 
 class User
@@ -32,15 +100,14 @@ public:
 	std::string hash() const  	  		{ return hash_; }
 	std::string avatar_url() const  	{ return avatar_url_; }
 
-	static reproweb::Serializer<User>& serialize()
+	reproweb::Serializer<User> serialize()
 	{
-		static Serializer<User> serializer {
+		return {
 			"username", 	&User::name_,
 			"login", 		&User::login_,
 			"pwd", 			&User::hash_,
 			"avatar_url", 	&User::avatar_url_
 		};
-		return serializer;
 	}	
 
 	void validate()

@@ -3,18 +3,7 @@
 
 #include "reproweb/tools/validation.h"
 
-using namespace reproweb;
-using namespace repro;
-using namespace prio;
-
-
-class NoSessionEx : public repro::ReproEx<NoSessionEx> 
-{
-public:
-	NoSessionEx() {}
-	NoSessionEx(const std::string& s) : repro::ReproEx<NoSessionEx> (s) {}
-};
-
+/*
 
 class Valid
 {
@@ -31,6 +20,6 @@ public:
 		);
 	}   
 };
-
+*/
 
 #endif

@@ -12,6 +12,7 @@
 #include "priohttp/client.h"
 #define MOL_ENABLE_UGLY_HELPER_MACROS
 #include <reproweb/json/json.h>
+#include <reproweb/tools/serializer.h>
 #undef MOL_ENABLE_UGLY_HELPER_MACROS
 #include <reproweb/ctrl/controller.h>
 #include <reproweb/tools/config.h>
@@ -73,26 +74,26 @@ public:
 	std::string login;
 	std::string pwd;
 	std::vector<std::string> tags;
-
-	reproweb::Serializer<User> serialize()
-	{
-		return {
- 
-			SERIALIZE(User,username), 
-			SERIALIZE(User,login), 
-			SERIALIZE(User,pwd),
-			SERIALIZE(User,tags) 
-		};
-	}
-
-	void validate()
-	{
-		reproweb::valid( username, std::regex("[^<>&]+"), "invalid username");
-		reproweb::valid( login, std::regex("[^<>&]+"), "invalid login");
-		reproweb::valid( pwd, std::regex(".+"), "invalid pwd");
-		reproweb::valid( tags, std::regex("[0-9a-zA-Z]+"), "invalid tags");
-	}
 };
+ 
+reproweb::Serializer<User> serialize(User&)
+{
+	return {
+
+		SERIALIZE(User,username), 
+		SERIALIZE(User,login), 
+		SERIALIZE(User,pwd),
+		SERIALIZE(User,tags) 
+	};
+}
+
+void validate(User& user)
+{
+	reproweb::valid( user.username, std::regex("[^<>&]+"), "invalid username");
+	reproweb::valid( user.login, std::regex("[^<>&]+"), "invalid login");
+	reproweb::valid( user.pwd, std::regex(".+"), "invalid pwd");
+	reproweb::valid( user.tags, std::regex("[0-9a-zA-Z]+"), "invalid tags");
+}
  
 
 class Logger
@@ -216,14 +217,6 @@ public:
 		res.ok().flush();
 	}
 
-	QUERY_PARAM(param);
-
-	void queryParam( param test, prio::Request& req, prio::Response& res)
-	{
-		res.body( test.value );
-		res.ok().flush();
-	}	
-
 	repro::Future<User> getUser(prio::Request& req, prio::Response& res)
 	{
 		auto p = promise<User>();
@@ -236,7 +229,7 @@ public:
 
 		return p.future();
 	}
-
+ 
 
 	repro::Future<User> postUser(Entity<User> user, prio::Request& req, prio::Response& res)
 	{
@@ -1325,47 +1318,6 @@ TEST_F(BasicTest, SimpleRestQueryParams)
     MOL_TEST_ASSERT_CNTS(0,0);
 }
 
-TEST_F(BasicTest, SimpleRestQueryParam) 
-{
-	std::string result;
-
-	WebApplicationContext ctx {
-
-		LoggerComponent,
-		TestControllerComponent,
-
-		GET ("/path/a",&TestController::queryParam)
-	};
-
-	{
-		reproweb::WebServer server(ctx);
-
-		nextTick()
-		.then( [&result,&server]()
-		{
-			HttpClient::url("http://localhost:8765/path/a?param=testit")
-			->GET()
-			.then([&result,&server](prio::Response& res)
-			{
-				result = res.body();
-				server.shutdown();
-				theLoop().exit();
-			})
-			.otherwise([&server](const std::exception& ex)
-			{
-				std::cout << ex.what() << std::endl;
-				server.shutdown();
-				theLoop().exit();
-			});
-		});
-
-		server.listen(8765);
-		theLoop().run();
-	}
-    EXPECT_EQ("testit",result);
-    MOL_TEST_ASSERT_CNTS(0,0);
-}
-
 
 TEST_F(BasicTest, SimpleRestPost) 
 {
@@ -1405,6 +1357,47 @@ TEST_F(BasicTest, SimpleRestPost)
 		theLoop().run();
 	}
     EXPECT_EQ("{\"login\":\"littlemole\",\"pwd\":\"secret\",\"tags\":[\"one\",\"two\",\"three\"],\"username\":\"mike\"}",result);
+    MOL_TEST_ASSERT_CNTS(0,0);
+}
+
+TEST_F(BasicTest, SimpleRestPost_invalid) 
+{
+	std::string result;
+
+	WebApplicationContext ctx {
+
+		LoggerComponent,
+		TestControllerComponent,
+
+		POST ("/path/a",&TestController::postUser)
+	};
+
+	{
+		reproweb::WebServer server(ctx);
+
+		nextTick()
+		.then( [&result,&server]()
+		{
+			HttpClient::url("http://localhost:8765/path/a")
+			->POST("{\"login\" : \"<littlemole>\",\"pwd\" : \"secret\",\"tags\" : [\"one\",\"two\",\"three\"],\"username\" : \"mike\"\n}")
+			.then([&result,&server](prio::Response& res)
+			{
+				result = res.body();
+				server.shutdown();
+				theLoop().exit();
+			})
+			.otherwise([&server](const std::exception& ex)
+			{
+				std::cout << ex.what() << std::endl;
+				server.shutdown();
+				theLoop().exit();
+			});
+		});
+
+		server.listen(8765);
+		theLoop().run();
+	}
+    EXPECT_EQ("invalid login",result);
     MOL_TEST_ASSERT_CNTS(0,0);
 }
 
@@ -1579,7 +1572,7 @@ TEST_F(BasicTest, SimpleRestPostJsonCoro)
 
 #endif
 
-
+ 
 TEST_F(BasicTest, Invocable) 
 {
 	User user{ "mike", "littlemole", "secret", { "one", "two", "three"} };
