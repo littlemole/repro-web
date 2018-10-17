@@ -48,9 +48,9 @@ public:
 		 avatar_url_(avatar_url)
 	{}
 
-	std::string username() const 	  { return name_; }
-	std::string login() const 	  { return login_; }
-	std::string hash() const  	  { return hash_; }
+	std::string username() const 	{ return name_; }
+	std::string login() const 	  	{ return login_; }
+	std::string hash() const  	  	{ return hash_; }
 	std::string avatar_url() const  { return avatar_url_; }
 
 	Json::Value toJson() const

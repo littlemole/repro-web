@@ -53,9 +53,6 @@ public:
 
 		cryptoneat::Password pass;
 		bool verified = pass.verify(pwd, user.hash() );
-
-		//std::cout << "valid pwd: " << verified << std::endl;
-
 		if(!verified) 
 		{
 			throw LoginEx("error.msg.login.failed");
