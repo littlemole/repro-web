@@ -55,6 +55,59 @@ inline Json::Value toJson( Json::Value& json)
 }
 
 
+inline Json::Value toJson( prio::QueryParams& qp)
+{
+	Json::Value result(Json::objectValue);
+
+	for( auto& k : qp.keys() )
+	{
+		result[k] = qp.get(k);
+	}
+
+	return result;
+}
+
+inline Json::Value toJson( prio::Args& args)
+{
+	Json::Value result(Json::objectValue);
+
+	for( auto& k : args.keys() )
+	{
+		result[k] = args.get(k);
+	}
+
+	return result;
+}
+
+inline Json::Value toJson( prio::Headers& headers)
+{
+	Json::Value result(Json::objectValue);
+
+	for( auto& h : headers.raw() )
+	{
+		result[h.first] = headers.get(h.first);
+	}
+
+	return result;
+}
+
+
+inline Json::Value toJson( prio::Cookie& cookie)
+{
+	Json::Value result(Json::objectValue);
+
+	result["name"] = cookie.name();
+	result["value"] = cookie.value();
+	result["expires"] = cookie.expires();
+	result["maxAge"] = cookie.maxAge();
+	result["domain"] = cookie.domain();
+	result["path"] = cookie.path();
+	result["isSecure"] = cookie.isSecure();
+
+	return result;
+}
+
+
 template<class T>
 Json::Value toJson( std::vector<T>& v)
 {
@@ -118,6 +171,52 @@ inline void fromJson( Json::Value& member, Json::Value& json )
 	member = json;
 }
 
+inline void fromJson( prio::Cookie& cookie, Json::Value& json )
+{
+	cookie.name(json["name"].asString());
+	cookie.value(json["value"].asString());
+	cookie.expires(json["expires"].asString());
+	cookie.maxAge(json["maxAge"].asInt());
+	cookie.domain(json["domain"].asString());
+	cookie.path(json["path"].asString());
+
+	if(json["isSecure"].asBool())
+	{
+		cookie.isSecure();
+	}
+}
+
+inline void fromJson( prio::Headers& headers, Json::Value& json )
+{
+	auto members = json.getMemberNames();
+	for ( auto& m : members )
+	{
+		headers.set( m, json[m].asString());
+	}
+}
+
+
+inline void fromJson( prio::QueryParams& qp, Json::Value& json )
+{
+	auto members = json.getMemberNames();
+	for ( auto& m : members )
+	{
+		qp.set( m, json[m].asString());
+	}
+}
+
+
+inline void fromJson( prio::Args& args, Json::Value& json )
+{
+	prio::patharguments_t pargs;
+	auto members = json.getMemberNames();
+	for ( auto& m : members )
+	{
+		pargs.push_back( std::make_pair(m, json[m].asString()) );
+	}
+	args = prio::Args(pargs);
+}
+
 /*
 inline void fromJson( Json::Value& member, const std::string& value )
 {
@@ -141,12 +240,30 @@ void fromJson( std::vector<T>& v, Json::Value& json )
 ///////////////////////////////////////////////////////////////////////////////////////////
 
 
-template<class T>
-inline void fromParam( T& i, const std::string& v  )
+inline void fromParam( int& i, const std::string& s  )
 {
-	std::istringstream iss(v);
-	i << v;
+	std::istringstream iss(s);
+	iss >> i;
 }
+
+inline void fromParam( long& i, const std::string& s  )
+{
+	std::istringstream iss(s);
+	iss >> i;
+}
+
+inline void fromParam( double& i, const std::string& s  )
+{
+	std::istringstream iss(s);
+	iss >> i;
+}
+
+inline void fromParam( float& i, const std::string& s  )
+{
+	std::istringstream iss(s);
+	iss >> i;
+}
+
 
 inline void fromParam( Json::Value& member, const std::string value )
 {
@@ -159,10 +276,40 @@ inline void fromParam( std::string& s, const std::string& v )
 	s = v;
 }
 
-template<class T>
-inline void fromParam( T& t, const prio::Cookie& c )
+inline void fromParam( std::string& s, const prio::HeaderValues& v )
+{
+	s = v.value().main();
+}
+
+
+inline void fromParam( std::string& s, const prio::HeaderValue& v )
+{
+	s = v.main();
+}
+
+inline void fromParam( int& t, const prio::Cookie& c )
 {
     fromParam(t,c.value());
+}
+
+inline void fromParam( long& t, const prio::Cookie& c )
+{
+    fromParam(t,c.value());
+}
+
+inline void fromParam( double& t, const prio::Cookie& c )
+{
+    fromParam(t,c.value());
+}
+
+inline void fromParam( float& t, const prio::Cookie& c )
+{
+    fromParam(t,c.value());
+}
+
+inline void fromParam( std::string& c, const prio::Cookie& v )
+{
+	c = v.value();
 }
 
 
@@ -171,14 +318,53 @@ inline void fromParam( prio::Cookie& c, const prio::Cookie& v )
 	c = v;
 }
 
+inline void fromParam( prio::Cookie& c, const std::string& v )
+{
+	c.value(v);
+}
 
+
+inline void fromParam( prio::Cookie& c, const prio::HeaderValues& v )
+{
+	c.value(v.value().main());
+}
 
 
 template<class T>
 void fromParam( std::vector<T>& v, const std::string& value )
 {
+	
 	auto values = prio::split( value, ',' );
 
+	unsigned int size = values.size();
+	for ( unsigned int i = 0; i < size; i++)
+	{
+		T t;
+		fromParam(t,values[i]);
+		v.push_back( std::move(t) );
+	}
+}
+
+
+template<class T>
+void fromParam( std::vector<T>& v, const prio::Cookie& cookie )
+{
+	
+	auto values = prio::split( cookie.value(), ',' );
+
+	unsigned int size = values.size();
+	for ( unsigned int i = 0; i < size; i++)
+	{
+		T t;
+		fromParam(t,values[i]);
+		v.push_back( std::move(t) );
+	}
+}
+
+
+template<class T>
+void fromParam( std::vector<T>& v, const prio::HeaderValues& values  )
+{
 	unsigned int size = values.size();
 	for ( unsigned int i = 0; i < size; i++)
 	{
@@ -257,47 +443,71 @@ public:
 	void fromRequest( void* t, prio::Request& req )
 	{
 		std::string val = req[member];
-		reproweb::fromParam( ((T*)t)->*mp, val );
 
 		// path param
-/*
-		prio::Args args = req.path.args();
-		if ( args.exists(s) )
+
+		prio::Args args = getPathArgs(req);
+		if ( args.exists(member) )
 		{
-			reproweb::fromParam( ((T*)t)->*mp, args.get(s) );
+			reproweb::fromParam( ((T*)t)->*mp, args.get(member) );
+			return;
 		}
 
 		// query param
-		prio::QueryParams req.qp(path.queryParams());
-		if (qp.exists(s))
+		prio::QueryParams qp = getQueryParams(req);
+		if (qp.exists(member))
 		{
-			reproweb::fromParam( ((T*)t)->*mp, qp.get(s) );
+			reproweb::fromParam( ((T*)t)->*mp, qp.get(member) );
+			return;
 		}
 
 		// cookie value
 
 		const prio::Cookies& c = req.headers.cookies();
 
-		if(c.exists(s))
+		if(c.exists(member))
 		{
-			reproweb::fromParam( ((T*)t)->*mp, c.get(s) );
+			reproweb::fromParam( ((T*)t)->*mp, c.get(member) );
+			return;
 		}
 
 		// header
 
-		if(req.headers.exists(s))
+		if(req.headers.exists(member))
 		{
-			reproweb::fromParam( ((T*)t)->*mp, req.headers.values(s) );
-			//return req.headers.values(s).value().main();
+			reproweb::fromParam( ((T*)t)->*mp, req.headers.values(member) );
+			return;
 		}
-
-		//reproweb::fromParam( ((T*)t)->*mp, val );
-
-		*/
 	}	
 
 	std::string member;
+
+private:
+
 	M T::* mp;
+
+
+	prio::QueryParams getQueryParams(prio::Request& req )
+	{
+		static const char* key = "__queryparams";
+		if ( !req.attributes.exists(key) )
+		{
+			req.attributes.set(key, req.path.queryParams());
+		}
+
+		return req.attributes.attr<prio::QueryParams>(key);
+	}
+
+	prio::Args getPathArgs(prio::Request& req )
+	{
+		static const char* key = "__pathargs";
+		if ( !req.attributes.exists(key) )
+		{
+			req.attributes.set(key, req.path.args() );
+		}
+
+		return req.attributes.attr<prio::Args>(key);
+	}		
 };
 
 

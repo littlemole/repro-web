@@ -53,15 +53,33 @@ class BasicTest : public ::testing::Test {
   virtual void SetUp() {
 	 // MOL_TEST_PRINT_CNTS();
   }
-
+ 
   virtual void TearDown() {
 	 // MOL_TEST_PRINT_CNTS();
   }
 }; // end test setup
 
 
-//#define TO_JSON(clazz,member) #member, &clazz::member
+struct Input 
+{
+	std::string id;
+	std::string filter;
+	std::string sid;
+	std::string lang;
+	prio::Cookie cookie;
 
+	reproweb::Serializer<Input> serialize()
+	{
+		return {
+
+			"id", &Input::id,
+			"filter", &Input::filter,
+			"sid", &Input::sid,
+			"Accept-Language", &Input::lang,
+			"sid", &Input::cookie
+		};
+	}
+};
 
 
 
@@ -229,7 +247,26 @@ public:
 
 		return p.future();
 	}
+  
  
+	repro::Future<Input> getParams( Parameter<Input> params, prio::Request& req, prio::Response& res)
+	{
+		auto p = promise<Input>();
+
+		std::cout << "======================================" << std::endl;
+		std::cout << params->cookie.str() << std::endl;
+		std::cout << params->sid << std::endl;
+		std::cout << params->filter << std::endl;
+		std::cout << params->id << std::endl;
+		std::cout << "======================================" << std::endl;
+
+		nextTick( [p,params]()
+		{
+			p.resolve(params.value);
+		});
+
+		return p.future();
+	}
 
 	repro::Future<User> postUser(Entity<User> user, prio::Request& req, prio::Response& res)
 	{
@@ -1274,6 +1311,50 @@ TEST_F(BasicTest, SimpleRest)
 		theLoop().run();
 	}
     EXPECT_EQ("{\"login\":\"littlemole\",\"pwd\":\"secret\",\"tags\":[\"one\",\"two\",\"three\"],\"username\":\"mike\"}",result);
+    MOL_TEST_ASSERT_CNTS(0,0);
+}
+
+
+TEST_F(BasicTest, SimpleRestParams) 
+{
+	std::string result;
+
+	WebApplicationContext ctx {
+
+		LoggerComponent,
+		TestControllerComponent,
+
+		GET ("/path/{id}",&TestController::getParams)
+	};
+
+	{
+		reproweb::WebServer server(ctx);
+
+		nextTick()
+		.then( [&result,&server]()
+		{
+			HttpClient::url("http://localhost:8765/path/a?filter=123456789")
+			->header("Cookie", prio::Cookie("sid","987654321").path("/").domain("localhost").secure().maxAge(100).str())
+			->header("Accept-Language", "de-DE")
+			->fetch()
+			.then([&result,&server](prio::Response& res)
+			{
+				result = res.body();
+				server.shutdown();
+				theLoop().exit();
+			})
+			.otherwise([&server](const std::exception& ex)
+			{
+				std::cout << ex.what() << std::endl;
+				server.shutdown();
+				theLoop().exit();
+			});
+		});
+
+		server.listen(8765);
+		theLoop().run();
+	}
+    EXPECT_EQ("{\"Accept-Language\":\"de-DE\",\"filter\":\"123456789\",\"id\":\"a\",\"sid\":{\"domain\":\"localhost\",\"expires\":\"\",\"isSecure\":true,\"maxAge\":100,\"name\":\"sid\",\"path\":\"/\",\"value\":\"987654321\"}}",result);
     MOL_TEST_ASSERT_CNTS(0,0);
 }
 
