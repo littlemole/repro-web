@@ -5,7 +5,6 @@
 #include <signal.h>
   
 #include "model.h"
-#include "valid.h"
 #include "view.h"
 #include "repo.h"
 #include "controller.h"

@@ -4,7 +4,6 @@
 #include "model.h"
 #include "view.h"
 #include "repo.h"
-#include "valid.h"
 
 using namespace reproweb;
 
@@ -16,11 +15,9 @@ public:
 		: model_(model), view_(view)
 	{}
 
-	Async index( Request& req, Response& res)
+	Async index( Parameter<SID> params, Request& req, Response& res)
 	{
-		std::string sid = Valid::session_id(req.headers.cookies());
-
-		Json::Value viewModel = co_await model_->chat(sid);
+		Json::Value viewModel = co_await model_->chat(params->sid);
 
 		view_->render_index(req,res,viewModel);
 
@@ -37,40 +34,28 @@ public:
 		view_->render_registration(req,res,"");		
 	}
 
-	Async login( Request& req, Response& res)
+	Async login( Form<Login> loginForm, Response& res)
 	{
-
-		QueryParams qp(req.body());
-		std::string login = Valid::login<LoginEx>(qp);
-		std::string pwd   = Valid::passwd<LoginEx>(qp);
-
-		std::string sid = co_await model_->login(login,pwd);
+		std::string sid = co_await model_->login(*loginForm);
 
 		view_->redirect_to_index(res,sid);
 	
 		co_return;		
 	}
 
-	Async logout( Request& req, Response& res)
+	Async logout( Parameter<SID> params, Response& res)
 	{
-		const std::string sid = Valid::session_id(req.headers.cookies());
-
-		co_await model_->logout(sid);
+		co_await model_->logout(params->sid);
 
 		view_->redirect_to_login(res);
 
 		co_return;		
 	}
 
-	Async register_user( Request& req, Response& res)
+	Async register_user( Form<User> userForm, Response& res)
 	{
-		QueryParams qp(req.body());
-		std::string username   = Valid::username(qp);
-		std::string login      = Valid::login<RegistrationEx>(qp);
-		std::string pwd        = Valid::passwd<RegistrationEx>(qp);
-		std::string avatar_url = Valid::avatar(qp);
 
-		std::string sid = co_await model_->register_user(username,login,pwd,avatar_url);
+		std::string sid = co_await model_->register_user(*userForm);
 
 		view_->redirect_to_index(res,sid);
 

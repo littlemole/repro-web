@@ -6,9 +6,6 @@
 #include "reproweb/json/json.h"
 #include "model.h"
 
-using namespace prio;
-using namespace repro;
-using namespace reproweb;
 
 
 class SessionRepository
@@ -48,7 +45,7 @@ public:
 	{
 		try
 		{
-			Session session(user.toJson());
+			Session session(toJson(user));
 
 			reproredis::RedisResult::Ptr reply = co_await redis->cmd("SET", session.sid(), session.profile());
 			reproredis::RedisResult::Ptr reply2 = co_await redis->cmd("EXPIRE", session.sid(), 180);
@@ -91,7 +88,7 @@ public:
 		: sqlite(sqlitePool)
 	{}
 
-	Future<User> register_user(
+	Future<User> register_user( 
 		const std::string& username, 
 		const std::string& login, 
 		const std::string& pwd, 

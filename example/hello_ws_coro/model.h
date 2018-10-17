@@ -47,12 +47,12 @@ public:
 		co_return session.profile();
 	}
 
-	Future<std::string> login( std::string login, std::string pwd )
+	Future<std::string> login( Login creds )
 	{
-		User user = co_await userRepository->get_user(login);
+		User user = co_await userRepository->get_user( creds.login() );
 
 		cryptoneat::Password pass;
-		bool verified = pass.verify(pwd, user.hash() );
+		bool verified = pass.verify( creds.hash(), user.hash() );
 		if(!verified) 
 		{
 			throw LoginEx("error.msg.login.failed");
@@ -70,18 +70,16 @@ public:
 		co_return;
 	}
 
-	Future<std::string> register_user( 
-		const std::string& username,
-		const std::string& login,
-		const std::string& pwd,
-		const std::string& avatar_url
-		)
+	Future<std::string> register_user( User user )
 	{
-		User user = co_await userRepository->register_user(username, login, pwd, avatar_url);
+		User result = co_await userRepository->register_user(
+			user.username(), 
+			user.login(), 
+			user.hash(),
+			user.avatar_url()
+		);
 
-		//std::cout << "NEW USER SUCESS: " << user.username() << std::endl;
-		
-		Session session= co_await sessionRepository->write_user_session(user);
+		Session session = co_await sessionRepository->write_user_session(result);
 
 		co_return session.sid();
 	}

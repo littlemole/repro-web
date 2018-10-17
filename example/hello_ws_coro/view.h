@@ -79,7 +79,7 @@ private:
 
 	void render(Request& req, Response& res, const std::string& page, const std::string& errMsg)
 	{
-		return render(req,res,page,error_msg(Valid::locale(req),errMsg));
+		return render(req,res,page,error_msg(get_locale(req),errMsg));
 	}
 
 	void render(Request& req, Response& res, const std::string& page, Json::Value value)
@@ -87,7 +87,7 @@ private:
 		value["page"] = page;
 		value["version"] = version_;
 
-		std::string locale = Valid::locale(req);
+		std::string locale = get_locale(req);
 		std::string view = templates_->get(page);
 
 		//std::cout << "---------------------------------" << std::endl;
@@ -131,6 +131,15 @@ private:
 
 		return errorMsg;
 	}	
+
+	static std::string get_locale(Request& req)
+	{
+		auto h = req.headers.values("Accept-Language");
+		auto lang = h.value().main();
+		std::string locale = std::regex_replace (lang,std::regex("-"),"_");		
+
+		return locale;
+	}  	
 };
  
 #endif
