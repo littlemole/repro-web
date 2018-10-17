@@ -145,6 +145,8 @@ struct MyQueryParam : public reproweb::QueryParam
 };
 */
 
+
+
 class TestController
 {
 public:
@@ -154,10 +156,24 @@ public:
 	TestController(std::shared_ptr<Logger> logger)
 	: logger_(logger)
 	{}
-
+   
 	~TestController()
 	{
 		std::cout << "~TestController" << std::endl;
+	}
+
+	void postMultipart( prio::MultiParts mp,  prio::Request& req,  prio::Response& res)
+	{
+		for( auto& p : mp.parts)
+		{
+			if ( p.headers.content_type() == "text/html")
+			{
+				res.body( p.body );
+				res.ok().contentType("text/html").flush();
+				return;
+			}
+		}
+		res.error().body("error").flush();
 	}
 
 	void handlerA( prio::Request& req, prio::Response& res)
@@ -229,13 +245,13 @@ public:
 		});
 	}	
 
-	void queryParams( QueryParams qp, prio::Request& req, prio::Response& res)
+	void queryParams( QueryParams qp, /* prio::Request& req, */ prio::Response& res)
 	{
 		res.body( qp.get("param") );
 		res.ok().flush();
 	}
 
-	repro::Future<User> getUser(prio::Request& req, prio::Response& res)
+	repro::Future<User> getUser()//prio::Request& req, prio::Response& res)
 	{
 		auto p = promise<User>();
 
@@ -249,7 +265,7 @@ public:
 	}
   
  
-	repro::Future<Input> getParams( Parameter<Input> params, prio::Request& req, prio::Response& res)
+	repro::Future<Input> getParams( Parameter<Input> params)//, prio::Request& req, prio::Response& res)
 	{
 		auto p = promise<Input>();
 
@@ -268,7 +284,7 @@ public:
 		return p.future();
 	}
 
-	repro::Future<User> postUser(Entity<User> user, prio::Request& req, prio::Response& res)
+	repro::Future<User> postUser(Entity<User> user)//, prio::Request& req, prio::Response& res)
 	{
 		auto p = promise<User>();
 
@@ -281,7 +297,7 @@ public:
 	}
 
 
-	repro::Future<Json::Value> postUserJson(Json::Value user, prio::Request& req, prio::Response& res)
+	repro::Future<Json::Value> postUserJson(Json::Value user)//, prio::Request& req, prio::Response& res)
 	{
 		auto p = promise<Json::Value>();
 
@@ -295,7 +311,7 @@ public:
 
 #ifdef _RESUMABLE_FUNCTIONS_SUPPORTED
 
-	repro::Future<User> getUserCoro(prio::Request& req, prio::Response& res)
+	repro::Future<User> getUserCoro() //prio::Request& req, prio::Response& res)
 	{
 		//co_await nextTick();
 
@@ -304,14 +320,14 @@ public:
 	}
 
 
-	repro::Future<User> postUserCoro(Entity<User> user, prio::Request& req, prio::Response& res)
+	repro::Future<User> postUserCoro(Entity<User> user)//, prio::Request& req, prio::Response& res)
 	{
 		//co_await nextTick();
 		co_return user.value;
 	}
 
 
-	repro::Future<Json::Value> postUserJsonCoro(Json::Value user, prio::Request& req, prio::Response& res)
+	repro::Future<Json::Value> postUserJsonCoro(Json::Value user)//, prio::Request& req, prio::Response& res)
 	{
 		//co_await nextTick();
 
@@ -1314,6 +1330,66 @@ TEST_F(BasicTest, SimpleRest)
     MOL_TEST_ASSERT_CNTS(0,0);
 }
 
+ 
+const char* multipart = "-----------------------------9051914041544843365972754266\r\n"
+"Content-Disposition: form-data; name=\"text\"\r\n"
+"\r\n"
+"text default\r\n"
+"-----------------------------9051914041544843365972754266\r\n"
+"Content-Disposition: form-data; name=\"file1\"; filename=\"a.txt\"\r\n"
+"Content-Type: text/plain\r\n"
+"\r\n"
+"Content of a.txt.\r\n"
+"\r\n"
+"-----------------------------9051914041544843365972754266\r\n"
+"Content-Disposition: form-data; name=\"file2\"; filename=\"a.html\"\r\n"
+"Content-Type: text/html\r\n"
+"\r\n"
+"<!DOCTYPE html><title>Content of a.html.</title>\r\n"
+"\r\n"
+"-----------------------------9051914041544843365972754266--\r\n\r\n";
+
+TEST_F(BasicTest, SimpleMultipart) 
+{
+	std::string result;
+
+	WebApplicationContext ctx {
+
+		LoggerComponent,
+		TestControllerComponent,
+
+		POST ("/path/a",&TestController::postMultipart)
+	};
+
+	{
+		reproweb::WebServer server(ctx);
+
+		nextTick()
+		.then( [&result,&server]()
+		{
+			HttpClient::url("http://localhost:8765/path/a")
+			->content_type("multipart/form-data;boundary=\"---------------------------9051914041544843365972754266\"")
+			->POST(multipart)
+			.then([&result,&server](prio::Response& res)
+			{
+				result = res.body();
+				server.shutdown();
+				theLoop().exit();
+			})
+			.otherwise([&server](const std::exception& ex)
+			{
+				std::cout << ex.what() << std::endl;
+				server.shutdown();
+				theLoop().exit();
+			});
+		});
+
+		server.listen(8765);
+		theLoop().run();
+	}
+    EXPECT_EQ("<!DOCTYPE html><title>Content of a.html.</title>\r\n",result);
+    MOL_TEST_ASSERT_CNTS(0,0);
+}
 
 TEST_F(BasicTest, SimpleRestParams) 
 {

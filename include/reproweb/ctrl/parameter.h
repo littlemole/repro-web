@@ -4,6 +4,7 @@
 #include "reproweb/ctrl/front_controller.h"
 #include "diycpp/ctx.h"
 #include "reproweb/tools/serializer.h"
+#include "priohttp/multipart.h"
 
 namespace reproweb  {
 
@@ -216,6 +217,26 @@ public:
 		return req.headers.cookies();
 	}
 };
+
+//////////////////////////////////////////////////////////////
+
+template<>
+class HandlerParam<prio::MultiParts>
+{
+public:
+
+	static prio::MultiParts get(prio::Request& req,  prio::Response& res)
+	{
+		std::string delim = req.headers.values("Content-Type").value().params()["boundary"];
+
+		// unquote
+		if(delim.size() > 1 && delim[0] == '"'  && delim[delim.size()-1] == '"' ) delim = delim.substr(1,delim.size()-2);
+		if(delim.size() > 1 && delim[0] == '\'' && delim[delim.size()-1] == '\'') delim = delim.substr(1,delim.size()-2);
+
+		return prio::MultiParts(req.body(),delim);
+	}
+};
+	
 
 //////////////////////////////////////////////////////////////
 
