@@ -65,7 +65,16 @@ namespace detail {
 #ifndef __clang__
 #ifdef __GNUC__
 #if __GNUC__ < 6
+#define MOL_FAKE_NONESUCH 1
+#endif
+#endif    
+#endif    
 
+#ifdef _WIN32
+#define MOL_FAKE_NONESUCH 1
+#endif
+
+#ifdef MOL_FAKE_NONESUCH
     struct nonesuch
     {
         nonesuch() = delete;
@@ -74,8 +83,6 @@ namespace detail {
         void operator=(nonesuch const&) = delete;
     };
 #endif
-#endif    
-#endif    
 
 	template <template<class...> class Op, class... Args>
 	using is_detected = typename detail::detector<nonesuch, void, Op, Args...>::value_t;
