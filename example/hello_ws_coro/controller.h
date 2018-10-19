@@ -15,7 +15,7 @@ public:
 		: model_(model), view_(view)
 	{}
 
-	Async index( Parameter<SID> params, Request& req, Response& res)
+	Async index( Parameter<SessionID> params, Request& req, Response& res)
 	{
 		Json::Value viewModel = co_await model_->chat(params->sid);
 
@@ -43,7 +43,7 @@ public:
 		co_return;		
 	}
 
-	Async logout( Parameter<SID> params, Response& res)
+	Async logout( Parameter<SessionID> params, Response& res)
 	{
 		co_await model_->logout(params->sid);
 

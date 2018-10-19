@@ -170,15 +170,15 @@ private:
 	}
 };
 
-class SID 
+class SessionID
 {
 public:
 	std::string sid;
 
-	Serializer<SID> serialize()
+	Serializer<SessionID> serialize()
 	{
 		return {
-			"repro_web_sid", &SID::sid
+			"repro_web_sid", &SessionID::sid
 		};
 	}	
 
