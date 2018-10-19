@@ -350,6 +350,24 @@ cd debug
 cmake .. -DCMAKE_BUILD_TYPE=Debug -DCMAKE_TOOLCHAIN_FILE=..\..\..\..\vcpkg\scripts\buildsystems\vcpkg.cmake
 
 ``` 
+change CMAKE_BUILD_TYPE to Release for a Release build.
+
+either now open the generated *.sln file in Visual Studio or use msbuild.
+
+```bash
+msbuild ALL_BUILD.vcxproj 
+```
+
+or for a release build:
+
+```bash
+msbuild ALL_BUILD.vcxproj /p:Configuration=Release
+```
+
+Separate setups for Debug and Release exist for easier vcpkg integration. 
+- Debug   config: both Debug and Release builds will kinda work out of the box, but if you check Release Mode library dependencies in VS you'll see that it picks some debug libs instead the release ones, so you want to manually fix these if you want to have a simgle config that supports both Release and Debug
+- Release config: only Release build will work out of the box, but Debug Mode library dependencies will picks some release libs instead the debug ones, so you have to manually fix these if you want to have a simgle config that supports both Release and Debug
+
 
 ## about library and examples debug builds
 
