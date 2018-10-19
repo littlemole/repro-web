@@ -91,6 +91,32 @@ inline Json::Value toJson( prio::Headers& headers)
 	return result;
 }
 
+inline Json::Value toJson( const prio::HeaderValue& header)
+{
+	Json::Value result(Json::objectValue);
+
+	std::map<std::string,std::string> h = header.params();
+
+	for ( auto& m : h)
+	{
+		result[m.first] = toJson(m.second);
+	}
+
+	return result;
+}
+
+inline Json::Value toJson( prio::HeaderValues& headers)
+{
+	Json::Value result(Json::objectValue);
+
+	unsigned int size = headers.size();
+	for ( unsigned int i = 0; i < size; i++)
+	{
+		result[headers[i].main()] = toJson(headers[i]);
+	}
+
+	return result;
+}
 
 inline Json::Value toJson( prio::Cookie& cookie)
 {
@@ -184,6 +210,17 @@ inline void fromJson( prio::Cookie& cookie, Json::Value& json )
 	{
 		cookie.isSecure();
 	}
+}
+
+inline void fromJson( prio::HeaderValues& headers, Json::Value& json )
+{
+	// no op
+}
+
+
+inline void fromJson( prio::HeaderValues& headers, const std::string& s )
+{
+	headers = prio::HeaderValues(s);
 }
 
 inline void fromJson( prio::Headers& headers, Json::Value& json )
@@ -292,8 +329,19 @@ inline void fromParam( std::string& s, const prio::HeaderValues& v )
 	s = v.value().main();
 }
 
+inline void fromParam( std::string& s, prio::HeaderValues& v )
+{
+	s = v.value().main();
+}
+
 
 inline void fromParam( std::string& s, const prio::HeaderValue& v )
+{
+	s = v.main();
+}
+
+
+inline void fromParam( std::string& s, prio::HeaderValue& v )
 {
 	s = v.main();
 }
@@ -341,6 +389,22 @@ inline void fromParam( prio::Cookie& c, const prio::HeaderValues& v )
 }
 
 
+inline void fromParam( prio::HeaderValues& v, const std::string& s )
+{
+	v = prio::HeaderValues(s);
+}
+
+
+inline void fromParam( prio::HeaderValues& v, const prio::Cookie& cookie )
+{
+	v = prio::HeaderValues(cookie.str());
+}
+
+
+inline void fromParam( prio::HeaderValues& v, const prio::HeaderValues& h )
+{
+	v = h;
+}
 template<class T>
 void fromParam( std::vector<T>& v, const std::string& value )
 {
@@ -374,6 +438,22 @@ void fromParam( std::vector<T>& v, prio::Cookie& cookie )
 
 
 template<class T>
+void fromParam( std::vector<T>& v, const prio::Cookie& cookie )
+{
+	
+	auto values = prio::split( cookie.value(), ',' );
+
+	unsigned int size = values.size();
+	for ( unsigned int i = 0; i < size; i++)
+	{
+		T t;
+		fromParam(t,values[i]);
+		v.push_back( std::move(t) );
+	}
+}
+
+
+template<class T>
 void fromParam( std::vector<T>& v, prio::HeaderValues& values  )
 {
 	unsigned int size = values.size();
@@ -385,6 +465,18 @@ void fromParam( std::vector<T>& v, prio::HeaderValues& values  )
 	}
 }
 
+
+template<class T>
+void fromParam( std::vector<T>& v, const prio::HeaderValues& values  )
+{
+	unsigned int size = values.size();
+	for ( unsigned int i = 0; i < size; i++)
+	{
+		T t;
+		fromParam(t,values[i]);
+		v.push_back( std::move(t) );
+	}
+}
 ///////////////////////////////////////////////////////////////////////////////////////////
 
 
