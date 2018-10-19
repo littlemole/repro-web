@@ -65,10 +65,10 @@ public:
 		static std::regex r_pwd(".*");
 
 		if(login_.empty())
-			throw RegistrationEx("error.msg.login.empty");
+			throw LoginEx("error.msg.login.empty");
 
-		valid<RegistrationEx>(login_, 		r_email, 	"error.msg.login.invalid.email" );
-		valid<RegistrationEx>(hash_, 		r_pwd , 	"error.msg.password.empty");
+		valid<LoginEx>(login_, 		r_email, 	"error.msg.login.invalid.email" );
+		valid<LoginEx>(hash_, 		r_pwd , 	"error.msg.password.empty");
 	}
 	
 private:

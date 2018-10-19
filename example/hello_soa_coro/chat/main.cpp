@@ -58,7 +58,7 @@ int main(int argc, char **argv)
 
 	Http2SslCtx sslCtx;
 	sslCtx.load_cert_pem(cert);
-	//sslCtx.enableHttp2();
+	sslCtx.enableHttp2();
 
 	WebServer server(ctx);
 	server.listen(sslCtx,9876);
