@@ -65,8 +65,9 @@ struct Input
 	std::string id;
 	std::string filter;
 	std::string sid;
-	std::string lang;
+	prio::HeaderValues header;
 	prio::Cookie cookie;
+	std::string lang;
 
 	reproweb::Serializer<Input> serialize()
 	{
@@ -75,6 +76,7 @@ struct Input
 			"id", &Input::id,
 			"filter", &Input::filter,
 			"sid", &Input::sid,
+			"Accept-Language", &Input::header,
 			"Accept-Language", &Input::lang,
 			"sid", &Input::cookie
 		};
