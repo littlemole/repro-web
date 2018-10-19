@@ -334,6 +334,7 @@ windows installation via private clone of vcpkg:
 ```bash
 git clone https://github.com/littlemole/vcpkg
 cd vcpkg
+git checkout promise
 bootstrap-vcpkg.bat
 .\vcpkg install reproweb
 cd ..
