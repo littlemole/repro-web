@@ -231,6 +231,11 @@ file(COPY pem DESTINATION .)
 file(COPY htdocs DESTINATION .)
 file(COPY locale DESTINATION .)
 file(COPY config.json DESTINATION .)
+
+if(WIN32)
+	file(COPY ${CURL_LIBRARY} DESTINATION ${CMAKE_BINARY_DIR})
+	file(COPY ${ZLIB_LIBRARY} DESTINATION ${CMAKE_BINARY_DIR})
+endif()
  
 ############################################
 # install rules
