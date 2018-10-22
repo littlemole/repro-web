@@ -19,9 +19,11 @@ using namespace reproweb;
 
 int main(int argc, char **argv)
 {
-	prio::init();
-	cryptoneat::SSLUser useSSL;
-	curl_global_init(CURL_GLOBAL_ALL);
+	prio::Libraries<
+		prio::EventLoop,
+		cryptoneat::SSLUser,
+		reprocurl::ReproCurl> 
+	init;
 
 	WebApplicationContext ctx {
 

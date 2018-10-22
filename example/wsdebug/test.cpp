@@ -39,8 +39,8 @@ void read_stdin()
 
 int main(int argc, char **argv)
 {
-	prio::init();
-	cryptoneat::SSLUser useSSL;
+	prio::Libraries<prio::EventLoop, cryptoneat::SSLUser> init;
+
 	Http2SslCtx sslCtx;
 	//sslCtx.enableHttp2();
 

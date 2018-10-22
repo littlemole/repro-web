@@ -36,7 +36,7 @@ int main(int argc, char** argv)
 {
     std::cout << TO_STR(VERSION) << std::endl;
 
-    init();
+    prio::Libraries<prio::EventLoop> init;
 
     WebApplicationContext ctx 
     {

@@ -51,8 +51,7 @@ struct UserPool : public reprosqlite::SqlitePool
 
 int main(int argc, char **argv)
 {
-	prio::init();
-	cryptoneat::SSLUser useSSL;
+	prio::Libraries<prio::EventLoop,cryptoneat::SSLUser> init;
 
 	WebApplicationContext ctx {
 

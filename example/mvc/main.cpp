@@ -95,8 +95,7 @@ private:
 
 int main(int argc, char** argv)
 {
-    prio::init();
-    reprocurl::init();
+    prio::Libraries<prio::EventLoop,reprocurl::ReproCurl> init;
 
     WebApplicationContext ctx 
     {

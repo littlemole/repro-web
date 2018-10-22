@@ -92,8 +92,7 @@ int main(int argc, char **argv)
 	{
 		std::cout << TO_STR(VERSION) << std::endl;
 
-		prio::init();
-		cryptoneat::SSLUser useSSL;
+		prio::Libraries<prio::EventLoop, cryptoneat::SSLUser> init;
 
 		server();
 	}
