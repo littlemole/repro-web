@@ -13,7 +13,11 @@ using namespace reproweb;
 
 int main(int argc, char **argv)
 {
-	prio::Libraries<prio::EventLoop,cryptoneat::SSLUser> init;
+	prio::Libraries<
+		repromysql::MySQL,
+		prio::EventLoop,
+		cryptoneat::SSLUser> 
+	init;
 
 	WebApplicationContext ctx {
 
