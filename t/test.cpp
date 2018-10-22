@@ -72,7 +72,9 @@ struct Input
 	reproweb::Serializer<Input> serialize()
 	{
 		return {
-
+			// note some mappings are duplicated
+			// for serialization, last one will overider earlier ones
+			// for deserialization however, all will be mapped
 			"id", &Input::id,
 			"filter", &Input::filter,
 			"sid", &Input::sid,
