@@ -111,7 +111,6 @@ namespace reproweb {
     template<class T>
     using has_valid = std::experimental::is_detected<has_valid_t, T>;
 
-
     class call_valid
     {
     public:

@@ -534,7 +534,7 @@ void fromParam( std::vector<T>& v, const prio::HeaderValues& values  )
 
 
 #ifdef MOL_ENABLE_UGLY_HELPER_MACROS
-#define SERIALIZE(clazz,member) #member, &clazz::member
+#define SERIALIZE(clazz,membe)  reproweb::member(#membe, &clazz::membe )
 #endif
 
 ///////////////////////////////////////////////////////////////////////////////////////////
@@ -668,7 +668,7 @@ private:
 
 
 template<class T,class M>
-SerializedMember<T,M>* serialized_member(const char* m, M T::* p)
+SerializedMember<T,M>* member(const char* m, M T::* p)
 {
 	return new SerializedMember<T,M>(m,p);
 }
@@ -676,15 +676,38 @@ SerializedMember<T,M>* serialized_member(const char* m, M T::* p)
 ///////////////////////////////////////////////////////////////////////////////////////////
 ///////////////////////////////////////////////////////////////////////////////////////////
 
+struct entity_name
+{
+	entity_name(const std::string& n)
+		:name(n)
+	{}
 
+	std::string name;
+};
 
 
 template<class T>
 class Serializer
 {
 public:
+
+	template<class P>
+	Serializer(const Serializer<P>& rhs)
+	{
+		name_ = rhs.name_;
+		members = rhs.members;
+	}
+
+
 	template<class ...Args>
 	Serializer(Args... args)
+	{
+		serialize(args...);
+	}
+
+	template<class ...Args>
+	Serializer(entity_name en, Args... args)
+		: name_(en.name)
 	{
 		serialize(args...);
 	}
@@ -735,9 +758,13 @@ public:
 		}
 	}	
 
-protected:
+	const std::string& name()
+	{
+		return name_;
+	}
 
 	std::vector<std::unique_ptr<SerializedMemberBase>> members;
+	std::string name_;
 
 private:
 
@@ -746,13 +773,21 @@ private:
 		// terminator
 	}
 
-	template<class M, class ...Args>
-	void serialize(const char* member, M mp, Args ... args )
+	template<class ...Args>
+	void serialize(SerializedMemberBase* m,  Args ... args )
 	{
-		auto jmp = serialized_member(member,mp);
-		members.push_back(std::unique_ptr<SerializedMemberBase>(jmp));
+		members.push_back(std::unique_ptr<SerializedMemberBase>(m));
 		serialize(args...);
 	}
+
+
+	template<class M, class ...Args>
+	void serialize( const char* membername, M mp, Args ... args )
+	{
+		auto jmp = member(membername,mp);
+		members.push_back(std::unique_ptr<SerializedMemberBase>(jmp));
+		serialize(args...);
+	}	
 };
 
 ///////////////////////////////////////////////////////////////////////////////////////////
@@ -816,6 +851,64 @@ void fromRequest(T& t, prio::Request& req)
 }
 
 ///////////////////////////////////////////////////////////////////////////////////////////
+
+
+template<class T>
+struct RootEntity
+{
+	T entity;
+ 
+	template<class ... P>
+	RootEntity(P&& ... p)
+		: entity(std::forward<P&&>(p)...)
+	{}
+
+	T* operator->()
+	{
+		return &entity;
+	}
+
+	Serializer<RootEntity<T>> serialize()
+	{
+		return { member(serializer_of(entity).name().c_str() , &RootEntity<T>::entity) };
+	}	
+
+	void validate()
+	{
+		validate(entity);
+	}
+};
+
+
+
+template<class T>
+struct RootEntity<std::vector<T>>
+{
+	std::vector<T> entity;
+ 
+	template<class ... P>
+	RootEntity(P&& ... p)
+		: entity(std::forward<P&&>(p)...)
+	{}
+
+	T* operator->()
+	{
+		return &entity;
+	}
+
+	Serializer<RootEntity<std::vector<T>>> serialize()
+	{
+		static T dummy;
+		return { member(serializer_of(dummy).name().c_str() , &RootEntity<std::vector<T>>::entity) };
+	}	
+
+	void validate()
+	{
+		validate(entity);
+	}
+};
+
+
 ///////////////////////////////////////////////////////////////////////////////////////////
 
 }

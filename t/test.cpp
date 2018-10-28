@@ -39,6 +39,8 @@ using namespace prio;
 using namespace cryptoneat;
 using namespace diy;
 
+typedef const char* entity_name_t;
+
 //DIY_DEFINE_CONTEXT()
 
 class BasicTest : public ::testing::Test {
@@ -97,11 +99,12 @@ public:
 	std::string pwd;
 	std::vector<std::string> tags;
 };
+
  
 reproweb::Serializer<User> serialize(User&)
 {
 	return {
-
+		entity_name("user"),
 		SERIALIZE(User,username), 
 		SERIALIZE(User,login), 
 		SERIALIZE(User,pwd),
@@ -1293,74 +1296,85 @@ TEST_F(BasicTest, toJson)
 	EXPECT_EQ("three",other.tags[2]);
 }
 
-struct RootEntity
-{
-	User user;
 
-	Serializer<RootEntity> serialize()
-	{
-		return { "user", &RootEntity::user };
-	}
-};
 
 TEST_F(BasicTest, toJson2) 
 {
 	User user{ "mike", "littlemole", "secret", { "one", "two", "three"} };
-	RootEntity root{user};
+	RootEntity<User> root{user};
 	Json::Value json = toJson(root);
  
 	std::string s = JSON::flatten(json); 
 
 	EXPECT_EQ("{\"user\":{\"login\":\"littlemole\",\"pwd\":\"secret\",\"tags\":[\"one\",\"two\",\"three\"],\"username\":\"mike\"}}",s);
 
-	RootEntity other;
+	RootEntity<User> other;
 	fromJson(other,json);
 
-	EXPECT_EQ("mike",other.user.username);
-	EXPECT_EQ("littlemole",other.user.login);
-	EXPECT_EQ("secret",other.user.pwd);
+	EXPECT_EQ("mike",other->username);
+	EXPECT_EQ("littlemole",other->login);
+	EXPECT_EQ("secret",other->pwd);
 
-	EXPECT_EQ("one",other.user.tags[0]);
-	EXPECT_EQ("two",other.user.tags[1]);
-	EXPECT_EQ("three",other.user.tags[2]);
+	EXPECT_EQ("one",other->tags[0]);
+	EXPECT_EQ("two",other->tags[1]);
+	EXPECT_EQ("three",other->tags[2]);
 }
-
-struct ArrayEntity
-{
-	std::vector<User> users;
-
-	Serializer<ArrayEntity> serialize()
-	{
-		return { "users", &ArrayEntity::users };
-	}
-};
 
 TEST_F(BasicTest, toJsonArray) 
 {
 	User user{ "mike", "littlemole", "secret", { "one", "two", "three"} };
-	ArrayEntity root;
-	root.users.push_back(user);
-	root.users.push_back(user);
-	root.users.push_back(user);
+	RootEntity<std::vector<User>> root;
+	root.entity.push_back(user);
+	root.entity.push_back(user);
+	root.entity.push_back(user);
 
 	Json::Value json = toJson(root);
 
 	std::string s = JSON::flatten(json); 
 
-	EXPECT_EQ("{\"users\":[{\"login\":\"littlemole\",\"pwd\":\"secret\",\"tags\":[\"one\",\"two\",\"three\"],\"username\":\"mike\"},{\"login\":\"littlemole\",\"pwd\":\"secret\",\"tags\":[\"one\",\"two\",\"three\"],\"username\":\"mike\"},{\"login\":\"littlemole\",\"pwd\":\"secret\",\"tags\":[\"one\",\"two\",\"three\"],\"username\":\"mike\"}]}",s);
+	EXPECT_EQ("{\"user\":[{\"login\":\"littlemole\",\"pwd\":\"secret\",\"tags\":[\"one\",\"two\",\"three\"],\"username\":\"mike\"},{\"login\":\"littlemole\",\"pwd\":\"secret\",\"tags\":[\"one\",\"two\",\"three\"],\"username\":\"mike\"},{\"login\":\"littlemole\",\"pwd\":\"secret\",\"tags\":[\"one\",\"two\",\"three\"],\"username\":\"mike\"}]}",s);
 
-	ArrayEntity other;
+	RootEntity<std::vector<User>> other;
 	fromJson(other,json);
 
 	for(int i = 0; i < 3; i++)
 	{
-		EXPECT_EQ("mike",other.users[i].username);
-		EXPECT_EQ("littlemole",other.users[i].login);
-		EXPECT_EQ("secret",other.users[i].pwd);
+		EXPECT_EQ("mike",other.entity[i].username);
+		EXPECT_EQ("littlemole",other.entity[i].login);
+		EXPECT_EQ("secret",other.entity[i].pwd);
 
-		EXPECT_EQ("one",other.users[i].tags[0]);
-		EXPECT_EQ("two",other.users[i].tags[1]);
-		EXPECT_EQ("three",other.users[i].tags[2]);
+		EXPECT_EQ("one",other.entity[i].tags[0]);
+		EXPECT_EQ("two",other.entity[i].tags[1]);
+		EXPECT_EQ("three",other.entity[i].tags[2]);
+	}
+}
+
+TEST_F(BasicTest, toArray) 
+{
+	User user{ "mike", "littlemole", "secret", { "one", "two", "three"} };
+	std::vector<User> root;
+	root.push_back(user);
+	root.push_back(user);
+	root.push_back(user);
+
+	Json::Value json = toJson(root);
+
+	std::string s = JSON::flatten(json); 
+
+	EXPECT_EQ("[{\"login\":\"littlemole\",\"pwd\":\"secret\",\"tags\":[\"one\",\"two\",\"three\"],\"username\":\"mike\"},{\"login\":\"littlemole\",\"pwd\":\"secret\",\"tags\":[\"one\",\"two\",\"three\"],\"username\":\"mike\"},{\"login\":\"littlemole\",\"pwd\":\"secret\",\"tags\":[\"one\",\"two\",\"three\"],\"username\":\"mike\"}]",s);
+
+	std::vector<User> other;
+	fromJson(other,json);
+
+	for(int i = 0; i < 3; i++)
+	{
+		EXPECT_EQ("mike",other[i].username);
+		EXPECT_EQ("littlemole",other[i].login);
+		EXPECT_EQ("secret",other[i].pwd);
+
+		EXPECT_EQ("one",other[i].tags[0]);
+		EXPECT_EQ("two",other[i].tags[1]);
+		EXPECT_EQ("three",other[i].tags[2]);
 	}
 }
 
