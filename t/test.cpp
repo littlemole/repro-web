@@ -1225,8 +1225,8 @@ TEST_F(BasicTest, I18NtplWithMarkup)
 	"email: {{ login }}\n"
 	"<p><!--#i18n key = 'login.main.greeting' --></p>\n"
 	"</body>\n"
-	"</html>\n";
-
+	"</html>\n";    
+ 
 	Json::Value json(Json::objectValue);
 	json["username"] = "Michael";
 	json["login"]    = "littlemole@oha7.org";
@@ -1252,7 +1252,7 @@ TEST_F(BasicTest, I18NtplWithMarkup)
 	EXPECT_EQ("<html>\n<body>\n<h1>Hello Coro Websockets</h1>\nemail: littlemole@oha7.org\n<p>Hello dear Michael</p>\n</body>\n</html>\n",content);
 
 }
-
+ 
 
 TEST_F(BasicTest, fromParams) 
 {
@@ -1291,6 +1291,77 @@ TEST_F(BasicTest, toJson)
 	EXPECT_EQ("one",other.tags[0]);
 	EXPECT_EQ("two",other.tags[1]);
 	EXPECT_EQ("three",other.tags[2]);
+}
+
+struct RootEntity
+{
+	User user;
+
+	Serializer<RootEntity> serialize()
+	{
+		return { "user", &RootEntity::user };
+	}
+};
+
+TEST_F(BasicTest, toJson2) 
+{
+	User user{ "mike", "littlemole", "secret", { "one", "two", "three"} };
+	RootEntity root{user};
+	Json::Value json = toJson(root);
+ 
+	std::string s = JSON::flatten(json); 
+
+	EXPECT_EQ("{\"user\":{\"login\":\"littlemole\",\"pwd\":\"secret\",\"tags\":[\"one\",\"two\",\"three\"],\"username\":\"mike\"}}",s);
+
+	RootEntity other;
+	fromJson(other,json);
+
+	EXPECT_EQ("mike",other.user.username);
+	EXPECT_EQ("littlemole",other.user.login);
+	EXPECT_EQ("secret",other.user.pwd);
+
+	EXPECT_EQ("one",other.user.tags[0]);
+	EXPECT_EQ("two",other.user.tags[1]);
+	EXPECT_EQ("three",other.user.tags[2]);
+}
+
+struct ArrayEntity
+{
+	std::vector<User> users;
+
+	Serializer<ArrayEntity> serialize()
+	{
+		return { "users", &ArrayEntity::users };
+	}
+};
+
+TEST_F(BasicTest, toJsonArray) 
+{
+	User user{ "mike", "littlemole", "secret", { "one", "two", "three"} };
+	ArrayEntity root;
+	root.users.push_back(user);
+	root.users.push_back(user);
+	root.users.push_back(user);
+
+	Json::Value json = toJson(root);
+
+	std::string s = JSON::flatten(json); 
+
+	EXPECT_EQ("{\"users\":[{\"login\":\"littlemole\",\"pwd\":\"secret\",\"tags\":[\"one\",\"two\",\"three\"],\"username\":\"mike\"},{\"login\":\"littlemole\",\"pwd\":\"secret\",\"tags\":[\"one\",\"two\",\"three\"],\"username\":\"mike\"},{\"login\":\"littlemole\",\"pwd\":\"secret\",\"tags\":[\"one\",\"two\",\"three\"],\"username\":\"mike\"}]}",s);
+
+	ArrayEntity other;
+	fromJson(other,json);
+
+	for(int i = 0; i < 3; i++)
+	{
+		EXPECT_EQ("mike",other.users[i].username);
+		EXPECT_EQ("littlemole",other.users[i].login);
+		EXPECT_EQ("secret",other.users[i].pwd);
+
+		EXPECT_EQ("one",other.users[i].tags[0]);
+		EXPECT_EQ("two",other.users[i].tags[1]);
+		EXPECT_EQ("three",other.users[i].tags[2]);
+	}
 }
 
 TEST_F(BasicTest, SimpleRest) 

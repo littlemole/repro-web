@@ -22,6 +22,25 @@ namespace reproweb {
 ///////////////////////////////////////////////////////////////////////////////////////////
 
 
+template<class T>
+Json::Value toJson(T& t);
+
+template<class T>
+void fromJson(T& t, Json::Value& json);
+
+template<class T>
+void fromParams(T& t, prio::QueryParams& qp);
+
+template<class T>
+void fromPath(T& t, prio::Args& args);
+
+template<class T>
+void fromRequest(T& t, prio::Request& req);
+
+///////////////////////////////////////////////////////////////////////////////////////////
+///////////////////////////////////////////////////////////////////////////////////////////
+
+
 inline Json::Value toJson(int i)
 {
 	return Json::Value(i);
@@ -324,6 +343,12 @@ inline void fromParam( std::string& s, const std::string& v )
 	s = v;
 }
 
+
+inline void fromParam( std::string& s, std::string& v )
+{
+	s = v;
+}
+
 inline void fromParam( std::string& s, const prio::HeaderValues& v )
 {
 	s = v.value().main();
@@ -405,10 +430,37 @@ inline void fromParam( prio::HeaderValues& v, const prio::HeaderValues& h )
 {
 	v = h;
 }
+
+template<class T, class V>
+void fromParam( T& v, V& value )
+{
+	// no op
+}
+
+template<class T, class V>
+void fromParam( T& v, const V& value )
+{
+	// no op
+}
+
+
 template<class T>
 void fromParam( std::vector<T>& v, const std::string& value )
 {
-	
+	auto values = prio::split( value, ',' );
+
+	unsigned int size = values.size();
+	for ( unsigned int i = 0; i < size; i++)
+	{
+		T t;
+		fromParam(t,values[i]);
+		v.push_back( std::move(t) );
+	}
+}
+
+template<class T>
+void fromParam( std::vector<T>& v, std::string& value )
+{
 	auto values = prio::split( value, ',' );
 
 	unsigned int size = values.size();
@@ -531,7 +583,7 @@ public:
 	{
 		if(qp.exists(member))
 		{
-			 reproweb::fromParam( ((T*)t)->*mp, qp.get(member) );
+			reproweb::fromParam( ((T*)t)->*mp, qp.get(member) );
 		}
 	}
 
