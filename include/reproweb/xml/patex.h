@@ -6,6 +6,7 @@
 #endif
 
 #include <expat.h>
+#include <iostream>
 
 namespace reproweb {
 namespace xml {
@@ -37,7 +38,16 @@ public:
 	// parse it!
 	bool parse( const char* what, int len, int isFinal = true )
 	{
-		return (XML_Parse( p_, what, len, isFinal )) == 0 ? false : true;
+		if (!XML_Parse( p_, what, len, isFinal ) )
+		{
+			XML_Error err = XML_GetErrorCode(p_);
+			const XML_LChar* s = XML_ErrorString(err);
+
+			std::cout << err << ": " << s << std::endl;
+
+			return false;
+		}		
+		return true;
 	}
 	// info
 	int line()

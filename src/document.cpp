@@ -71,7 +71,10 @@ Element* XMLParser::parse( Document* d, Element* root, const std::string& input 
 	doc_    = d;
 	parent_ = root;
 	if ( !Expat::parse( input.c_str(), (int)(input.size()) ) )
+	{
+
 		return 0;
+	}		
 	return root;
 }
 
@@ -139,9 +142,9 @@ Document::~Document()
 {
 }
 
-XMLParser& Document::getParser()
+XMLParser Document::getParser()
 {
-	static XMLParser parser;
+	 XMLParser parser;
 	return parser;
 }
 

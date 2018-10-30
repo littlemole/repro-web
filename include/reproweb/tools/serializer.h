@@ -16,11 +16,17 @@
 #include <priohttp/arg.h>
 #include <priohttp/request.h>
 #include <reproweb/json/json.h>
+#include <reproweb/xml/document.h>
 
 namespace reproweb {
 
 ///////////////////////////////////////////////////////////////////////////////////////////
 
+template<class T>
+void toXml(const char* name, T& t, xml::Element* el);
+
+template<class T>
+void fromXml(const char* name, T& t, xml::Element* el);
 
 template<class T>
 Json::Value toJson(T& t);
@@ -38,6 +44,398 @@ template<class T>
 void fromRequest(T& t, prio::Request& req);
 
 ///////////////////////////////////////////////////////////////////////////////////////////
+
+inline void toXml(const char* name,int i, xml::Element* xmlTo)
+{
+	std::ostringstream oss;
+	oss << i;
+
+	if(name[0] == '@')
+	{
+		xmlTo->setAttribute(name+1,oss.str());
+		return;
+	}
+
+	xml::Element* el = xmlTo->ownerDocument()->createElement(name);
+	xml::Text* txt = xmlTo->ownerDocument()->createTextNode(oss.str());
+	el->appendChild(txt);
+	xmlTo->appendChild(el);
+}
+
+inline void toXml(const char* name, long i, xml::Element* xmlTo)
+{
+	std::ostringstream oss;
+	oss << i;
+
+	if(name[0] == '@')
+	{
+		xmlTo->setAttribute(name+1,oss.str());
+		return;
+	}
+
+	xml::Element* el = xmlTo->ownerDocument()->createElement(name);
+	xml::Text* txt = xmlTo->ownerDocument()->createTextNode(oss.str());
+	el->appendChild(txt);
+	xmlTo->appendChild(el);
+}
+
+
+inline void toXml(const char* name,double i, xml::Element* xmlTo)
+{
+	std::ostringstream oss;
+	oss << i;
+
+	if(name[0] == '@')
+	{
+		xmlTo->setAttribute(name+1,oss.str());
+		return;
+	}
+
+	xml::Element* el = xmlTo->ownerDocument()->createElement(name);
+	xml::Text* txt = xmlTo->ownerDocument()->createTextNode(oss.str());
+	el->appendChild(txt);
+	xmlTo->appendChild(el);
+}
+
+inline void toXml(const char* name,float i, xml::Element* xmlTo)
+{
+	std::ostringstream oss;
+	oss << i;
+
+	if(name[0] == '@')
+	{
+		xmlTo->setAttribute(name+1,oss.str());
+		return;
+	}
+
+	xml::Element* el = xmlTo->ownerDocument()->createElement(name);
+	xml::Text* txt = xmlTo->ownerDocument()->createTextNode(oss.str());
+	el->appendChild(txt);
+	xmlTo->appendChild(el);
+}
+
+
+inline void toXml( const char* name, const std::string& s, xml::Element* xmlTo)
+{
+	if(name[0] == '@')
+	{
+		xmlTo->setAttribute(name+1,s);
+		return;
+	}
+
+	xml::Element* el = xmlTo->ownerDocument()->createElement(name);
+	if(!s.empty())
+	{
+		xml::Text* txt = xmlTo->ownerDocument()->createTextNode(xml::xmlentities_encode(s));
+		el->appendChild(txt);
+	}
+	xmlTo->appendChild(el);
+}
+
+
+inline void toXml( const char* name, std::string& s, xml::Element* xmlTo)
+{
+	if(name[0] == '@')
+	{
+		xmlTo->setAttribute(name+1,s);
+		return;
+	}
+
+	xml::Element* el = xmlTo->ownerDocument()->createElement(name);
+	xml::Text* txt = xmlTo->ownerDocument()->createTextNode(xml::xmlentities_encode(s));
+	el->appendChild(txt);
+	xmlTo->appendChild(el);
+}
+
+
+inline void toXml( const char* name, Json::Value& json, xml::Element* xmlTo)
+{
+	if ( json.isArray())
+	{
+		for ( unsigned int i = 0; i < json.size(); i++)
+		{
+			reproweb::toXml(name,json[i],xmlTo);
+		}
+	}
+	else if ( json.isObject())
+	{
+		auto members = json.getMemberNames();
+		for ( auto& m : members)
+		{
+			reproweb::toXml(m.c_str(),json[m],xmlTo);
+		}
+	}
+	else
+	{
+		std::string s = json.asString();
+		reproweb::toXml(name,s,xmlTo);
+	}
+}
+
+
+inline void toXml( const char* name, prio::QueryParams& qp, xml::Element* xmlTo)
+{
+	for( auto& k : qp.keys() )
+	{
+		reproweb::toXml(k.c_str(),qp.get(k),xmlTo);
+	}
+}
+
+inline void toXml( const char* name, prio::Args& args, xml::Element* xmlTo)
+{
+	for( auto& k : args.keys() )
+	{
+		reproweb::toXml(k.c_str(),args.get(k),xmlTo);
+	}
+}
+
+inline void toXml( const char* name, prio::Headers& headers, xml::Element* xmlTo)
+{
+	for( auto& h : headers.raw() )
+	{
+		reproweb::toXml(h.first.c_str(),headers.get(h.first),xmlTo);
+	}
+}
+
+inline void toXml( const char* name, const prio::HeaderValue& header, xml::Element* xmlTo)
+{
+	std::map<std::string,std::string> h = header.params();
+
+	for ( auto& m : h)
+	{
+		reproweb::toXml(m.first.c_str(),m.second,xmlTo);
+	}
+}
+
+inline void toXml( const char* name, prio::HeaderValues& headers, xml::Element* xmlTo)
+{
+	unsigned int size = headers.size();
+	for ( unsigned int i = 0; i < size; i++)
+	{
+		reproweb::toXml(headers[i].main().c_str(),headers[i],xmlTo);
+	}
+}
+
+inline void toXml( const char* name, prio::Cookie& cookie, xml::Element* xmlTo)
+{
+	xml::Element* el = xmlTo->ownerDocument()->createElement(name);
+
+	toXml("name",cookie.name(),el);
+	toXml("value",cookie.value(),el);
+	toXml("expires",cookie.expires(),el);
+	toXml("maxAge",cookie.maxAge(),el);
+	toXml("domain",cookie.domain(),el);
+	toXml("path",cookie.path(),el);
+	toXml("isSecure",cookie.isSecure(),el);
+
+	xmlTo->appendChild(el);
+}
+
+
+template<class T>
+void toXml( const char* name, std::vector<T>& v, xml::Element* xmlTo)
+{
+	for ( unsigned int i = 0; i < v.size(); i++)
+	{
+		toXml(name, v[i], xmlTo);
+	}
+}
+
+
+inline void exToXml(const std::exception& ex, xml::Element* xmlTo)
+{
+	xml::Element* err = xmlTo->ownerDocument()->createElement("error");
+
+	xml::Element* msg = xmlTo->ownerDocument()->createElement("msg");
+	xml::Element* type = xmlTo->ownerDocument()->createElement("type");
+
+	xml::Text* errTxt = xmlTo->ownerDocument()->createTextNode(ex.what());
+	xml::Text* typeTxt = xmlTo->ownerDocument()->createTextNode(typeid(ex).name());
+
+	msg->appendChild(errTxt);
+	type->appendChild(typeTxt);
+
+	err->appendChild(msg);
+	err->appendChild(type);
+
+
+	xmlTo->appendChild(err);
+}
+
+///////////////////////////////////////////////////////////////////////////////////////////
+
+inline void fromXml( const char* name, int& i, xml::Element* fromXml )
+{
+	xml::Element* el = fromXml;
+
+	if( name != 0 && strlen(name)>0 )
+	{
+		if(name[0] == '@')
+		{
+			std::istringstream iss(el->attr(name+1));
+			iss >> i;
+			return;
+		}
+
+		el = fromXml->childNodes()->getChildByName(name);
+	}
+
+	if(!el) return;
+
+	std::istringstream iss(el->innerXml());
+	iss >> i;
+
+}
+
+inline void fromXml( const char* name,long& i, xml::Element* fromXml )
+{
+	xml::Element* el = fromXml;
+
+	if( name != 0 && strlen(name)>0 )
+	{
+		if(name[0] == '@')
+		{
+			std::istringstream iss(el->attr(name+1));
+			iss >> i;
+			return;
+		}
+
+		el = fromXml->childNodes()->getChildByName(name);
+	}
+
+	if(!el) return;
+
+	std::istringstream iss(el->innerXml());
+	iss >> i;
+
+}
+
+
+inline void fromXml( const char* name,double& i, xml::Element* fromXml )
+{
+	xml::Element* el = fromXml;
+
+	if( name != 0 && strlen(name)>0 )
+	{
+		if(name[0] == '@')
+		{
+			std::istringstream iss(el->attr(name+1));
+			iss >> i;
+			return;
+		}
+
+		el = fromXml->childNodes()->getChildByName(name);
+	}
+
+	if(!el) return;
+
+	std::istringstream iss(el->innerXml());
+	iss >> i;
+
+}
+
+
+inline void fromXml( const char* name,float& i, xml::Element* fromXml )
+{
+	xml::Element* el = fromXml;
+
+	if( name != 0 && strlen(name)>0 )
+	{
+		if(name[0] == '@')
+		{
+			std::istringstream iss(el->attr(name+1));
+			iss >> i;
+			return;
+		}
+
+		el = fromXml->childNodes()->getChildByName(name);
+	}
+
+	if(!el) return;
+
+	std::istringstream iss(el->innerXml());
+	iss >> i;
+}
+
+
+inline void fromXml( const char* name,std::string& s, xml::Element* fromXml )
+{
+	xml::Element* el = fromXml;
+
+	if( name != 0 && strlen(name)>0 )
+	{
+		if(name[0] == '@')
+		{
+			s = el->attr(name+1);
+			return;
+		}
+
+		el = fromXml->childNodes()->getChildByName(name);
+	}
+
+	if(!el) return;
+
+	s = el->innerXml();
+}
+
+
+inline void fromXml( const char* name,Json::Value& member, xml::Element* fromXml)
+{
+	//no op
+}
+
+inline void fromXml(const char* name, prio::Cookie& cookie, xml::Element* fromXml)
+{
+	// no op
+}
+
+inline void fromXml( const char* name,prio::HeaderValues& headers, xml::Element* fromXml )
+{
+	// no op
+}
+
+inline void fromXml(const char* name, prio::Headers& headers, xml::Element* fromXml )
+{
+	// no op
+}
+
+
+inline void fromXml( const char* name,prio::QueryParams& qp, xml::Element* fromXml )
+{
+	// no op
+}
+
+
+inline void fromXml( const char* name,prio::Args& args, xml::Element* fromXml )
+{
+	// no op
+}
+
+/*
+inline void fromJson( Json::Value& member, const std::string& value )
+{
+	member = JSON::parse(value);
+}
+
+*/
+
+template<class T>
+void fromXml( const char* name,std::vector<T>& v, xml::Element* fromXml )
+{
+	v.clear();
+	xml::NodeList elements = fromXml->childNodes()->getChildrenByName(name);
+
+	for ( int i = 0; i < elements.length(); i++ )
+	{
+		if( elements[i]->nodeType() == xml::Node::NodeType::ELEMENT )
+		{
+			T t;
+			reproweb::fromXml(0,t,(xml::Element*)(elements[i]));
+			v.push_back(std::move(t));
+		}
+	}
+}
+
 ///////////////////////////////////////////////////////////////////////////////////////////
 
 
@@ -546,6 +944,8 @@ public:
 
 	virtual ~SerializedMemberBase(){}
 
+ 	virtual void toXml ( void* p, xml::Element* xmlTo) = 0;
+ 	virtual void fromXml ( void* p, xml::Element* xmlFrom) = 0;
  	virtual void toJson( void* p, Json::Value &json) = 0;
 	virtual void fromJson( void* p, Json::Value& json ) = 0;
 	virtual void fromParams( void* p, prio::QueryParams& qp ) = 0;
@@ -565,6 +965,17 @@ public:
 	SerializedMember(const char* m, M T::*p)
 		: member(m), mp(p)
 	{}
+
+	void toXml ( void* p, xml::Element* xmlTo)
+	{
+		reproweb::toXml( member.c_str(), (((T*)p)->*mp), xmlTo );
+	}
+
+
+	void fromXml ( void* p, xml::Element* xmlFrom)
+	{
+		reproweb::fromXml( member.c_str(), (((T*)p)->*mp), xmlFrom );
+	}
 
  	void toJson( void* t, Json::Value &json)
 	{
@@ -712,6 +1123,23 @@ public:
 		serialize(args...);
 	}
 
+	void toXml ( T& t, xml::Element* xmlTo)
+	{
+		for( auto& m : members)
+		{
+			m->toXml(&t,xmlTo);
+		}
+	}
+
+
+	void fromXml ( T& t, xml::Element* xmlFrom)
+	{
+		for( auto& m : members)
+		{
+			m->fromXml(&t,xmlFrom);
+		}
+	}	
+
  	Json::Value toJson( T& t)
 	{
 		Json::Value json(Json::objectValue);
@@ -812,7 +1240,49 @@ Serializer<T>& serializer_of(T& t)
 
 ///////////////////////////////////////////////////////////////////////////////////////////
 ///////////////////////////////////////////////////////////////////////////////////////////
+template<class T>
+void toXml(const char* name, T& t, xml::Element* el)
+{
+	xml::Element* to = el;
+	if(name!= 0 && strlen(name)>0)
+	{
+		xml::Element* child = el->ownerDocument()->createElement(name);
+		el->appendChild(child);
+		to = child;
+	}
 
+	serializer_of(t).toXml(t,to);
+}
+
+template<class T>
+std::shared_ptr<xml::Document> toXml(T& t)
+{
+	auto doc = std::make_shared<xml::Document>();
+	const char* nil = 0;
+	toXml(nil,t,doc->documentElement());
+
+	return doc;
+}
+
+template<class T>
+void fromXml(const char* name, T& t, xml::Element* el)
+{
+	xml::Element* from = el;
+	if(name!= 0 && strlen(name) > 0)
+	{
+		xml::Element* child = el->childNodes()->getChildByName(name);
+		from = child ? child : el;
+	}
+
+	serializer_of(t).fromXml(t,from);
+}
+
+template<class T>
+void fromXml(T& t, xml::Document& doc)
+{
+	const char* nil = 0;
+	fromXml(nil,t,doc.documentElement());
+}
 
 template<class T>
 Json::Value toJson(T& t)

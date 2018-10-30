@@ -77,6 +77,7 @@ struct Input
 			// note some mappings are duplicated
 			// for serialization, last one will overider earlier ones
 			// for deserialization however, all will be mapped
+			entity_name("Input"),
 			"id", &Input::id,
 			"filter", &Input::filter,
 			"sid", &Input::sid,
@@ -129,7 +130,7 @@ public:
 	{
 		std::cout << s << std::endl;
 	}
-
+ 
 #ifdef _RESUMABLE_FUNCTIONS_SUPPORTED
 
 	repro::Future<int> test()
@@ -1272,7 +1273,146 @@ TEST_F(BasicTest, fromParams)
 	EXPECT_EQ("two",user.tags[1]);
 	EXPECT_EQ("three",user.tags[2]);
 }
+  
 
+struct XmlTest
+{
+	XmlTest()
+	{
+		id = "42";
+	}
+
+	std::string id;
+
+	struct XmlTest1 {
+
+	  int index = 1;
+
+		struct XmlTest2 {
+
+			XmlTest2()
+			{
+				v.push_back("one");
+				v.push_back("two");
+				v.push_back("three");
+			}
+			std::vector<std::string> v;  
+
+			Serializer<XmlTest2> serialize()
+			{
+				return {
+					"v", &XmlTest2::v
+				};
+			}
+
+		}	level2;
+
+		Serializer<XmlTest1> serialize()
+		{
+			return {
+				"@index", &XmlTest1::index,
+				"level2", &XmlTest1::level2
+			};
+		}
+
+	} level1;
+
+	Serializer<XmlTest> serialize()
+	{
+		return {
+			entity_name("XmlTest"),
+			"@id", &XmlTest::id,
+			"level1", &XmlTest::level1
+		};
+	}
+};  
+
+TEST_F(BasicTest, toXml) 
+{
+	User user{ "mike", "littlemole", "secret", { "one", "two", "three"} };
+	std::shared_ptr<xml::Document> doc = toXml(user);
+
+	std::string s = doc->toString();
+
+	std::cout << s << std::endl;
+
+	EXPECT_EQ("<username>mike</username><login>littlemole</login><pwd>secret</pwd><tags>one</tags><tags>two</tags><tags>three</tags>",s);
+
+	User other;
+	fromXml(other,*doc);
+
+	EXPECT_EQ("mike",other.username);
+	EXPECT_EQ("littlemole",other.login);
+	EXPECT_EQ("secret",other.pwd);
+
+	EXPECT_EQ("one",other.tags[0]);
+	EXPECT_EQ("two",other.tags[1]);
+	EXPECT_EQ("three",other.tags[2]);
+
+	RootEntity<User> rUser {user};
+
+	doc = toXml(rUser);
+
+	s = doc->toString();
+
+	EXPECT_EQ("<user><username>mike</username><login>littlemole</login><pwd>secret</pwd><tags>one</tags><tags>two</tags><tags>three</tags></user>",s);
+
+	std::cout << s << std::endl;
+	doc->parse(s);
+
+	RootEntity<User> rother;
+
+	fromXml(rother,*doc);
+
+	EXPECT_EQ("mike",rother->username);
+	EXPECT_EQ("littlemole",rother->login);
+	EXPECT_EQ("secret",rother->pwd);
+ 
+	EXPECT_EQ("one",rother->tags[0]);
+	EXPECT_EQ("two",rother->tags[1]);
+	EXPECT_EQ("three",rother->tags[2]);
+
+ 
+	Input input { "id", "filter", "sid", HeaderValues("text/html"), Cookie("name","value"), "de"};
+
+	RootEntity<Input> rinput(input);
+
+	doc = toXml(rinput);
+
+	s = doc->toString();
+
+	std::cout << s << std::endl;
+ 
+	EXPECT_EQ("<Input><id>id</id><filter>filter</filter><sid>sid</sid><Accept-Language>de</Accept-Language><sid><name>name</name><value>value</value><expires /><maxAge>0</maxAge><domain /><path /><isSecure>0</isSecure></sid></Input>",s);
+
+ 
+	XmlTest xt;
+	RootEntity<XmlTest> rxt(xt);
+
+	doc = toXml(rxt);
+
+	s = doc->toString();
+
+	EXPECT_EQ("<XmlTest id=\"42\"><level1 index=\"1\"><level2><v>one</v><v>two</v><v>three</v></level2></level1></XmlTest>",s);
+
+	std::cout << s << std::endl;
+
+	xml::Document d2;
+	xml::Element* p = d2.parse(s);
+
+	std::cout << "--- " << (int*)p << " ---" << std::endl;
+
+	std::cout << "--- " << d2.toString() << " ---" << std::endl;
+
+	RootEntity<XmlTest> rxto;
+
+	fromXml(rxto,d2);
+
+	doc = toXml(rxto);
+	s = doc->toString();
+std::cout << s << std::endl;
+
+}
 
 
 TEST_F(BasicTest, toJson) 
@@ -1296,7 +1436,7 @@ TEST_F(BasicTest, toJson)
 	EXPECT_EQ("three",other.tags[2]);
 }
 
-
+ 
 
 TEST_F(BasicTest, toJson2) 
 {

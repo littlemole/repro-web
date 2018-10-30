@@ -35,7 +35,7 @@ protected:
 	void clear( Element* el);
     Element						root_;
 
-	XMLParser& getParser();
+	XMLParser getParser();
 };
 
 }}
