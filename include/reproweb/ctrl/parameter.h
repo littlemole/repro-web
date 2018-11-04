@@ -121,7 +121,7 @@ public:
 		Json::Value json = JSON::parse(req.body());
 
 		Entity<T> t;
-		fromJson(t.value,json);
+		fromJson(json,t.value);
 		validate(t.value);
 
 		return t;
@@ -138,7 +138,7 @@ public:
 	static Parameter<T> get(prio::Request& req,  prio::Response& res)
 	{
 		Parameter<T> t;
-		fromRequest(t.value,req);
+		fromRequest(req,t.value);
 		validate(t.value);
 
 		return t;
@@ -157,7 +157,7 @@ public:
 		prio::QueryParams qp(req.body());
 
 		Form<T> t;
-		fromParams(t.value,qp);
+		fromParams(qp,t.value);
 		validate(t.value);
 
 		return t;
