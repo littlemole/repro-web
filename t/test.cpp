@@ -1405,6 +1405,8 @@ TEST_F(BasicTest, toXml)
 	std::cout << "--- " << d2.toString() << " ---" << std::endl;
 
 	RootEntity<XmlTest> rxto;
+	rxto->id = "";
+	rxto->level1.index = 0;
 
 	fromXml(rxto,d2);
 
