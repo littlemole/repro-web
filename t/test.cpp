@@ -142,15 +142,6 @@ public:
 
 singleton<Logger()> LoggerComponent;
 
-/*
-struct MyQueryParam : public reproweb::QueryParam 
-{ 
-	MyQueryParam()
-		: reproweb::QueryParam("param")
-	{}
-};
-*/
-
 
 
 class TestController
@@ -1333,20 +1324,20 @@ auto meta(const XmlTest& t)
 	)["XmlTest"];
 }
 
-/*
+
 TEST_F(BasicTest, toXml) 
 {
 	User user{ "mike", "littlemole", "secret", { "one", "two", "three"} };
 	std::shared_ptr<xml::Document> doc = toXml(user);
 
 	std::string s = doc->toString();
-
+ 
 	std::cout << s << std::endl;
 
 	EXPECT_EQ("<username>mike</username><login>littlemole</login><pwd>secret</pwd><tags>one</tags><tags>two</tags><tags>three</tags>",s);
 
 	User other;
-	fromXml(other,*doc);
+	fromXml(*doc,other);
 
 	EXPECT_EQ("mike",other.username);
 	EXPECT_EQ("littlemole",other.login);
@@ -1369,8 +1360,8 @@ TEST_F(BasicTest, toXml)
 
 	RootEntity<User> rother;
 
-	fromXml(rother,*doc);
-
+	fromXml(*doc,rother);
+  
 	EXPECT_EQ("mike",rother->username);
 	EXPECT_EQ("littlemole",rother->login);
 	EXPECT_EQ("secret",rother->pwd);
@@ -1378,11 +1369,11 @@ TEST_F(BasicTest, toXml)
 	EXPECT_EQ("one",rother->tags[0]);
 	EXPECT_EQ("two",rother->tags[1]);
 	EXPECT_EQ("three",rother->tags[2]);
+  
+  
+	Input input { "id", "filter", "sid", HeaderValues("de_DE"), Cookie("name","value"), "de"};
 
- 
-	Input input { "id", "filter", "sid", HeaderValues("text/html"), Cookie("name","value"), "de"};
-
-	RootEntity<Input> rinput(input);
+	RootEntity<Input> rinput{input};
 
 	doc = toXml(rinput);
 
@@ -1390,14 +1381,14 @@ TEST_F(BasicTest, toXml)
 
 	std::cout << s << std::endl;
  
-	EXPECT_EQ("<Input><id>id</id><filter>filter</filter><sid>sid</sid><Accept-Language>de</Accept-Language><sid><name>name</name><value>value</value><expires /><maxAge>0</maxAge><domain /><path /><isSecure>0</isSecure></sid></Input>",s);
+	EXPECT_EQ("<Input><id>id</id><filter>filter</filter><sid>sid</sid><Accept-Language>de_DE</Accept-Language><Accept-Language>de</Accept-Language><sid><name>name</name><value>value</value><expires /><maxAge>0</maxAge><domain /><path /><isSecure>0</isSecure></sid></Input>",s);
 
  
 	XmlTest xt;
-	RootEntity<XmlTest> rxt(xt);
+	RootEntity<XmlTest> rxt{xt};
 
 	doc = toXml(rxt);
-
+ 
 	s = doc->toString();
 
 	EXPECT_EQ("<XmlTest id=\"42\"><level1 index=\"1\"><level2><v>one</v><v>two</v><v>three</v></level2></level1></XmlTest>",s);
@@ -1415,15 +1406,16 @@ TEST_F(BasicTest, toXml)
 	rxto->id = "";
 	rxto->level1.index = 0;
 
-	fromXml(rxto,d2);
+	fromXml(d2,rxto);
 
 	doc = toXml(rxto);
 	s = doc->toString();
 std::cout << s << std::endl;
 
+	EXPECT_EQ("<XmlTest id=\"42\"><level1 index=\"1\"><level2><v>one</v><v>two</v><v>three</v></level2></level1></XmlTest>", s);
 }
 
-*/
+
 TEST_F(BasicTest, toJson) 
 {
 	User user{ "mike", "littlemole", "secret", { "one", "two", "three"} };

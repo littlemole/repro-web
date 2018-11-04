@@ -426,7 +426,7 @@ MetaData<RootEntity<T>(const char*, T RootEntity<T>::*)> meta(const RootEntity<T
 ///////////////////////////////////////////////////////////////////////////////////////////
 
 
-const char* entity_name(const std::string& s)
+inline const char* entity_name(const std::string& s)
 {
     return "string";
 }
@@ -639,6 +639,7 @@ void fromJson(const Json::Value&, T& t);
 template<class T>
 void fromJson(const Json::Value& from, std::vector<T>& v)
 {
+	v.clear();
     unsigned int size = from.size();
     for ( unsigned int i = 0; i < size; i++)
     {
@@ -681,8 +682,6 @@ public:
 template<class T>
 Json::Value toJson(const T& t)
 {
-   // static T dummy;
-    //auto m = meta(t);
     const auto& m = meta_of(t);
 
     Json::Value result(Json::objectValue);
@@ -699,7 +698,6 @@ Json::Value toJson(const T& t)
 template<class T>
 void fromJson(const Json::Value& from, T& t)
 {
-    //auto m = meta(t);
     const auto& m = meta_of(t);
 
     m. template deserialize<JsonSerializer>(&from,t);
@@ -793,6 +791,7 @@ public:
     {
 		prio::QueryParams& qp = *( (prio::QueryParams*)from);
 
+		to.clear();
 		std::string val = qp.get(name);
 		auto v = prio::split(val,",");
 		for ( auto& i : v)
@@ -903,6 +902,289 @@ void fromRequest( prio::Request& req, T& t)
     const auto& m = meta_of(t);
 
     m. template deserialize<RequestSerializer>(&req,t);
+}
+
+
+
+///////////////////////////////////////////////////////////////////////////////////////////
+///////////////////////////////////////////////////////////////////////////////////////////
+
+inline void toXml( const std::string& from, xml::Element* to)
+{
+	xml::Text* txt = to->ownerDocument()->createTextNode(from);
+	to->appendChild(txt);
+}
+
+inline void toXml( const int& from, xml::Element* to)
+{
+	std::ostringstream oss;
+	oss << from;
+	toXml(oss.str(),to);
+}
+
+inline void toXml( const prio::HeaderValues& from, xml::Element* to)
+{
+	size_t size = from.size();
+	for( size_t i = 0; i < size; i++)
+	{
+		std::string s = from[i].main();
+		toXml(s,to);
+	}
+}
+
+inline void toXml( const char* n,  std::string from, xml::Element* to)
+{
+	xml::Element* el = to->ownerDocument()->createElement(n);
+	to->appendChild(el);
+	if(!from.empty())
+	{
+		xml::Text* txt = to->ownerDocument()->createTextNode(from);
+		el->appendChild(txt);
+	}
+}
+
+inline void toXml( const char* n,  int from, xml::Element* to)
+{
+	std::ostringstream oss;
+	oss << from;
+
+	std::string tmp = oss.str();
+
+	xml::Element* el = to->ownerDocument()->createElement(n);
+	to->appendChild(el);
+
+	if(!tmp.empty())
+	{
+		xml::Text* txt = to->ownerDocument()->createTextNode(oss.str());
+		el->appendChild(txt);
+	}
+}
+
+
+inline void toXml( const prio::Cookie& cookie, xml::Element* el)
+{
+	toXml("name",cookie.name(),el);
+	toXml("value",cookie.value(),el);
+	toXml("expires",cookie.expires(),el);
+	toXml("maxAge",cookie.maxAge(),el);
+	toXml("domain",cookie.domain(),el);
+	toXml("path",cookie.path(),el);
+	toXml("isSecure",cookie.isSecure(),el);
+}
+
+template<class T>
+void toXml( const T& from, xml::Element* to);
+
+template<class T>
+void toXml( const std::vector<T>& from, xml::Element* to);
+
+
+inline void fromXml( xml::Element* from, std::string& to)
+{
+	to = from->innerXml();
+}
+
+inline void fromXml( xml::Element* from, int& to)
+{
+	std::istringstream iss(from->innerXml());
+	iss >> to;
+}
+
+template<class T>
+void fromXml( xml::Element* from, T& to);
+
+template<class T>
+void fromXml( xml::Element* from, std::vector<T>&  to);
+
+class XmlSerializer
+{
+public:
+
+    static void serialize( const char* name, const std::string& from, void* to ) 
+    {
+		xml::Element* xmlTo = (xml::Element*) to;
+
+		if(name[0] == '@')
+		{
+			xmlTo->setAttribute(name+1,from);
+			return;
+		}
+
+		xml::Element* el = xmlTo->ownerDocument()->createElement(name);
+		xmlTo->appendChild(el);
+		toXml(from,el);
+    }
+
+    static void serialize( const char* name, const int& from, void* to ) 
+    {
+		xml::Element* xmlTo = (xml::Element*) to;
+
+		if(name[0] == '@')
+		{
+			std::ostringstream oss;
+			oss << from;
+			xmlTo->setAttribute(name+1,oss.str());
+			return;
+		}
+
+		xml::Element* el = xmlTo->ownerDocument()->createElement(name);
+		xmlTo->appendChild(el);
+		toXml(from,el);
+    }
+
+    template<class T>
+    static void serialize( const char* name, const T& from, void* to ) 
+    {
+		xml::Element* xmlTo = (xml::Element*) to;
+
+		xml::Element* el = xmlTo->ownerDocument()->createElement(name);
+		xmlTo->appendChild(el);
+		toXml(from,el);
+    }
+
+
+    template<class T>
+    static void serialize( const char* name, const std::vector<T>& from, void* to ) 
+    {
+		xml::Element* xmlTo = (xml::Element*) to;
+
+		for( auto& f : from)
+		{
+			xml::Element* el = xmlTo->ownerDocument()->createElement(name);
+			xmlTo->appendChild(el);
+			toXml(f,el);
+		}
+    }
+
+    static void deserialize( const char* name, const void* from, int& to) 
+    {
+		xml::Element* xmlFrom = (xml::Element*) from;
+
+		if(name[0] == '@')
+		{
+			std::istringstream iss(xmlFrom->attr(name+1));
+			iss >> to;
+			return;
+		}
+
+		xml::Element* el = xmlFrom->childNodes()->getChildByName(name);
+		if(el)
+		{
+			fromXml(el,to);
+		}
+    }
+
+    static void deserialize( const char* name, const void* from, std::string& to) 
+    {
+		xml::Element* xmlFrom = (xml::Element*) from;
+
+		if(name[0] == '@')
+		{
+			to = xmlFrom->attr(name+1);
+			return;
+		}
+
+		xml::Element* el = xmlFrom->childNodes()->getChildByName(name);
+		if(el)
+		{
+			fromXml(el,to);
+		}
+    }
+
+    template<class T>
+    static void deserialize( const char* name, const void* from, T& to) 
+    {
+		xml::Element* xmlFrom = (xml::Element*) from;
+
+		xml::Element* el = xmlFrom->childNodes()->getChildByName(name);
+		if(el)
+		{
+			fromXml(el,to);
+		}
+    }
+	
+    template<class T>
+    static void deserialize( const char* name, const void* from, std::vector<T>& to) 
+    {
+		xml::Element* xmlFrom = (xml::Element*) from;
+
+		to.clear();
+
+		xml::NodeList items = xmlFrom->childNodes()->getChildrenByName(name);
+
+		int size = items.length();
+		for( int i = 0; i < size; i++)
+		{
+			T t;
+			fromXml( (xml::Element*)(items[i]), t);
+			to.push_back(std::move(t));	
+		}
+    }
+    
+};
+
+template<class T>
+void toXml( const T& from, xml::Element* to)
+{
+	const auto& m = meta_of(from);
+
+    m. template serialize<XmlSerializer>(from,to);
+}
+
+
+template<class T>
+void toXml( const std::vector<T>& from, xml::Element* to)
+{
+	/*
+	const auto& m = meta_of(from[0]);
+
+	for( auto& f : from )
+	{
+
+	    m. template serialize<XmlSerializer>(&from,to);
+	}
+	*/
+}
+
+
+template<class T>
+void fromXml( xml::Element* from, T& to)
+{
+	const auto& m = meta_of(to);
+
+    m. template deserialize<XmlSerializer>(from,to);
+}
+
+
+template<class T>
+void fromXml( xml::Element* from, std::vector<T>&  to)
+{
+	/*
+	const auto& m = meta_of(from[0]);
+
+	for( auto& f : from )
+	{
+
+	    m. template serialize<XmlSerializer>(&from,to);
+	}
+	*/
+}
+
+
+template<class T>
+std::shared_ptr<xml::Document> toXml(T& t)
+{
+	auto doc = std::make_shared<xml::Document>();
+	toXml(t,doc->documentElement());
+
+	return doc;
+}
+
+
+template<class T>
+void fromXml(xml::Document& doc,T& t )
+{
+	fromXml(doc.documentElement(),t);
 }
 
 }
