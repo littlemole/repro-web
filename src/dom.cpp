@@ -83,8 +83,8 @@ std::string xmlentities_decode( const std::string& str )
 /////////////////////////////////////////////////////////////////////////////
 /////////////////////////////////////////////////////////////////////////////
 
-Node::Node  (Document* pD,  Node* p, Node::NodeType t, const std::string& name, const std::string& value)
-    : attribs_(this)
+Node::Node  (DocumentPtr pD,  NodePtr p, Node::NodeType t, const std::string& name, const std::string& value)
+    : attribs_(new NamedNodeMap(this))
 {
     init();
     parent_    = p;
@@ -116,11 +116,11 @@ Node& Node::operator=( Node& n )
     for ( int i = 0; i < n.childNodes()->length(); i++)
     {
         Node* c = n.childNodes()->item(i)->cloneNode();
-        appendChild(c);
+        appendChild(NodePtr(c));
     }
     for ( int i = 0; i < n.attributes()->length(); i++)
     {
-        Node* a = n.attributes()->item(i);
+        NodePtr a = n.attributes()->item(i);
         attributes()->add( a->nodeName(), a->nodeValue() );
     }
     return *this;
@@ -129,21 +129,24 @@ Node& Node::operator=( Node& n )
 // erases children_
 void Node::clear()
 {
-    children_.clear();
+    children_->clear();
 }
 
 void Node::init()
 {
     isalone_	= true;
-    document_	= 0;
-    parent_		= 0;
+    document_.reset();
+    parent_.reset();
     nodename_	= "";
     nodevalue_	= "";
+
+    //attribs_ = std::make_shared<NamedNodeMap>();
+    //children_ = std::make_shared<NodeList>();
 }
 
-Document*  Node::ownerDocument()
+DocumentPtr  Node::ownerDocument()
 {
-    return document_;
+    return document_.lock();
 }
 
 
@@ -187,6 +190,7 @@ void Node::isAlone(bool b)
 {
     isalone_ = b;
 }
+
 std::string	Node::prefix()
 {
     size_t pos = nodename_.find(":");
@@ -207,34 +211,38 @@ std::string	Node::namespaceURI()
 {
     if ( prefix() == "" )
         return defaultNamespace();
+
     return getNSfromPrefix(prefix());
 }
 
-Node*  Node::parentNode()
+NodePtr  Node::parentNode()
 {
-    return parent_;
+    return parent_.lock();
 }
 
 std::string  Node::getNSfromPrefix(const std::string& prefix)
 {
-    Node* parent_ = parentNode();
+    NodePtr parent_ = parentNode();
     if ( parent_ )
         return parent_->getNSfromPrefix(prefix);
+
     return "";
 }
 
 std::string  Node::getPrefixFromNS(const std::string& ns)
 {
-    Node* parent_ = parentNode();
+    NodePtr parent_ = parentNode();
     if ( parent_ )
         return parent_->getPrefixFromNS(ns);
+
     return "";
 }
 std::string  Node::defaultNamespace()
 {
-    Node* parent_ = parentNode();
+    NodePtr parent_ = parentNode();
     if ( parent_ )
         return parent_->defaultNamespace();
+
     return "";
 }
 
@@ -314,48 +322,50 @@ NamedNodeMap::~NamedNodeMap()
 
 void NamedNodeMap::clear ()
 {
-    for ( std::list<Attr*>::iterator it = attributes_.begin();
+    /*
+    for ( std::list<AttrPtr>::iterator it = attributes_.begin();
         it != attributes_.end(); it++)
     {
         delete *it;
     }
+    */
     attributes_.clear();
 }
 
-Attr* NamedNodeMap::item( const std::string& index, const std::string& ns )
+AttrPtr NamedNodeMap::item( const std::string& index, const std::string& ns )
 {
-    for ( std::list<Attr*>::iterator it = attributes_.begin();
+    for ( std::list<AttrPtr>::iterator it = attributes_.begin();
         it != attributes_.end(); it++)
     {
         if ( (*it)->localname() == index )
             if ( parent_->getNSfromPrefix((*it)->prefix()) == ns )
                 return (*it);
     }
-    return 0;
+    return AttrPtr();
 }
 
-Attr* NamedNodeMap::item(const std::string& index)
+AttrPtr NamedNodeMap::item(const std::string& index)
 {
-    for ( std::list<Attr*>::iterator it = attributes_.begin();
+    for ( std::list<AttrPtr>::iterator it = attributes_.begin();
         it != attributes_.end(); it++)
     {
         if ( (*it)->nodeName() == index )
             return (*it);
     }
-    return 0;
+    return AttrPtr();
 }
 
-Attr* NamedNodeMap::item(int index)
+AttrPtr NamedNodeMap::item(int index)
 {
     int i = 0;
-    for ( std::list<Attr*>::iterator it = attributes_.begin();
+    for ( std::list<AttrPtr>::iterator it = attributes_.begin();
         it != attributes_.end(); it++)
     {
         if ( i == index )
             return (*it);
         i++;
     }
-    return 0;
+    return AttrPtr();
 }
 
 int NamedNodeMap::length()
@@ -363,14 +373,14 @@ int NamedNodeMap::length()
     return (int)attributes_.size();
 }
 
-Attr* NamedNodeMap::operator[](const std::string& index)
+AttrPtr NamedNodeMap::operator[](const std::string& index)
 {
     return item(index);
 }
 
 void NamedNodeMap::add(const std::string& name, const std::string& value )
 {
-    Attr* att = new Attr(name,value);
+    AttrPtr att = AttrPtr(new Attr(name,value));
     attributes_.push_back(att);
 }
 
@@ -381,12 +391,11 @@ void NamedNodeMap::add(const std::string& name)
 
 void NamedNodeMap::erase( const std::string& name )
 {
-    for ( std::list<Attr*>::iterator it = attributes_.begin();
+    for ( std::list<AttrPtr>::iterator it = attributes_.begin();
         it != attributes_.end(); it++)
     {
         if ( (*it)->nodeName() == name )
         {
-            delete *it;
             attributes_.erase(it);
             return;
         }
@@ -396,12 +405,11 @@ void NamedNodeMap::erase( const std::string& name )
 void NamedNodeMap::erase( int index )
 {
     int i = 0;
-    for ( std::list<Attr*>::iterator it = attributes_.begin();
+    for ( std::list<AttrPtr>::iterator it = attributes_.begin();
         it != attributes_.end(); it++)
     {
         if ( i == index )
         {
-            delete *it;
             attributes_.erase(it);
             return;
         }
@@ -421,7 +429,7 @@ Element::Element  ()
     init(); 
 }
 
-Element::Element  (Document* pD, const std::string& name)
+Element::Element  (DocumentPtr pD, const std::string& name)
 {
     init();
     document_  = pD;
@@ -430,7 +438,7 @@ Element::Element  (Document* pD, const std::string& name)
     type_      = Node::ELEMENT;
 }
 
-Element::Element  (Document* pD,  Element* p, const std::string& name)
+Element::Element  (DocumentPtr pD,  ElementPtr p, const std::string& name)
 {
     init();
     parent_    = p;
@@ -440,7 +448,7 @@ Element::Element  (Document* pD,  Element* p, const std::string& name)
     type_      = Node::ELEMENT;
 }
 
-Element::Element  (Document* pD,  Element* p, Node::NodeType t, const std::string& name)
+Element::Element  (DocumentPtr pD,  ElementPtr p, Node::NodeType t, const std::string& name)
 {
     init();
     parent_    = p;
@@ -476,11 +484,11 @@ Element& Element::operator=(  Element& n )
     for ( int i = 0; i < n.childNodes()->length(); i++)
     {
         Node* c = n.childNodes()->item(i)->cloneNode();
-        appendChild(c);
+        appendChild(NodePtr(c));
     }
     for ( int i = 0; i < n.attributes()->length(); i++)
     {
-        Node* a = n.attributes()->item(i);
+        NodePtr a = n.attributes()->item(i);
         attributes()->add( a->nodeName(), a->nodeValue() );
     }
     return *this;
@@ -489,25 +497,30 @@ Element& Element::operator=(  Element& n )
 
 bool Node::hasChildNodes()
 {
-    return children_.length() > 0;
+    return children_->length() > 0;
 }
 
 bool Node::hasAttributes()
 {
-    return attribs_.length() > 0;
+    return attribs_->length() > 0;
 }
 
-Node*  Node::nextSibling()
+NodePtr  Node::nextSibling()
 {
-    if (!parent_)
-        return 0;
-    NodeList* nodes_ = ((Element*)(parent_))->childNodes();
+    NodePtr p = parent_.lock();    
+
+    if (!p)
+        return NodePtr();
+
+
+    NodeListPtr nodes_ = p->childNodes();
     if ( !nodes_ )
-        return 0;
+        return NodePtr();
+
     int len = nodes_->length();
     for ( int i = 0; i < len; i++)
     {
-        if ( nodes_->item(i) == this )
+        if ( nodes_->item(i).get() == this )
         {
             if ( i+1 < len )
             {
@@ -515,149 +528,160 @@ Node*  Node::nextSibling()
             }
         }
     }
-    return 0;
+    return NodePtr();
 }
 
-Node*  Node::previousSibling()
+NodePtr  Node::previousSibling()
 {
-    if (!parent_)
-        return 0;
-    NodeList* nodes_ = ((Element*)(parent_))->childNodes();
-    if (!nodes_)
-        return 0;
+    NodePtr p = parent_.lock();    
 
-    if ( nodes_->item(0) == this )
-        return 0;
+    if (!p)
+        return NodePtr();
+
+    NodeListPtr nodes_ = p->childNodes();
+
+    if (!nodes_)
+        return NodePtr();
+
+    if ( nodes_->item(0).get() == this )
+        return NodePtr();
+
     int len = nodes_->length();
     for ( int i = 1; i < len; i++)
     {
-        if ( nodes_->item(i) == this )
+        if ( nodes_->item(i).get() == this )
         {
             return nodes_->item(i-1);
         }
     }
-    return 0;
+    return NodePtr();
 }
 
-Node*  Node::firstChild()
+NodePtr  Node::firstChild()
 {
-    if ( children_.length() == 0 )
-        return 0;
-    return children_.item(0);
+    if ( children_->length() == 0 )
+        return NodePtr();
+        
+    return children_->item(0);
 }
 
-Node*  Node::lastChild()
+NodePtr  Node::lastChild()
 {
-    if ( children_.length() == 0 )
-        return 0;	
-    return children_.item(children_.length()-1);
+    if ( children_->length() == 0 )
+        return NodePtr();	
+
+    return children_->item(children_->length()-1);
 }
 
-NodeList* Node::childNodes()
+NodeListPtr Node::childNodes()
 {
-    return &children_;
+    return children_;
 }
 
-void Node::appendChild( Node* n )
+void Node::appendChild( NodePtr n )
 {
 
     if ( n->nodeType() == Node::UNDEFINED )
         return;
 
     n->document_  = document_;
-    n->parent_    = this;
-    children_.add(n);
+    n->parent_    = shared_from_this();
+    children_->add(n);
 }
 
-void Node::removeChild(  Node* n )
+void Node::removeChild(  NodePtr n )
 {
-    children_.erase(n);
+    children_->erase(n);
 }
 
-void Node::replaceChild( Node* oldElement,Node* newElement )
+void Node::replaceChild( NodePtr oldElement, NodePtr newElement )
 {
-    int len = children_.length();
+    int len = children_->length();
     for ( int i = 0; i < len ; i++ )
     {
-        if ( children_.item(i) == oldElement )
+        if ( children_->item(i).get() == oldElement.get() )
         {
             *oldElement = *newElement;
         }
     }
 }
 
-void Node::insertBefore( Node* beforeElement, Node* n )
+void Node::insertBefore( NodePtr beforeElement, NodePtr n )
 {
-    std::vector<Node*>::iterator element = children_.nodes_.begin();
-    std::vector<Node*>::iterator it = element;
+    std::vector<NodePtr>::iterator element = children_->nodes_.begin();
+    std::vector<NodePtr>::iterator it = element;
     it++;
-    for ( it; it != children_.nodes_.end(); it++ )
+
+    for ( it; it != children_->nodes_.end(); it++ )
     {
-        if ( *it == beforeElement )
+        if ( (*it).get() == beforeElement.get() )
         {
             n->document_ = document_;
-            n->parent_   = this;
-            children_.nodes_.insert(it, n );
+            n->parent_   = shared_from_this();
+            children_->nodes_.insert(it, n );
             return;
         }
         element++;
     }
 }
 
-void Node::insertAfter( Node* afterElement, Node* n )
+void Node::insertAfter( NodePtr afterElement, NodePtr n )
 {
-    std::vector<Node*>::iterator it = children_.nodes_.begin();
-    for ( it; it != children_.nodes_.end(); it++ )
+    std::vector<NodePtr>::iterator it = children_->nodes_.begin();
+    for ( it; it != children_->nodes_.end(); it++ )
     {
-        if ( *it == afterElement )
+        if ( (*it).get() == afterElement.get() )
         {
             it++;
             n->document_ = document_;
-            n->parent_   = this;
-            children_.nodes_.insert(it, n );
+            n->parent_   = shared_from_this();
+            children_->nodes_.insert(it, n );
             return;
         }
     }
 }
 void  Element::removeAttribute(const std::string& a )
 {
-    attribs_.erase(a);
+    attribs_->erase(a);
 }
 
 void Element::setAttribute(const std::string& key, const std::string& value )
 {
-    Attr* att = attribs_.item(key);
+    AttrPtr att = attribs_->item(key);
     if ( !att )
 	{
-        attribs_.add(key,value);		
+        attribs_->add(key,value);		
 	}
     else
+    {
         att->nodeValue(value);
-	attribs_.item(key)->quote = '"';
+    }
+
+	attribs_->item(key)->quote = '"';
 }
 
 std::string Element::attr(const std::string& key)
 {
-    Attr* att = attribs_.item(key);
+    AttrPtr att = attribs_->item(key);
     if ( !att )
         return "";
     else
         return att->nodeValue();
 }
 
-NamedNodeMap* Node::attributes()
+NamedNodeMapPtr Node::attributes()
 {
-    return &attribs_;
+    return attribs_;
 }
 
-Attr* Element::getAttribute(int index)
+AttrPtr Element::getAttribute(int index)
 {
-    return attribs_.item(index);
+    return attribs_->item(index);
 }
 
-Attr* Element::getAttribute( const std::string& name )
+AttrPtr Element::getAttribute( const std::string& name )
 {
-    return attribs_.item(name);
+    return attribs_->item(name);
 }
 
 std::string Element::atts()
@@ -666,7 +690,7 @@ std::string Element::atts()
     int len = this->attributes()->length();
     for ( int i = 0; i< len; i++ )
     {
-        Attr* att = this->attributes()->item(i);
+        AttrPtr att = this->attributes()->item(i);
         ret += " " + att->text();
     }
     return ret;
@@ -675,13 +699,13 @@ std::string Element::atts()
 std::string Element::innerXml()
 {
     std::string ret = "";
-    int len = children_.length();
+    int len = children_->length();
     for ( int i = 0 ; i < len; i++ )
     {
-        Node* n = children_.item(i);
+        NodePtr n = children_->item(i);
         if ( n->nodeType() == Node::ELEMENT )
         {
-            Element* e = (Element*)n;
+            Element* e = (Element*)(n.get());
             ret += e->outerXml();
         }
         else
@@ -694,10 +718,11 @@ std::string Element::innerXml()
 
 void Element::innerXml(const std::string& s)
 {
-    if ( document_ )
+    auto d = document_.lock();
+    if ( d )
     {
-        children_.clear();
-        Element* root = document_->parse( this, s);
+        children_->clear();
+        Element* root = d->parse( this, s);
     }
 }
 
@@ -724,10 +749,10 @@ std::string Element::outerXml()
     {
         ret += nodevalue_ ;
     }
-    int len = children_.length();
+    int len = children_->length();
     for ( int i = 0; i < len; i++)
     {
-        ret += ((Element*)(children_.item(i)))->outerXml();
+        ret += ((Element*)(children_->item(i).get()))->outerXml();
     }
     if ( hasChildNodes() || (!isAlone()) )
     {
@@ -738,17 +763,20 @@ std::string Element::outerXml()
 
 void Element::outerXml(const std::string& s)
 {
-    if ( document_ )
+    auto d = document_.lock();
+    if ( d )
     {
         clear();
-        Element* root = document_->parse( this, s);
+        Element* root = d->parse( this, s);
 
-        for ( int i = 0; i < children_.length(); i++ )
+        auto p = parent_.lock();
+
+        for ( int i = 0; i < children_->length(); i++ )
         {
-            ((Element*)(parent_))->insertBefore(this,children_.item(i));
+            ((Element*)(p.get()))->insertBefore(shared_from_this(),children_->item(i));
         }
 
-        ((Element*)(parent_))->removeChild(this);
+        ((Element*)(p.get()))->removeChild(shared_from_this());
     }
 }
 
@@ -768,107 +796,111 @@ std::string	Element::endTag()
     return ret;
 }
 
-Element*  Element::getElementById(const std::string& id )
+ElementPtr  Element::getElementById(const std::string& id )
 {
     return getElementById("id",id);
 }
 
-Element*  Element::getElementById(const std::string& idKey, const std::string& idValue )
+ElementPtr  Element::getElementById(const std::string& idKey, const std::string& idValue )
 {
-    int l = children_.length();
+    int l = children_->length();
     for ( int i = 0; i < l; i++ )
     {
-        Element* n = (Element*)(children_.item(i));
-        Attr* att = n->getAttribute(idKey);
+        Element* n = (Element*)(children_->item(i).get());
+        AttrPtr att = n->getAttribute(idKey);
         if (att)
         {
             if ( att->nodeValue() == idValue )
-                return n;
+                return std::dynamic_pointer_cast<Element>(children_->item(i));
         }
     }
     for ( int i = 0; i < l; i++ )
     {
-        Node* n =  children_.item(i);
+        NodePtr n =  children_->item(i);
         if ( n->nodeType() == Node::ELEMENT )
         {
-            Element* el =  (Element*)n;
-            Element* e = el->getElementById(idKey, idValue);
+            Element* el =  (Element*)(n.get());
+            ElementPtr e = el->getElementById(idKey, idValue);
             if (e)
                 return e;
         }
     }
-    return 0;	
+    return ElementPtr();	
 }
 
-Element*  Element::getElementByName(const std::string& name)
+ElementPtr  Element::getElementByName(const std::string& name)
 {
     return getElementById("name",name);
 }
 
-NodeList  Element::getElementsByTagName(const std::string& tag)
+NodeListPtr Element::getElementsByTagName(const std::string& tag)
 {
-    NodeList nodes_;
-    nodes_.bDetach_ =true;
+    auto nodes_ = std::make_shared<NodeList>();
+    nodes_->bDetach_ =true;
     getElementsByTagNameWalker(tag,nodes_);
     return nodes_;
 }
 
-NodeList Element::getElementsByTagNameQ(const std::string& tag, const std::string& ns )
+NodeListPtr Element::getElementsByTagNameQ(const std::string& tag, const std::string& ns )
 {
-    NodeList nodes_;
-    nodes_.bDetach_ =true;
+    auto nodes_ = std::make_shared<NodeList>();
+    nodes_->bDetach_ =true;
     getElementsByTagNameWalkerQ(tag,ns,nodes_);
     return nodes_;
 }
 
-Element*  Element::getElementByTagName(const std::string& tag)
+ElementPtr  Element::getElementByTagName(const std::string& tag)
 {
-    NodeList nodes_;
-    nodes_.bDetach_ =true;
+    auto nodes_ = std::make_shared<NodeList>();
+    //NodeList nodes_;
+    nodes_->bDetach_ =true;
     getElementsByTagNameWalker(tag,nodes_);
-    if ( nodes_.length() > 0 )
-        return (Element*)(nodes_.item(0));
-    return 0;
+    if ( nodes_->length() > 0 )
+        return std::dynamic_pointer_cast<Element>(nodes_->item(0));
+
+    return ElementPtr();
 }
 
-Element* Element::getElementByTagNameQ(const std::string& tag, const std::string& ns )
+ElementPtr Element::getElementByTagNameQ(const std::string& tag, const std::string& ns )
 {
-    NodeList nodes_;
-    nodes_.bDetach_ =true;
+    auto nodes_ = std::make_shared<NodeList>();
+    //NodeList nodes_;
+    nodes_->bDetach_ =true;
     getElementsByTagNameWalkerQ(tag,ns,nodes_);
-    if ( nodes_.length() > 0 )
-        return (Element*)(nodes_.item(0));
-    return 0;
+    if ( nodes_->length() > 0 )
+        return std::dynamic_pointer_cast<Element>(nodes_->item(0));
+
+    return ElementPtr();
 }
-void  Node::getElementsByTagNameWalker(const std::string& tag, NodeList& nodes_ )
+void  Node::getElementsByTagNameWalker(const std::string& tag, NodeListPtr nodes_ )
 {
-    int l = children_.length();
+    int l = children_->length();
     for ( int i = 0; i < l; i++ )
     {
-        Node* n = children_.item(i);
+        NodePtr n = children_->item(i);
         if ( n->nodeType() == Node::ELEMENT || n->nodeType() == Node::SCRIPT  )
         {
-            Element* e = (Element*)n;
+            Element* e = (Element*)(n.get());
             if ( e->nodeName() == tag )
-                nodes_.add(e);
+                nodes_->add(n);
             if ( e->hasChildNodes() )
                 e->getElementsByTagNameWalker(tag,nodes_);
         }
     }
 }
 
-void  Node::getElementsByTagNameWalkerQ(const std::string& tag, const std::string& ns, NodeList& nodes_ )
+void  Node::getElementsByTagNameWalkerQ(const std::string& tag, const std::string& ns, NodeListPtr nodes_ )
 {
-    int l = children_.length();
+    int l = children_->length();
     for ( int i = 0; i < l; i++ )
     {
-        Node* n = children_.item(i);
+        NodePtr n = children_->item(i);
         if ( n->nodeType() == Node::ELEMENT )
         {
-            Element* e = (Element*)n;
+            Element* e = (Element*)(n.get());
             std::string name = e->localname();
             if ( (e->localname() == tag) && (e->namespaceURI() == ns) )
-                nodes_.add(e);
+                nodes_->add(n);
             if ( e->hasChildNodes() )
                 e->getElementsByTagNameWalkerQ(tag,ns,nodes_);
         }
@@ -884,22 +916,23 @@ std::string  Element::getNSfromPrefix(const std::string& prefix)
         lookup += prefix;
     }
 
-    Attr* att = getAttribute(lookup);
+    AttrPtr att = getAttribute(lookup);
     if ( att )
     {
         return att->nodeValue();
     }
-    Node* parent_ = parentNode();
+    NodePtr parent_ = parentNode();
     if ( parent_ )
         return parent_->getNSfromPrefix(prefix);
+
     return "";
 }
 
 std::string  Element::getPrefixFromNS(const std::string& ns)
 {
-    for ( int i = 0; i < attribs_.length(); i++)
+    for ( int i = 0; i < attribs_->length(); i++)
     {
-        Attr* att = attribs_.item(i);
+        AttrPtr att = attribs_->item(i);
         std::string name =  att->nodeName();
         if ( name.size() > 5 )
             if ( name.substr(0,6) == "xmlns:" )
@@ -910,19 +943,22 @@ std::string  Element::getPrefixFromNS(const std::string& ns)
                 }
             }
     }
-    Node* parent_ = parentNode();
+
+    NodePtr parent_ = parentNode();
     if ( parent_ )
         return parent_->getPrefixFromNS(ns);
     return "";
 }
+
 std::string  Element::defaultNamespace()
 {
-    Attr* att = getAttribute("xmlns");
+    AttrPtr att = getAttribute("xmlns");
     if ( att )
     {
         return att->nodeValue();
     }
-    Node* parent_ = parentNode();
+
+    NodePtr parent_ = parentNode();
     if ( parent_ )
         return parent_->defaultNamespace();
     return "";
@@ -956,18 +992,20 @@ NodeList& NodeList::operator=(const NodeList& nl)
 
 void NodeList::clear()
 {
-    for ( std::vector<Node*>::iterator it = nodes_.begin();
+    /*
+    for ( std::vector<NodePtr>::iterator it = nodes_.begin();
         it != nodes_.end(); it++)
     {
         delete *it;
     }
+    */
     nodes_.clear();
 }
 
 
-Node* NodeList::item(int index)
+NodePtr NodeList::item(int index)
 {
-    return (Element*)(nodes_[index]);
+    return nodes_[index];
 }
 
 int   NodeList::length() const
@@ -975,88 +1013,89 @@ int   NodeList::length() const
     return (int)nodes_.size();
 }
 
-Node* NodeList::operator[](int index)
+NodePtr NodeList::operator[](int index)
 {
     return item(index);
 }
 
-void  NodeList::add   (Node* n)
+void  NodeList::add   (NodePtr n)
 {
     nodes_.push_back(n);
 }
 
-void NodeList::erase(Node* n )
+void NodeList::erase(NodePtr n )
 {
-    for ( std::vector<Node*>::iterator it = nodes_.begin(); it != nodes_.end(); it++ )
+    for ( std::vector<NodePtr>::iterator it = nodes_.begin(); it != nodes_.end(); it++ )
     {
-        if ( *it == n )
+        if ( (*it).get() == n.get() )
         {
-            delete *it;
             nodes_.erase(it);
             return;
         }
     }
 }
 
-Element*  NodeList::getChildByName(const std::string& name )
+ElementPtr  NodeList::getChildByName(const std::string& name )
 {
     int l = length();
     for ( int i = 0; i < l; i++ )
     {
-        Node* n = item(i);
+        NodePtr n = item(i);
         if ( n->localname() == name )
         {
             if ( n->nodeType() == Node::ELEMENT )
-                return (Element*)n;
+                return std::dynamic_pointer_cast<Element>(n);
         }
     }
-    return 0;
+    return ElementPtr();
 }
 
-NodeList  NodeList::getChildrenByName(const std::string& name )
+NodeListPtr  NodeList::getChildrenByName(const std::string& name )
 {
-    NodeList nodes_;
-    nodes_.bDetach_ =true;
+    auto nodes_ = std::make_shared<NodeList>();
+//    NodeList nodes_;
+    nodes_->bDetach_ =true;
     int l = length();
     for ( int i = 0; i < l; i++ )
     {
-        Node* n = item(i);
+        NodePtr n = item(i);
         if ( n->nodeType() == Node::ELEMENT )
         {
             if ( n->localname() == name )
-                nodes_.add(n);
+                nodes_->add(n);
         }
     }
     return nodes_;
 }
 
-Element*  NodeList::getChildByNameNS(const std::string& name, const std::string& ns )
+ElementPtr  NodeList::getChildByNameNS(const std::string& name, const std::string& ns )
 {
     int l = length();
     for ( int i = 0; i < l; i++ )
     {
-        Node* n = item(i);
+        NodePtr n = item(i);
         if ( (n->localname() == name) && (n->getNSfromPrefix(n->prefix()) == ns) )
         {
             if ( n->nodeType() == Node::ELEMENT )
-                return (Element*)n;
+                return std::dynamic_pointer_cast<Element>(n);
         }
     }
-    return 0;
+    return ElementPtr();
 }
 
-NodeList  NodeList::getChildrenByNameNS(const std::string& name, const std::string& ns )
+NodeListPtr  NodeList::getChildrenByNameNS(const std::string& name, const std::string& ns )
 {
-    NodeList nodes_;
-    nodes_.bDetach_ =true;
+    auto nodes_ = std::make_shared<NodeList>();
+    //NodeList nodes_;
+    nodes_->bDetach_ =true;
     int l = length();
     for ( int i = 0; i < l; i++ )
     {
-        Node* n = item(i);
+        NodePtr n = item(i);
         if ( n->nodeType() == Node::ELEMENT )
         {
             if ( (n->localname() == name) && (n->getNSfromPrefix(n->prefix()) == ns) )
-                nodes_.add(n);
+                nodes_->add(n);
         }
     }
     return nodes_;
@@ -1071,20 +1110,17 @@ NodeList  NodeList::getChildrenByNameNS(const std::string& name, const std::stri
 Text::Text  ()
 {
     type_  = Node::TEXT;
-    document_  = 0;
-    parent_    = 0;
     nodevalue_ = "";
 }
 
-Text::Text  (Document* pD, const std::string& value)
+Text::Text  (DocumentPtr pD, const std::string& value)
 {
     type_  = Node::TEXT;
     document_  = pD;
-    parent_    = 0;
     nodevalue_ = xmlentities_encode(value);
 }
 
-Text::Text  (Document* pD, Element* parent_, const std::string& value)
+Text::Text  (DocumentPtr pD, ElementPtr parent_, const std::string& value)
 {
     type_  = Node::TEXT;
     document_  = pD;

@@ -23,40 +23,40 @@ const char* testXML = "<root xmlns='http://blabla' xmlns:x='http://xyz'>\r\n"
 "</x:element>\r\n"
 "</root>\r\n";
 
-void dump_node(xml::Node* n)
+void dump_node(xml::NodePtr n)
 {
 	std::cout << n->nodeName() << std::endl;
-	std::cout << ((xml::Element*)n)->innerXml() << std::endl;
+	auto e = std::dynamic_pointer_cast<xml::Element>(n);
+	std::cout << e->innerXml() << std::endl;
 }
 
 
 TEST_F(BasicTest, SimpleXml)
 {
-	xml::Document doc;
-	doc.parse(testXML);
+	xml::DocumentPtr doc = xml::Document::create();
+	doc->parse(testXML);
 
-	xml::Node* root = doc.documentElement()->childNodes()->item(0);
+	xml::NodePtr root = doc->documentElement()->childNodes()->item(0);
 	dump_node(root);
 
-	xml::Node* elem = root->childNodes()->getChildByName("element");
+	xml::NodePtr elem = root->childNodes()->getChildByName("element");
 	dump_node(elem);
 
 	std::cout << elem->prefix() << ":" << elem->namespaceURI() << std::endl;
 	std::cout << elem->getPrefixFromNS("http://xyz") << ":" << elem->getNSfromPrefix("x") << std::endl;
 
-	xml::Node* name = elem->childNodes()->getChildByName("name");
+	xml::NodePtr name = elem->childNodes()->getChildByName("name");
 	dump_node(name);
 
 	std::cout << name->prefix() << ":" << name->namespaceURI() << std::endl;
 	std::cout << name->getPrefixFromNS("http://blabla") << ":" << name->getNSfromPrefix("") << std::endl;
 
-	xml::Node* email = elem->childNodes()->getChildByName("email");
+	xml::NodePtr email = elem->childNodes()->getChildByName("email");
 	dump_node(email);
 
-	xml::Node* url = elem->childNodes()->getChildByName("url");
+	xml::NodePtr url = elem->childNodes()->getChildByName("url");
 	dump_node(url);
 
-	std::cout << ((xml::Element*)doc.documentElement()->childNodes()->item(0))->outerXml() << std::endl;
 }
 
 

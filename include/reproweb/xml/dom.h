@@ -5,7 +5,8 @@
 #include <vector>
 #include <list>
 #include <string>
-#include <exception>
+#include <memory>
+#include "reprocpp/ex.h"
 
 namespace reproweb {
 namespace xml {
@@ -14,6 +15,7 @@ namespace xml {
 
 class Node;
 class Attr;
+class Text;
 class Element;
 class Document;
 class NodeList;
@@ -22,9 +24,18 @@ class NamedNodeMap;
 std::string xmlentities_encode(const std::string& input);
 std::string xmlentities_decode(const std::string& input);
 
+typedef std::shared_ptr<Node> NodePtr;
+typedef std::shared_ptr<Attr> AttrPtr;
+typedef std::shared_ptr<Node> NodePtr;
+typedef std::shared_ptr<Text> TextPtr;
+typedef std::shared_ptr<Element> ElementPtr;
+typedef std::shared_ptr<Document> DocumentPtr;
+typedef std::shared_ptr<NodeList> NodeListPtr;
+typedef std::shared_ptr<NamedNodeMap> NamedNodeMapPtr;
+
 ///////////////////////////////////////////////////////////////////////////////
 
-class DOMException : public std::exception {};
+class DOMException : public repro::ReproEx<DOMException> {};
 
 ///////////////////////////////////////////////////////////////////////////////
 
@@ -36,10 +47,10 @@ public:
     ~NamedNodeMap();
 
     int length();
-	Attr* item(const std::string& index, const std::string& ns);
-    Attr* item(const std::string& index);
-    Attr* item(int index);
-    Attr* operator[](const std::string& index);
+	AttrPtr item(const std::string& index, const std::string& ns);
+    AttrPtr item(const std::string& index);
+    AttrPtr item(int index);
+    AttrPtr operator[](const std::string& index);
     void add(const std::string& name, const std::string& value );
     void add(const std::string& name);
     void erase( const std::string& name );
@@ -50,8 +61,8 @@ private:
 	NamedNodeMap(const NamedNodeMap&);				//njet
 	NamedNodeMap& operator=(const NamedNodeMap&);	//njet
 	
-    std::list<Attr*>                    attributes_;
-	Node*								parent_;
+    std::list<AttrPtr>                  attributes_;
+    Node*           					parent_;
 };
 
 ///////////////////////////////////////////////////////////////////////////////
@@ -67,35 +78,36 @@ public:
     virtual ~NodeList();
 
     void clear();
-    Node* item(int index);
+    NodePtr item(int index);
     int length() const;
-    Node* operator[](int index)	;
-    void add(Node* n);
-    void erase(Node* n );
+    NodePtr operator[](int index)	;
+    void add(NodePtr n);
+    void erase(NodePtr n );
 	void detach() { bDetach_ = true; }
 
-	Element*			 getChildByName(const std::string& name );
-	NodeList			 getChildrenByName(const std::string& name );
-	Element*			 getChildByNameNS(const std::string& name, const std::string& ns );
-	NodeList			 getChildrenByNameNS(const std::string& name, const std::string& ns );
+	ElementPtr			 getChildByName(const std::string& name );
+	NodeListPtr			 getChildrenByName(const std::string& name );
+	ElementPtr			 getChildByNameNS(const std::string& name, const std::string& ns );
+	NodeListPtr			 getChildrenByNameNS(const std::string& name, const std::string& ns );
 
 
 	NodeList& operator=(const NodeList&);
 
 private:
 
-    std::vector<Node*>	nodes_;
-	bool				bDetach_;
+    std::vector<NodePtr> nodes_;
+	bool				 bDetach_;
 };
 
 ///////////////////////////////////////////////////////////////////////////////
 
-class Node {
+class Node : public std::enable_shared_from_this<Node> {
 friend class Document;
 friend class Nodelist;
 friend class NamedNodeMap;
 
 public:
+
 	virtual ~Node() {};
     enum NodeType { UNDEFINED = 0,
 					ELEMENT   = 1,
@@ -143,27 +155,27 @@ public:
 	virtual std::string  defaultNamespace();
 
 	// DOM lookup
-    virtual Document*	 ownerDocument();
-	virtual Node*		 parentNode();
+    virtual DocumentPtr	 ownerDocument();
+	virtual NodePtr		 parentNode();
 
 	// children_
 	virtual	void		clear();
     virtual	bool		hasChildNodes();
-    virtual Node*		nextSibling();
-    virtual Node*		previousSibling();
-    virtual Node*		firstChild()	;
-    virtual Node*		lastChild();
-    virtual NodeList*	childNodes();
+    virtual NodePtr		nextSibling();
+    virtual NodePtr		previousSibling();
+    virtual NodePtr		firstChild()	;
+    virtual NodePtr		lastChild();
+    virtual NodeListPtr	childNodes();
 
-    virtual void		appendChild( Node* n );
-    virtual void		removeChild( Node* n );
-    virtual void		replaceChild( Node* oldElement, Node* newElement );
-    virtual void		insertBefore(  Node* beforeElement, Node* n );
-	virtual void		insertAfter( Node* afterElement, Node* n );
+    virtual void		appendChild( NodePtr n );
+    virtual void		removeChild( NodePtr n );
+    virtual void		replaceChild( NodePtr oldElement, NodePtr newElement );
+    virtual void		insertBefore( NodePtr beforeElement, NodePtr n );
+	virtual void		insertAfter( NodePtr afterElement, NodePtr n );
 
     // Attributes
 	virtual bool			hasAttributes();
-    virtual NamedNodeMap*	attributes();
+    virtual NamedNodeMapPtr	attributes();
 
 	// has endtag?
     virtual bool	  	 isAlone(); 
@@ -171,22 +183,22 @@ public:
 
 protected:
     // Construction/Destruction
-	Node  () : attribs_(this) {	init(); };
-	Node  (Document* pD, Node* parent_, Node::NodeType t, const std::string& name, const std::string& value);
+	Node  () :  attribs_(new NamedNodeMap(this)), children_(new NodeList) {	init(); };
+	Node  (DocumentPtr pD, NodePtr parent_, Node::NodeType t, const std::string& name, const std::string& value);
 	Node& operator=( Node& n );
 
     void init();
-	void getElementsByTagNameWalker(const std::string& tag, NodeList& nodes_ );
-	void getElementsByTagNameWalkerQ(const std::string& tag, const std::string& ns , NodeList& nodes_ );
+	void getElementsByTagNameWalker(const std::string& tag, NodeListPtr nodes_ );
+	void getElementsByTagNameWalkerQ(const std::string& tag, const std::string& ns , NodeListPtr nodes_ );
 
 	NodeType		type_;
     std::string		nodename_;
     std::string		nodevalue_;
 
-	Node*			parent_;
-    Document*		document_;
-	NamedNodeMap	attribs_;
-    NodeList		children_;
+	std::weak_ptr<Node>			parent_;
+    std::weak_ptr<Document>		document_;
+	NamedNodeMapPtr	attribs_;
+    NodeListPtr		children_;
     bool			isalone_;
 };
 
@@ -204,7 +216,7 @@ public:
     Attr& operator=( const Attr& a );
 	bool specified();
 
-	Element* ownerElement();
+	ElementPtr ownerElement();
 
     std::string text();
 
@@ -222,22 +234,22 @@ public:
     Element&			 operator=( Element& n );
 
 	virtual				 Node* cloneNode();
-    Attr*				 getAttribute(int index);
-    Attr*				 getAttribute( const std::string& name );
-    Attr*				 getAttributeNS( const std::string& name, const std::string& ns );
+    AttrPtr				 getAttribute(int index);
+    AttrPtr				 getAttribute( const std::string& name );
+    AttrPtr				 getAttributeNS( const std::string& name, const std::string& ns );
     void				 setAttribute(const std::string& key, const std::string& value );
     void				 setAttributeNS(const std::string& key, const std::string& ns, const std::string& value );
     void				 removeAttribute(const std::string& a );
 	std::string			 attr(const std::string& key);
 
 	//helpers
-	Element*			 getElementById( const std::string& id );
-	Element*			 getElementById( const std::string& key, const std::string& id );
-	Element*			 getElementByName( const std::string& name );
-    NodeList			 getElementsByTagName(const std::string& tag);
-	NodeList			 getElementsByTagNameQ(const std::string& tag, const std::string& ns );
-    Element*			 getElementByTagName(const std::string& tag);
-	Element*			 getElementByTagNameQ(const std::string& tag, const std::string& ns );
+	ElementPtr			 getElementById( const std::string& id );
+	ElementPtr			 getElementById( const std::string& key, const std::string& id );
+	ElementPtr			 getElementByName( const std::string& name );
+    NodeListPtr			 getElementsByTagName(const std::string& tag);
+	NodeListPtr			 getElementsByTagNameQ(const std::string& tag, const std::string& ns );
+    ElementPtr			 getElementByTagName(const std::string& tag);
+	ElementPtr			 getElementByTagNameQ(const std::string& tag, const std::string& ns );
 
 	virtual std::string  getNSfromPrefix(const std::string& prefix);
 	virtual	std::string  getPrefixFromNS(const std::string& ns);
@@ -257,9 +269,9 @@ public:
 protected:
   	// Construction/Destruction
     Element  ();
-	Element  (Document* pD, const std::string& name);
-	Element  (Document* pD, Element* parent_, const std::string& name);
-	Element  (Document* pD, Element* parent_, Node::NodeType t, const std::string& name);
+	Element  (DocumentPtr pD, const std::string& name);
+	Element  (DocumentPtr pD, ElementPtr parent_, const std::string& name);
+	Element  (DocumentPtr pD, ElementPtr parent_, Node::NodeType t, const std::string& name);
 
 };
 
@@ -274,8 +286,8 @@ public:
 protected:
   	// Construction/Destruction
     Text  ();
-	Text  (Document* pD, const std::string& value);
-	Text  (Document* pD, Element* parent_, const std::string& value);	
+	Text  (DocumentPtr pD, const std::string& value);
+	Text  (DocumentPtr pD, ElementPtr parent_, const std::string& value);	
 };
 
 ///////////////////////////////////////////////////////////////////////////////

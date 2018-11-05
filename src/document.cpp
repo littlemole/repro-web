@@ -25,8 +25,8 @@ class XMLParser : public Expat
 public:
     XMLParser();
     ~XMLParser();
-    Element* parse( Document* doc_, const std::string& input );
-    Element* parse(Document* doc_, Element* root, const std::string& input);
+    Element* parse( DocumentPtr doc_, const std::string& input );
+    Element* parse(DocumentPtr doc_, Element* root, const std::string& input);
 
 	// handlers
 
@@ -36,7 +36,7 @@ public:
 
 
 	Element*				parent_;
-	Document*				doc_;
+	DocumentPtr				doc_;
 
 };
 
@@ -57,16 +57,16 @@ XMLParser::~XMLParser()
 //////////////////////////////////////////////////////////////////////
 // parse function
 //////////////////////////////////////////////////////////////////////
-Element* XMLParser::parse( Document* doc, const std::string& input )
+Element* XMLParser::parse( DocumentPtr doc, const std::string& input )
 {
-   return parse( doc, doc->documentElement(), input );
+   return parse( doc, doc->documentElement().get(), input );
 }
 
 //////////////////////////////////////////////////////////////////////
 // workhorse
 //////////////////////////////////////////////////////////////////////
 
-Element* XMLParser::parse( Document* d, Element* root, const std::string& input )
+Element* XMLParser::parse( DocumentPtr d, Element* root, const std::string& input )
 {
 	doc_    = d;
 	parent_ = root;
@@ -84,7 +84,7 @@ void XMLParser::character (const XML_Char *s, int len)
 	if ( t.size() == 0 )
 		return;
 
-	Node* c = parent_->lastChild();
+	NodePtr c = parent_->lastChild();
 	if ( c && ( c->nodeType() == Node::TEXT ) )
 	{
 		std::string txt = parent_->lastChild()->nodeValue();
@@ -92,14 +92,14 @@ void XMLParser::character (const XML_Char *s, int len)
 	}
 	else
 	{
-		Text* t = doc_->createTextNode( std::string(s,len) );
+		TextPtr t = doc_->createTextNode( std::string(s,len) );
 		parent_->appendChild(t);
 	}
 }
 
 void XMLParser::start(const XML_Char* el, const XML_Char **attr)
 {
-	Element* e = doc_->createElement( el );
+	ElementPtr e = doc_->createElement( el );
 	parent_->appendChild(e);
 	const XML_Char** c = attr;
 	while ( *c )
@@ -110,14 +110,14 @@ void XMLParser::start(const XML_Char* el, const XML_Char **attr)
 		e->setAttribute( key,val );
 		c+=2;
 	}
-	parent_ = e;
+	parent_ = e.get();
 }
 
 void XMLParser::end(const XML_Char* el)
 {
 	if ( parent_->hasChildNodes() )
 		parent_->isAlone(false);
-	parent_ = (Element*)(parent_->parentNode());
+	parent_ = (Element*)(parent_->parentNode().get());
 }
 
 
@@ -128,10 +128,11 @@ void XMLParser::end(const XML_Char* el)
 
 
 Document::Document()
+	: root_(ElementPtr( new Element()))
 {
-	root_.document_ = this;
-	root_.parent_   = 0;
-	root_.nodeType(Node::ELEMENT);
+	//root_.document_ = this;
+	//root_.parent_   = 0;
+	root_->nodeType(Node::ELEMENT);
 
 //	encoding      = "UTF-8";
 //	version       = "1.0";
@@ -149,72 +150,80 @@ XMLParser Document::getParser()
 }
 
 
-Element*  Document::documentElement()
+ElementPtr  Document::documentElement()
 {
-    return &root_;
+    return root_;
 }
 
-void  Document::documentElement(Element* r)
+void  Document::documentElement(ElementPtr r)
 {
-	root_ = *r;
+	root_ = r;
 }
 
 std::string Document::toString()
 {
 	//std::string ret = "<?xml version=\"" + version + "\" encoding=\"" + encoding + "\" standalone=\"" + standalone + "\" ?>\r\n";
-	return root_.innerXml();
+	return root_->innerXml();
 }
 
 Element* Document::parse( const std::string& src )
 {
     clear();
-    return getParser().parse(this,src);
+    return getParser().parse(shared_from_this(),src);
 }
 
 Element* Document::parse( Element* root, const std::string& src )
 {
-    return getParser().parse(this,root,src);
+    return getParser().parse(shared_from_this(),root,src);
 }
 
 
-Node* Document::createNode( Node::NodeType t, Node* parent, const std::string& name, const std::string& value )
+NodePtr Document::createNode( Node::NodeType t, NodePtr parent, const std::string& name, const std::string& value )
 {
-    if ( name.size() == 0 && value.size() == 0)
-        return 0;
-	return new Node( this, parent, t, name, value);
+    if ( (name.size() == 0) && (value.size() == 0) )
+	{
+        return NodePtr();
+	}
+	return NodePtr(new Node( shared_from_this(), parent, t, name, value));
 }
 
-Element* Document::createElement( const std::string& name)
-{
-    if ( name.size() == 0 )
-        return 0;
-	return new Element( this, name );
-}
-
-Element* Document::createElementNS( const std::string& name, const std::string& ns)
+ElementPtr Document::createElement( const std::string& name)
 {
     if ( name.size() == 0 )
-        return 0;
+	{
+        return ElementPtr();
+	}
+	return ElementPtr(new Element( shared_from_this(), name ));
+}
 
-	Element* e = new Element( this, name );
+ElementPtr Document::createElementNS( const std::string& name, const std::string& ns)
+{
+    if ( name.size() == 0 )
+	{
+        return ElementPtr();
+	}
+
+	ElementPtr e = ElementPtr(new Element( shared_from_this(), name ));
 	e->setAttribute("xmlns",ns);
 	return e;
 }
 
-Text* Document::createTextNode( const std::string& value)
+TextPtr Document::createTextNode( const std::string& value)
 {
     if ( value.size() == 0 )
-        return 0;
+	{
+        return TextPtr();
+	}
 
-	return new Text( this, value );
+	return TextPtr(new Text( shared_from_this(), value ));
 }
 
 void Document::clear()
 {
-	root_.clear();
+	root_->clear();
 }
 
-void Document::clear( Element* el)
+void Document::clear( ElementPtr el)
 {
 	el->childNodes()->nodes_.clear();
 }
