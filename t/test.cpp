@@ -61,7 +61,7 @@ class BasicTest : public ::testing::Test {
   }
 }; // end test setup
 
-
+ 
 struct Input 
 {
 	std::string id;
@@ -71,24 +71,23 @@ struct Input
 	prio::Cookie cookie;
 	std::string lang;
 
-	reproweb::Serializer<Input> serialize()
-	{
-		return {
-			// note some mappings are duplicated
-			// for serialization, last one will overider earlier ones
-			// for deserialization however, all will be mapped
-			entity_name("Input"),
-			"id", &Input::id,
-			"filter", &Input::filter,
-			"sid", &Input::sid,
-			"Accept-Language", &Input::header,
-			"Accept-Language", &Input::lang,
-			"sid", &Input::cookie
-		};
-	}
+
 };
 
-
+auto meta(const Input&)
+{
+	return metadata (
+		// note some mappings are duplicated
+		// for serialization, last one will overider earlier ones
+		// for deserialization however, all will be mapped
+		"id", &Input::id,
+		"filter", &Input::filter,
+		"sid", &Input::sid,
+		"Accept-Language", &Input::header,
+		"Accept-Language", &Input::lang,
+		"sid", &Input::cookie
+	)["Input"];
+}
 
 
 struct User
@@ -101,17 +100,16 @@ public:
 	std::vector<std::string> tags;
 };
 
- 
-reproweb::Serializer<User> serialize(User&)
+auto meta(const User&)
 {
-	return {
-		entity_name("user"),
-		SERIALIZE(User,username), 
-		SERIALIZE(User,login), 
-		SERIALIZE(User,pwd),
-		SERIALIZE(User,tags) 
-	};
+	return metadata (
+		"username", &User::username,
+		"login", &User::login,
+		"pwd", &User::pwd,
+		"tags", &User::tags
+	)["user"];
 }
+ 
 
 void validate(User& user)
 {
@@ -143,15 +141,6 @@ public:
 };
 
 singleton<Logger()> LoggerComponent;
-
-/*
-struct MyQueryParam : public reproweb::QueryParam 
-{ 
-	MyQueryParam()
-		: reproweb::QueryParam("param")
-	{}
-};
-*/
 
 
 
@@ -253,7 +242,7 @@ public:
 		});
 	}	
 
-	void queryParams( QueryParams qp, /* prio::Request& req, */ prio::Response& res)
+	void queryParams( QueryParams qp, /* prio::Request& req,  */ prio::Response& res)
 	{
 		res.body( qp.get("param") );
 		res.ok().flush();
@@ -271,7 +260,7 @@ public:
 
 		return p.future();
 	}
-  
+   
  
 	repro::Future<Input> getParams( Parameter<Input> params)//, prio::Request& req, prio::Response& res)
 	{
@@ -1258,12 +1247,14 @@ TEST_F(BasicTest, I18NtplWithMarkup)
 }
  
 
+ 
+
 TEST_F(BasicTest, fromParams) 
 {
 	QueryParams qp("username=mike,thumes&login=littlemole&pwd=secret&tags=one,two,three");
 
 	User user;
-	fromParams(user,qp);
+	fromParams(qp,user);
 
 	EXPECT_EQ("mike,thumes",user.username);
 	EXPECT_EQ("littlemole",user.login);
@@ -1274,6 +1265,7 @@ TEST_F(BasicTest, fromParams)
 	EXPECT_EQ("three",user.tags[2]);
 }
   
+
 
 struct XmlTest
 {
@@ -1298,34 +1290,40 @@ struct XmlTest
 			}
 			std::vector<std::string> v;  
 
-			Serializer<XmlTest2> serialize()
-			{
-				return {
-					"v", &XmlTest2::v
-				};
-			}
 
 		}	level2;
 
-		Serializer<XmlTest1> serialize()
-		{
-			return {
-				"@index", &XmlTest1::index,
-				"level2", &XmlTest1::level2
-			};
-		}
-
 	} level1;
 
-	Serializer<XmlTest> serialize()
-	{
-		return {
-			entity_name("XmlTest"),
+};  
+
+
+auto meta(const XmlTest::XmlTest1::XmlTest2& t)
+{
+	return metadata(
+		"v", &XmlTest::XmlTest1::XmlTest2::v
+	);
+}
+
+
+
+auto meta(const XmlTest::XmlTest1& t)
+{
+	return metadata (
+		"@index", &XmlTest::XmlTest1::index,
+		"level2", &XmlTest::XmlTest1::level2
+	);
+}
+
+
+auto meta(const XmlTest& t)
+{
+	return metadata (
 			"@id", &XmlTest::id,
 			"level1", &XmlTest::level1
-		};
-	}
-};  
+	)["XmlTest"];
+}
+
 
 TEST_F(BasicTest, toXml) 
 {
@@ -1333,13 +1331,13 @@ TEST_F(BasicTest, toXml)
 	std::shared_ptr<xml::Document> doc = toXml(user);
 
 	std::string s = doc->toString();
-
+ 
 	std::cout << s << std::endl;
 
 	EXPECT_EQ("<username>mike</username><login>littlemole</login><pwd>secret</pwd><tags>one</tags><tags>two</tags><tags>three</tags>",s);
 
 	User other;
-	fromXml(other,doc);
+	fromXml(*doc,other);
 
 	EXPECT_EQ("mike",other.username);
 	EXPECT_EQ("littlemole",other.login);
@@ -1362,8 +1360,8 @@ TEST_F(BasicTest, toXml)
 
 	RootEntity<User> rother;
 
-	fromXml(rother,doc);
-
+	fromXml(*doc,rother);
+  
 	EXPECT_EQ("mike",rother->username);
 	EXPECT_EQ("littlemole",rother->login);
 	EXPECT_EQ("secret",rother->pwd);
@@ -1371,11 +1369,11 @@ TEST_F(BasicTest, toXml)
 	EXPECT_EQ("one",rother->tags[0]);
 	EXPECT_EQ("two",rother->tags[1]);
 	EXPECT_EQ("three",rother->tags[2]);
+  
+  
+	Input input { "id", "filter", "sid", HeaderValues("de_DE"), Cookie("name","value"), "de"};
 
- 
-	Input input { "id", "filter", "sid", HeaderValues("text/html"), Cookie("name","value"), "de"};
-
-	RootEntity<Input> rinput(input);
+	RootEntity<Input> rinput{input};
 
 	doc = toXml(rinput);
 
@@ -1383,35 +1381,38 @@ TEST_F(BasicTest, toXml)
 
 	std::cout << s << std::endl;
  
-	EXPECT_EQ("<Input><id>id</id><filter>filter</filter><sid>sid</sid><Accept-Language>de</Accept-Language><sid><name>name</name><value>value</value><expires /><maxAge>0</maxAge><domain /><path /><isSecure>0</isSecure></sid></Input>",s);
+	EXPECT_EQ("<Input><id>id</id><filter>filter</filter><sid>sid</sid><Accept-Language>de_DE</Accept-Language><Accept-Language>de</Accept-Language><sid><name>name</name><value>value</value><expires /><maxAge>0</maxAge><domain /><path /><isSecure>0</isSecure></sid></Input>",s);
 
  
 	XmlTest xt;
-	RootEntity<XmlTest> rxt(xt);
+	RootEntity<XmlTest> rxt{xt};
 
 	doc = toXml(rxt);
-
+ 
 	s = doc->toString();
 
 	EXPECT_EQ("<XmlTest id=\"42\"><level1 index=\"1\"><level2><v>one</v><v>two</v><v>three</v></level2></level1></XmlTest>",s);
 
 	std::cout << s << std::endl;
 
-	xml::DocumentPtr d2 = xml::Document::create();
-	xml::Element* p = d2->parse(s);
+	xml::Document d2;
+	xml::Element* p = d2.parse(s);
 
 	std::cout << "--- " << (int*)p << " ---" << std::endl;
 
-	std::cout << "--- " << d2->toString() << " ---" << std::endl;
+	std::cout << "--- " << d2.toString() << " ---" << std::endl;
 
 	RootEntity<XmlTest> rxto;
+	rxto->id = "";
+	rxto->level1.index = 0;
 
-	fromXml(rxto,d2);
+	fromXml(d2,rxto);
 
 	doc = toXml(rxto);
 	s = doc->toString();
 std::cout << s << std::endl;
 
+	EXPECT_EQ("<XmlTest id=\"42\"><level1 index=\"1\"><level2><v>one</v><v>two</v><v>three</v></level2></level1></XmlTest>", s);
 }
 
 
@@ -1425,7 +1426,7 @@ TEST_F(BasicTest, toJson)
 	EXPECT_EQ("{\"login\":\"littlemole\",\"pwd\":\"secret\",\"tags\":[\"one\",\"two\",\"three\"],\"username\":\"mike\"}",s);
 
 	User other;
-	fromJson(other,json);
+	fromJson(json,other);
 
 	EXPECT_EQ("mike",other.username);
 	EXPECT_EQ("littlemole",other.login);
@@ -1449,7 +1450,7 @@ TEST_F(BasicTest, toJson2)
 	EXPECT_EQ("{\"user\":{\"login\":\"littlemole\",\"pwd\":\"secret\",\"tags\":[\"one\",\"two\",\"three\"],\"username\":\"mike\"}}",s);
 
 	RootEntity<User> other;
-	fromJson(other,json);
+	fromJson(json,other);
 
 	EXPECT_EQ("mike",other->username);
 	EXPECT_EQ("littlemole",other->login);
@@ -1475,7 +1476,7 @@ TEST_F(BasicTest, toJsonArray)
 	EXPECT_EQ("{\"user\":[{\"login\":\"littlemole\",\"pwd\":\"secret\",\"tags\":[\"one\",\"two\",\"three\"],\"username\":\"mike\"},{\"login\":\"littlemole\",\"pwd\":\"secret\",\"tags\":[\"one\",\"two\",\"three\"],\"username\":\"mike\"},{\"login\":\"littlemole\",\"pwd\":\"secret\",\"tags\":[\"one\",\"two\",\"three\"],\"username\":\"mike\"}]}",s);
 
 	RootEntity<std::vector<User>> other;
-	fromJson(other,json);
+	fromJson(json,other);
 
 	for(int i = 0; i < 3; i++)
 	{
@@ -1504,7 +1505,7 @@ TEST_F(BasicTest, toArray)
 	EXPECT_EQ("[{\"login\":\"littlemole\",\"pwd\":\"secret\",\"tags\":[\"one\",\"two\",\"three\"],\"username\":\"mike\"},{\"login\":\"littlemole\",\"pwd\":\"secret\",\"tags\":[\"one\",\"two\",\"three\"],\"username\":\"mike\"},{\"login\":\"littlemole\",\"pwd\":\"secret\",\"tags\":[\"one\",\"two\",\"three\"],\"username\":\"mike\"}]",s);
 
 	std::vector<User> other;
-	fromJson(other,json);
+	fromJson(json,other);
 
 	for(int i = 0; i < 3; i++)
 	{
@@ -1578,6 +1579,7 @@ const char* multipart = "-----------------------------90519140415448433659727542
 "\r\n"
 "-----------------------------9051914041544843365972754266--\r\n\r\n";
 
+
 TEST_F(BasicTest, SimpleMultipart) 
 {
 	std::string result;
@@ -1619,6 +1621,7 @@ TEST_F(BasicTest, SimpleMultipart)
     EXPECT_EQ("<!DOCTYPE html><title>Content of a.html.</title>\r\n",result);
     MOL_TEST_ASSERT_CNTS(0,0);
 }
+
 
 TEST_F(BasicTest, SimpleRestParams) 
 {
@@ -1663,6 +1666,7 @@ TEST_F(BasicTest, SimpleRestParams)
     MOL_TEST_ASSERT_CNTS(0,0);
 }
 
+
 TEST_F(BasicTest, SimpleRestQueryParams) 
 {
 	std::string result;
@@ -1703,6 +1707,7 @@ TEST_F(BasicTest, SimpleRestQueryParams)
     EXPECT_EQ("test",result);
     MOL_TEST_ASSERT_CNTS(0,0);
 }
+
 
 
 TEST_F(BasicTest, SimpleRestPost) 
@@ -1827,7 +1832,6 @@ TEST_F(BasicTest, SimpleRestPostJson)
     EXPECT_EQ("{\"login\":\"littlemole\",\"pwd\":\"secret\",\"tags\":[\"one\",\"two\",\"three\"],\"username\":\"mike\"}",result);
     MOL_TEST_ASSERT_CNTS(0,0);
 }
-
 
 
 
