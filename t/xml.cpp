@@ -17,7 +17,7 @@ class BasicTest : public ::testing::Test {
 
 const char* testXML = "<root xmlns='http://blabla' xmlns:x='http://xyz'>\r\n"
 "<x:element>\r\n"
-"<name>littlemole</name>\r\n"
+"<name id='&quot;x'>littlemole</name>\r\n"
 "<email>littlemole@oha7.org</email>\r\n"
 "<url>n/a</url>\r\n"
 "</x:element>\r\n"
@@ -47,6 +47,10 @@ TEST_F(BasicTest, SimpleXml)
 
 	xml::NodePtr name = elem->childNodes()->getChildByName("name");
 	dump_node(name);
+
+	std::string n = ((xml::Element*)(name.get()))->attr("id");
+	std::cout << n << std::endl;
+
 
 	std::cout << name->prefix() << ":" << name->namespaceURI() << std::endl;
 	std::cout << name->getPrefixFromNS("http://blabla") << ":" << name->getNSfromPrefix("") << std::endl;

@@ -24,6 +24,9 @@ class NamedNodeMap;
 std::string xmlentities_encode(const std::string& input);
 std::string xmlentities_decode(const std::string& input);
 
+std::string xmlattr_encode(const std::string& input);
+std::string xmlattr_decode(const std::string& input);
+
 typedef std::shared_ptr<Node> NodePtr;
 typedef std::shared_ptr<Attr> AttrPtr;
 typedef std::shared_ptr<Node> NodePtr;
@@ -219,6 +222,9 @@ public:
 	ElementPtr ownerElement();
 
     std::string text();
+    virtual 			std::string	nodeValue();
+    virtual void		nodeValue(const std::string& s );
+
 
     char quote;
 };

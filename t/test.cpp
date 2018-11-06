@@ -1337,7 +1337,7 @@ TEST_F(BasicTest, toXml)
 	EXPECT_EQ("<username>mike</username><login>littlemole</login><pwd>secret</pwd><tags>one</tags><tags>two</tags><tags>three</tags>",s);
 
 	User other;
-	fromXml(*doc,other);
+	fromXml(doc,other);
 
 	EXPECT_EQ("mike",other.username);
 	EXPECT_EQ("littlemole",other.login);
@@ -1360,7 +1360,7 @@ TEST_F(BasicTest, toXml)
 
 	RootEntity<User> rother;
 
-	fromXml(*doc,rother);
+	fromXml(doc,rother);
   
 	EXPECT_EQ("mike",rother->username);
 	EXPECT_EQ("littlemole",rother->login);
@@ -1395,12 +1395,12 @@ TEST_F(BasicTest, toXml)
 
 	std::cout << s << std::endl;
 
-	xml::Document d2;
-	xml::Element* p = d2.parse(s);
+	xml::DocumentPtr d2 = xml::Document::create();
+	xml::Element* p = d2->parse(s);
 
 	std::cout << "--- " << (int*)p << " ---" << std::endl;
 
-	std::cout << "--- " << d2.toString() << " ---" << std::endl;
+	std::cout << "--- " << d2->toString() << " ---" << std::endl;
 
 	RootEntity<XmlTest> rxto;
 	rxto->id = "";

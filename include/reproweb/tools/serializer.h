@@ -909,20 +909,20 @@ void fromRequest( prio::Request& req, T& t)
 ///////////////////////////////////////////////////////////////////////////////////////////
 ///////////////////////////////////////////////////////////////////////////////////////////
 
-inline void toXml( const std::string& from, xml::Element* to)
+inline void toXml( const std::string& from, xml::ElementPtr to)
 {
-	xml::Text* txt = to->ownerDocument()->createTextNode(from);
+	xml::TextPtr txt = to->ownerDocument()->createTextNode(from);
 	to->appendChild(txt);
 }
 
-inline void toXml( const int& from, xml::Element* to)
+inline void toXml( const int& from, xml::ElementPtr to)
 {
 	std::ostringstream oss;
 	oss << from;
 	toXml(oss.str(),to);
 }
 
-inline void toXml( const prio::HeaderValues& from, xml::Element* to)
+inline void toXml( const prio::HeaderValues& from, xml::ElementPtr to)
 {
 	size_t size = from.size();
 	for( size_t i = 0; i < size; i++)
@@ -932,36 +932,36 @@ inline void toXml( const prio::HeaderValues& from, xml::Element* to)
 	}
 }
 
-inline void toXml( const char* n,  std::string from, xml::Element* to)
+inline void toXml( const char* n,  std::string from, xml::ElementPtr to)
 {
-	xml::Element* el = to->ownerDocument()->createElement(n);
+	xml::ElementPtr el = to->ownerDocument()->createElement(n);
 	to->appendChild(el);
 	if(!from.empty())
 	{
-		xml::Text* txt = to->ownerDocument()->createTextNode(from);
+		xml::TextPtr txt = to->ownerDocument()->createTextNode(from);
 		el->appendChild(txt);
 	}
 }
 
-inline void toXml( const char* n,  int from, xml::Element* to)
+inline void toXml( const char* n,  int from, xml::ElementPtr to)
 {
 	std::ostringstream oss;
 	oss << from;
 
 	std::string tmp = oss.str();
 
-	xml::Element* el = to->ownerDocument()->createElement(n);
+	xml::ElementPtr el = to->ownerDocument()->createElement(n);
 	to->appendChild(el);
 
 	if(!tmp.empty())
 	{
-		xml::Text* txt = to->ownerDocument()->createTextNode(oss.str());
+		xml::TextPtr txt = to->ownerDocument()->createTextNode(oss.str());
 		el->appendChild(txt);
 	}
 }
 
 
-inline void toXml( const prio::Cookie& cookie, xml::Element* el)
+inline void toXml( const prio::Cookie& cookie, xml::ElementPtr el)
 {
 	toXml("name",cookie.name(),el);
 	toXml("value",cookie.value(),el);
@@ -973,28 +973,28 @@ inline void toXml( const prio::Cookie& cookie, xml::Element* el)
 }
 
 template<class T>
-void toXml( const T& from, xml::Element* to);
+void toXml( const T& from, xml::ElementPtr to);
 
 template<class T>
-void toXml( const std::vector<T>& from, xml::Element* to);
+void toXml( const std::vector<T>& from, xml::ElementPtr to);
 
 
-inline void fromXml( xml::Element* from, std::string& to)
+inline void fromXml( xml::ElementPtr from, std::string& to)
 {
 	to = from->innerXml();
 }
 
-inline void fromXml( xml::Element* from, int& to)
+inline void fromXml( xml::ElementPtr from, int& to)
 {
 	std::istringstream iss(from->innerXml());
 	iss >> to;
 }
 
 template<class T>
-void fromXml( xml::Element* from, T& to);
+void fromXml( xml::ElementPtr from, T& to);
 
 template<class T>
-void fromXml( xml::Element* from, std::vector<T>&  to);
+void fromXml( xml::ElementPtr from, std::vector<T>&  to);
 
 class XmlSerializer
 {
@@ -1002,7 +1002,7 @@ public:
 
     static void serialize( const char* name, const std::string& from, void* to ) 
     {
-		xml::Element* xmlTo = (xml::Element*) to;
+		xml::ElementPtr xmlTo = *((xml::ElementPtr*) to);
 
 		if(name[0] == '@')
 		{
@@ -1010,14 +1010,14 @@ public:
 			return;
 		}
 
-		xml::Element* el = xmlTo->ownerDocument()->createElement(name);
+		xml::ElementPtr el = xmlTo->ownerDocument()->createElement(name);
 		xmlTo->appendChild(el);
 		toXml(from,el);
     }
 
     static void serialize( const char* name, const int& from, void* to ) 
     {
-		xml::Element* xmlTo = (xml::Element*) to;
+		xml::ElementPtr xmlTo = *((xml::ElementPtr*) to);
 
 		if(name[0] == '@')
 		{
@@ -1027,7 +1027,7 @@ public:
 			return;
 		}
 
-		xml::Element* el = xmlTo->ownerDocument()->createElement(name);
+		xml::ElementPtr el = xmlTo->ownerDocument()->createElement(name);
 		xmlTo->appendChild(el);
 		toXml(from,el);
     }
@@ -1035,9 +1035,9 @@ public:
     template<class T>
     static void serialize( const char* name, const T& from, void* to ) 
     {
-		xml::Element* xmlTo = (xml::Element*) to;
+		xml::ElementPtr xmlTo = *((xml::ElementPtr*) to);
 
-		xml::Element* el = xmlTo->ownerDocument()->createElement(name);
+		xml::ElementPtr el = xmlTo->ownerDocument()->createElement(name);
 		xmlTo->appendChild(el);
 		toXml(from,el);
     }
@@ -1046,11 +1046,11 @@ public:
     template<class T>
     static void serialize( const char* name, const std::vector<T>& from, void* to ) 
     {
-		xml::Element* xmlTo = (xml::Element*) to;
+		xml::ElementPtr xmlTo = *((xml::ElementPtr*) to);
 
 		for( auto& f : from)
 		{
-			xml::Element* el = xmlTo->ownerDocument()->createElement(name);
+			xml::ElementPtr el = xmlTo->ownerDocument()->createElement(name);
 			xmlTo->appendChild(el);
 			toXml(f,el);
 		}
@@ -1058,7 +1058,7 @@ public:
 
     static void deserialize( const char* name, const void* from, int& to) 
     {
-		xml::Element* xmlFrom = (xml::Element*) from;
+		xml::ElementPtr xmlFrom = *((xml::ElementPtr*) from);
 
 		if(name[0] == '@')
 		{
@@ -1067,7 +1067,7 @@ public:
 			return;
 		}
 
-		xml::Element* el = xmlFrom->childNodes()->getChildByName(name);
+		xml::ElementPtr el = xmlFrom->childNodes()->getChildByName(name);
 		if(el)
 		{
 			fromXml(el,to);
@@ -1076,7 +1076,7 @@ public:
 
     static void deserialize( const char* name, const void* from, std::string& to) 
     {
-		xml::Element* xmlFrom = (xml::Element*) from;
+		xml::ElementPtr xmlFrom = *((xml::ElementPtr*) from);
 
 		if(name[0] == '@')
 		{
@@ -1084,7 +1084,7 @@ public:
 			return;
 		}
 
-		xml::Element* el = xmlFrom->childNodes()->getChildByName(name);
+		xml::ElementPtr el = xmlFrom->childNodes()->getChildByName(name);
 		if(el)
 		{
 			fromXml(el,to);
@@ -1094,9 +1094,9 @@ public:
     template<class T>
     static void deserialize( const char* name, const void* from, T& to) 
     {
-		xml::Element* xmlFrom = (xml::Element*) from;
+		xml::ElementPtr xmlFrom = *((xml::ElementPtr*) from);
 
-		xml::Element* el = xmlFrom->childNodes()->getChildByName(name);
+		xml::ElementPtr el = xmlFrom->childNodes()->getChildByName(name);
 		if(el)
 		{
 			fromXml(el,to);
@@ -1106,17 +1106,17 @@ public:
     template<class T>
     static void deserialize( const char* name, const void* from, std::vector<T>& to) 
     {
-		xml::Element* xmlFrom = (xml::Element*) from;
+		xml::ElementPtr xmlFrom = *((xml::ElementPtr*) from);
 
 		to.clear();
 
-		xml::NodeList items = xmlFrom->childNodes()->getChildrenByName(name);
+		xml::NodeListPtr items = xmlFrom->childNodes()->getChildrenByName(name);
 
-		int size = items.length();
+		int size = items->length();
 		for( int i = 0; i < size; i++)
 		{
 			T t;
-			fromXml( (xml::Element*)(items[i]), t);
+			fromXml( std::dynamic_pointer_cast<xml::Element>(items->item(i)), t);
 			to.push_back(std::move(t));	
 		}
     }
@@ -1124,16 +1124,16 @@ public:
 };
 
 template<class T>
-void toXml( const T& from, xml::Element* to)
+void toXml( const T& from, xml::ElementPtr to)
 {
 	const auto& m = meta_of(from);
 
-    m. template serialize<XmlSerializer>(from,to);
+    m. template serialize<XmlSerializer>(from,&to);
 }
 
 
 template<class T>
-void toXml( const std::vector<T>& from, xml::Element* to)
+void toXml( const std::vector<T>& from, xml::ElementPtr to)
 {
 	/*
 	const auto& m = meta_of(from[0]);
@@ -1148,16 +1148,16 @@ void toXml( const std::vector<T>& from, xml::Element* to)
 
 
 template<class T>
-void fromXml( xml::Element* from, T& to)
+void fromXml( xml::ElementPtr from, T& to)
 {
 	const auto& m = meta_of(to);
 
-    m. template deserialize<XmlSerializer>(from,to);
+    m. template deserialize<XmlSerializer>(&from,to);
 }
 
 
 template<class T>
-void fromXml( xml::Element* from, std::vector<T>&  to)
+void fromXml( xml::ElementPtr from, std::vector<T>&  to)
 {
 	/*
 	const auto& m = meta_of(from[0]);
@@ -1174,7 +1174,7 @@ void fromXml( xml::Element* from, std::vector<T>&  to)
 template<class T>
 std::shared_ptr<xml::Document> toXml(T& t)
 {
-	auto doc = std::make_shared<xml::Document>();
+	auto doc = xml::Document::create();
 	toXml(t,doc->documentElement());
 
 	return doc;
@@ -1182,9 +1182,9 @@ std::shared_ptr<xml::Document> toXml(T& t)
 
 
 template<class T>
-void fromXml(xml::Document& doc,T& t )
+void fromXml(xml::DocumentPtr doc,T& t )
 {
-	fromXml(doc.documentElement(),t);
+	fromXml(doc->documentElement(),t);
 }
 
 }

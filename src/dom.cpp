@@ -77,6 +77,87 @@ std::string xmlentities_decode( const std::string& str )
 
 
 
+std::string xmlattr_encode(const std::string& in )
+{
+    std::ostringstream out;
+    size_t p = 0;
+    size_t len = in.size();
+    while( ( p < len ) )
+    {
+        switch ( in[p] )
+        {
+            case '&' :
+            {
+                out << "&amp;";
+                break;
+            }
+            case '<' :
+            {
+                out << "&lt;";
+                break;
+            }
+            case '"' :
+            {
+                out << "&quot;";
+                break;
+            }
+            case '\'' :
+            {
+                out << "&apos;";
+                break;
+            }            
+            default :
+            {
+                out << in[p];
+                break;
+            }
+        }
+        p++;
+    }
+    return out.str();
+}
+
+std::string xmlattr_decode( const std::string& str )
+{
+    std::ostringstream out;
+    size_t len = str.size();
+    for ( size_t i = 0; i < len; i++ )
+    {
+        if ( str[i] == '&' )
+        {
+			if ( str.substr(i,4) == "&lt;" )
+            {
+				out << "<";
+                i+=3;
+            }
+            else
+			if ( str.substr(i,6) == "&quot;" )
+            {
+                out << "\"";
+                i+=5;
+            }
+            else
+			if ( str.substr(i,6) == "&apos;" )
+            {
+                out << "'";
+                i+=5;
+            }
+            else
+	        if ( str.substr(i,5) == "&amp;" )
+            {
+                out << "&";
+                i+=4;
+            }
+		}
+        else
+        {
+			out << str[i];
+        }
+    }
+    return out.str();
+}
+
+
 /////////////////////////////////////////////////////////////////////////////
 /////////////////////////////////////////////////////////////////////////////
 // Node
@@ -267,7 +348,7 @@ Attr::Attr( const std::string& name, const std::string& value )
 {
     type_		 = Node::ATTRIBUTE;
     nodename_    = name;
-    nodevalue_	 = xmlentities_encode(value);
+    nodevalue_	 = xmlattr_encode(value);
     quote        = 0;
 }
 
@@ -289,6 +370,16 @@ Attr& Attr::operator=( const Attr& a )
     type_		 = a.type_;
     quote        = a.quote;
     return *this;
+}
+
+std::string	Attr::nodeValue()
+{
+    return xmlattr_decode(nodevalue_);
+}
+
+void Attr::nodeValue(const std::string& s )
+{
+    nodevalue_ = xmlattr_encode(s);
 }
 
 std::string Attr::text()
