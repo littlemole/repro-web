@@ -1,23 +1,7 @@
 #ifndef _MOL_DEF_GUARD_DEFINE_REPROWEB_SERIALIZER_XML_XXX_DEF_GUARD_
 #define _MOL_DEF_GUARD_DEFINE_REPROWEB_SERIALIZER_XML_XXX_DEF_GUARD_
 
-//#include "reprocpp/ex.h"
 
-//#include <functional>
-//#include <set>
-//#include <priocpp/api.h>
-//#include <cryptoneat/cryptoneat.h>
-//#include <priohttp/queryparams.h>
-//#include <priohttp/arg.h>
-//#include <priohttp/request.h>
-//#include <reproweb/json/json.h>
-#include <functional>
-#include <set>
-#include <priocpp/api.h>
-#include <cryptoneat/cryptoneat.h>
-#include <priohttp/queryparams.h>
-#include <priohttp/arg.h>
-#include <priohttp/request.h>
 #include <reproweb/traits.h>
 #include <reproweb/xml/document.h>
 #include <reproweb/serialization/meta.h>
@@ -27,10 +11,16 @@
 
 namespace reproweb {
 
-
-
 ///////////////////////////////////////////////////////////////////////////////////////////
 ///////////////////////////////////////////////////////////////////////////////////////////
+
+
+template<class T>
+void toXml( const T& from, xml::ElementPtr to);
+
+template<class T>
+void toXml( const std::vector<T>& from, xml::ElementPtr to);
+
 
 inline void toXml( const std::string& from, xml::ElementPtr to)
 {
@@ -83,7 +73,6 @@ inline void toXml( const char* n,  int from, xml::ElementPtr to)
 	}
 }
 
-
 inline void toXml( const prio::Cookie& cookie, xml::ElementPtr el)
 {
 	toXml("name",cookie.name(),el);
@@ -94,12 +83,6 @@ inline void toXml( const prio::Cookie& cookie, xml::ElementPtr el)
 	toXml("path",cookie.path(),el);
 	toXml("isSecure",cookie.isSecure(),el);
 }
-
-template<class T>
-void toXml( const T& from, xml::ElementPtr to);
-
-template<class T>
-void toXml( const std::vector<T>& from, xml::ElementPtr to);
 
 
 inline void fromXml( xml::ElementPtr from, std::string& to)
@@ -113,11 +96,17 @@ inline void fromXml( xml::ElementPtr from, int& to)
 	iss >> to;
 }
 
+///////////////////////////////////////////////////////////////////////////////////////////
+///////////////////////////////////////////////////////////////////////////////////////////
+
+
 template<class T>
 void fromXml( xml::ElementPtr from, T& to);
 
 template<class T>
 void fromXml( xml::ElementPtr from, std::vector<T>&  to);
+
+///////////////////////////////////////////////////////////////////////////////////////////
 
 class XmlSerializer
 {
@@ -246,6 +235,9 @@ public:
     
 };
 
+///////////////////////////////////////////////////////////////////////////////////////////
+///////////////////////////////////////////////////////////////////////////////////////////
+
 template<class T>
 void toXml( const T& from, xml::ElementPtr to)
 {
@@ -278,6 +270,7 @@ void toXml( const std::vector<T>& from, xml::ElementPtr to)
 	*/
 }
 
+///////////////////////////////////////////////////////////////////////////////////////////
 
 template<class T>
 void fromXml( xml::ElementPtr from, T& to)
@@ -310,6 +303,9 @@ void fromXml( xml::ElementPtr from, std::vector<T>&  to)
 	}
 	*/
 }
+
+///////////////////////////////////////////////////////////////////////////////////////////
+///////////////////////////////////////////////////////////////////////////////////////////
 
 
 template<class T>

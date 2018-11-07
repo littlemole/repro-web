@@ -237,19 +237,21 @@ Async invoke_coro_handler(FrontController& fc, prio::Request& req,  prio::Respon
 #endif
 
 //////////////////////////////////////////////////////////////
-/*
 
-TODO: conneq xml or json
 
-template<class R,class C, class ... Args>
-void invoke_handler(FrontController& fc, prio::Request& req,  prio::Response& res, repro::Future<R> (C::*fun)(Args...) )
+template<class C, class ... Args>
+void invoke_handler(FrontController& fc, prio::Request& req,  prio::Response& res, repro::Future<std::string> (C::*fun)(Args...) )
 {
 	try
 	{
-		HandlerInvoker<R(C,Args...)>::invoke(req,res,fun)
-		.then([&res](R r)
+		HandlerInvoker<std::string(C,Args...)>::invoke(req,res,fun)
+		.then([&res](std::string r)
 		{
-			output_json(res,r);
+			if(res.headers.content_type().empty())
+			{
+				res.contentType("test/html");
+			}
+			res.body(r).flush();
 		})
 		.otherwise([&fc,&req,&res](const std::exception& ex)
 		{
@@ -266,14 +268,18 @@ void invoke_handler(FrontController& fc, prio::Request& req,  prio::Response& re
 
 #ifdef _RESUMABLE_FUNCTIONS_SUPPORTED
 
-template<class R,class C, class ... Args>
-Async invoke_coro_handler(FrontController& fc, prio::Request& req,  prio::Response& res, repro::Future<R> (C::*fun)(Args...) )
+template<class C, class ... Args>
+Async invoke_coro_handler(FrontController& fc, prio::Request& req,  prio::Response& res, repro::Future<std::string> (C::*fun)(Args...) )
 {
 	try
 	{
-		R r = co_await HandlerInvoker<R(C,Args...)>::invoke(req,res,fun);
+		std::string r = co_await HandlerInvoker<std::string(C,Args...)>::invoke(req,res,fun);
 
-		output_json(res,r);
+		if(res.headers.content_type().empty())
+		{
+			res.contentType("test/html");
+		}
+		res.body(r).flush();
 	}
 	catch(std::exception& ex)
 	{
@@ -285,7 +291,7 @@ Async invoke_coro_handler(FrontController& fc, prio::Request& req,  prio::Respon
 }
  
 #endif
-*/
+
 //////////////////////////////////////////////////////////////
 
 
