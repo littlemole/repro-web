@@ -400,7 +400,7 @@ auto meta_of(const std::vector<T>& t)
 }
 
 ///////////////////////////////////////////////////////////////////////////////////////////
-
+/*
 template<class T>
 class RootEntity
 {
@@ -421,7 +421,7 @@ public:
 
 template<class T>
 MetaData<RootEntity<T>(const char*, T RootEntity<T>::*)> meta(const RootEntity<T>& t );
-
+*/
 ///////////////////////////////////////////////////////////////////////////////////////////
 ///////////////////////////////////////////////////////////////////////////////////////////
 
@@ -440,7 +440,7 @@ const char* entity_name(const T& t, typename std::enable_if<std::is_class<T>::va
     return m.entity ? m.entity : "entity";
 }
 
-
+/*
 template<class T>
 const char* entity_name(const RootEntity<T>& t, typename std::enable_if<std::is_class<T>::value>::type* = nullptr)
 {
@@ -448,7 +448,7 @@ const char* entity_name(const RootEntity<T>& t, typename std::enable_if<std::is_
 
     return m.entity ? m.entity : "root";
 }
-
+*/
 
 template<class T>
 const char* entity_name(const T& t, typename std::enable_if<std::is_arithmetic<T>::value>::type* = nullptr)
@@ -456,12 +456,13 @@ const char* entity_name(const T& t, typename std::enable_if<std::is_arithmetic<T
     return "number";
 }
 
+/*
 template<class T>
 const char* entity_name(const RootEntity<T>& t, typename std::enable_if<!std::is_class<T>::value>::type* = nullptr)
 {
     return entity_name(t.entity );
 }
-
+*/
 
 template<class T>
 const char* entity_name(const std::vector<T>& t)
@@ -469,14 +470,16 @@ const char* entity_name(const std::vector<T>& t)
     return entity_name(t[0]);
 }
 
+/*
 template<class T>
 const char* entity_name(const std::vector<RootEntity<T>>& t)
 {
     return entity_name(t[0].entity);
 }
-
+*/
 ///////////////////////////////////////////////////////////////////////////////////////////
 
+/*
 template<class T>
 MetaData<RootEntity<T>(const char*, T RootEntity<T>::*)> meta(const RootEntity<T>& t )
 {
@@ -484,6 +487,7 @@ MetaData<RootEntity<T>(const char*, T RootEntity<T>::*)> meta(const RootEntity<T
         entity_name(t.entity), &RootEntity<T>::entity
     );
 }
+*/
 
 ///////////////////////////////////////////////////////////////////////////////////////////
 ///////////////////////////////////////////////////////////////////////////////////////////
@@ -686,7 +690,15 @@ Json::Value toJson(const T& t)
 
     Json::Value result(Json::objectValue);
 
-    m. template serialize<JsonSerializer>(t,&result);
+	if(m.entity)
+	{
+		result[m.entity] = Json::Value(Json::objectValue);
+	    m. template serialize<JsonSerializer>(t,&(result[m.entity]));
+	}
+	else
+	{
+	    m. template serialize<JsonSerializer>(t,&result);
+	}
 
     return result;
 }
@@ -700,7 +712,17 @@ void fromJson(const Json::Value& from, T& t)
 {
     const auto& m = meta_of(t);
 
-    m. template deserialize<JsonSerializer>(&from,t);
+	if(m.entity)
+	{
+		if ( from.isMember(m.entity))
+		{
+			Json::Value member = from[m.entity];
+			m. template deserialize<JsonSerializer>(&member,t);
+		}
+		return;
+	}
+
+	m. template deserialize<JsonSerializer>(&from,t);
 }
 
 
@@ -1128,7 +1150,16 @@ void toXml( const T& from, xml::ElementPtr to)
 {
 	const auto& m = meta_of(from);
 
-    m. template serialize<XmlSerializer>(from,&to);
+	if(m.entity)
+	{
+		xml::ElementPtr el = to->ownerDocument()->createElement(m.entity);
+		to->appendChild(el);		
+	    m. template serialize<XmlSerializer>(from,&el);
+	}
+	else
+	{
+	    m. template serialize<XmlSerializer>(from,&to);
+	}
 }
 
 
@@ -1152,7 +1183,16 @@ void fromXml( xml::ElementPtr from, T& to)
 {
 	const auto& m = meta_of(to);
 
-    m. template deserialize<XmlSerializer>(&from,to);
+	if(m.entity)
+	{
+		xml::ElementPtr el = from->childNodes()->getChildByName(m.entity);
+		if(el)
+		{
+			m. template deserialize<XmlSerializer>(&el,to);
+			return;
+		}
+	}
+   	m. template deserialize<XmlSerializer>(&from,to);
 }
 
 

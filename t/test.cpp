@@ -73,7 +73,7 @@ struct Input
 
 
 };
-
+ 
 auto meta(const Input&)
 {
 	return metadata (
@@ -1156,7 +1156,7 @@ TEST_F(BasicTest, SimpleI18N)
 }
 
 
-
+ 
 TEST_F(BasicTest, SimpleI18Ndefaults) 
 {
 	I18N i18n("/locale/properties", {"de", "de_DE", "en"});
@@ -1334,7 +1334,7 @@ TEST_F(BasicTest, toXml)
  
 	std::cout << s << std::endl;
 
-	EXPECT_EQ("<username>mike</username><login>littlemole</login><pwd>secret</pwd><tags>one</tags><tags>two</tags><tags>three</tags>",s);
+	EXPECT_EQ("<user><username>mike</username><login>littlemole</login><pwd>secret</pwd><tags>one</tags><tags>two</tags><tags>three</tags></user>",s);
 
 	User other;
 	fromXml(doc,other);
@@ -1346,36 +1346,11 @@ TEST_F(BasicTest, toXml)
 	EXPECT_EQ("one",other.tags[0]);
 	EXPECT_EQ("two",other.tags[1]);
 	EXPECT_EQ("three",other.tags[2]);
-
-	RootEntity<User> rUser {user};
-
-	doc = toXml(rUser);
-
-	s = doc->toString();
-
-	EXPECT_EQ("<user><username>mike</username><login>littlemole</login><pwd>secret</pwd><tags>one</tags><tags>two</tags><tags>three</tags></user>",s);
-
-	std::cout << s << std::endl;
-	doc->parse(s);
-
-	RootEntity<User> rother;
-
-	fromXml(doc,rother);
-  
-	EXPECT_EQ("mike",rother->username);
-	EXPECT_EQ("littlemole",rother->login);
-	EXPECT_EQ("secret",rother->pwd);
  
-	EXPECT_EQ("one",rother->tags[0]);
-	EXPECT_EQ("two",rother->tags[1]);
-	EXPECT_EQ("three",rother->tags[2]);
-  
   
 	Input input { "id", "filter", "sid", HeaderValues("de_DE"), Cookie("name","value"), "de"};
 
-	RootEntity<Input> rinput{input};
-
-	doc = toXml(rinput);
+	doc = toXml(input);
 
 	s = doc->toString();
 
@@ -1385,9 +1360,7 @@ TEST_F(BasicTest, toXml)
 
  
 	XmlTest xt;
-	RootEntity<XmlTest> rxt{xt};
-
-	doc = toXml(rxt);
+	doc = toXml(xt);
  
 	s = doc->toString();
 
@@ -1402,9 +1375,9 @@ TEST_F(BasicTest, toXml)
 
 	std::cout << "--- " << d2->toString() << " ---" << std::endl;
 
-	RootEntity<XmlTest> rxto;
-	rxto->id = "";
-	rxto->level1.index = 0;
+	XmlTest rxto;
+	rxto.id = "";
+	rxto.level1.index = 0;
 
 	fromXml(d2,rxto);
 
@@ -1423,7 +1396,7 @@ TEST_F(BasicTest, toJson)
 
 	std::string s = JSON::flatten(json); 
 
-	EXPECT_EQ("{\"login\":\"littlemole\",\"pwd\":\"secret\",\"tags\":[\"one\",\"two\",\"three\"],\"username\":\"mike\"}",s);
+	EXPECT_EQ("{\"user\":{\"login\":\"littlemole\",\"pwd\":\"secret\",\"tags\":[\"one\",\"two\",\"three\"],\"username\":\"mike\"}}",s);
 
 	User other;
 	fromJson(json,other);
@@ -1438,59 +1411,7 @@ TEST_F(BasicTest, toJson)
 }
 
  
-
-TEST_F(BasicTest, toJson2) 
-{
-	User user{ "mike", "littlemole", "secret", { "one", "two", "three"} };
-	RootEntity<User> root{user};
-	Json::Value json = toJson(root);
- 
-	std::string s = JSON::flatten(json); 
-
-	EXPECT_EQ("{\"user\":{\"login\":\"littlemole\",\"pwd\":\"secret\",\"tags\":[\"one\",\"two\",\"three\"],\"username\":\"mike\"}}",s);
-
-	RootEntity<User> other;
-	fromJson(json,other);
-
-	EXPECT_EQ("mike",other->username);
-	EXPECT_EQ("littlemole",other->login);
-	EXPECT_EQ("secret",other->pwd);
-
-	EXPECT_EQ("one",other->tags[0]);
-	EXPECT_EQ("two",other->tags[1]);
-	EXPECT_EQ("three",other->tags[2]);
-}
-
 TEST_F(BasicTest, toJsonArray) 
-{
-	User user{ "mike", "littlemole", "secret", { "one", "two", "three"} };
-	RootEntity<std::vector<User>> root;
-	root.entity.push_back(user);
-	root.entity.push_back(user);
-	root.entity.push_back(user);
-
-	Json::Value json = toJson(root);
-
-	std::string s = JSON::flatten(json); 
-
-	EXPECT_EQ("{\"user\":[{\"login\":\"littlemole\",\"pwd\":\"secret\",\"tags\":[\"one\",\"two\",\"three\"],\"username\":\"mike\"},{\"login\":\"littlemole\",\"pwd\":\"secret\",\"tags\":[\"one\",\"two\",\"three\"],\"username\":\"mike\"},{\"login\":\"littlemole\",\"pwd\":\"secret\",\"tags\":[\"one\",\"two\",\"three\"],\"username\":\"mike\"}]}",s);
-
-	RootEntity<std::vector<User>> other;
-	fromJson(json,other);
-
-	for(int i = 0; i < 3; i++)
-	{
-		EXPECT_EQ("mike",other.entity[i].username);
-		EXPECT_EQ("littlemole",other.entity[i].login);
-		EXPECT_EQ("secret",other.entity[i].pwd);
-
-		EXPECT_EQ("one",other.entity[i].tags[0]);
-		EXPECT_EQ("two",other.entity[i].tags[1]);
-		EXPECT_EQ("three",other.entity[i].tags[2]);
-	}
-}
-
-TEST_F(BasicTest, toArray) 
 {
 	User user{ "mike", "littlemole", "secret", { "one", "two", "three"} };
 	std::vector<User> root;
@@ -1502,7 +1423,7 @@ TEST_F(BasicTest, toArray)
 
 	std::string s = JSON::flatten(json); 
 
-	EXPECT_EQ("[{\"login\":\"littlemole\",\"pwd\":\"secret\",\"tags\":[\"one\",\"two\",\"three\"],\"username\":\"mike\"},{\"login\":\"littlemole\",\"pwd\":\"secret\",\"tags\":[\"one\",\"two\",\"three\"],\"username\":\"mike\"},{\"login\":\"littlemole\",\"pwd\":\"secret\",\"tags\":[\"one\",\"two\",\"three\"],\"username\":\"mike\"}]",s);
+	EXPECT_EQ("[{\"user\":{\"login\":\"littlemole\",\"pwd\":\"secret\",\"tags\":[\"one\",\"two\",\"three\"],\"username\":\"mike\"}},{\"user\":{\"login\":\"littlemole\",\"pwd\":\"secret\",\"tags\":[\"one\",\"two\",\"three\"],\"username\":\"mike\"}},{\"user\":{\"login\":\"littlemole\",\"pwd\":\"secret\",\"tags\":[\"one\",\"two\",\"three\"],\"username\":\"mike\"}}]",s);
 
 	std::vector<User> other;
 	fromJson(json,other);
@@ -1518,6 +1439,7 @@ TEST_F(BasicTest, toArray)
 		EXPECT_EQ("three",other[i].tags[2]);
 	}
 }
+
 
 TEST_F(BasicTest, SimpleRest) 
 {
@@ -1556,7 +1478,7 @@ TEST_F(BasicTest, SimpleRest)
 		server.listen(8765);
 		theLoop().run();
 	}
-    EXPECT_EQ("{\"login\":\"littlemole\",\"pwd\":\"secret\",\"tags\":[\"one\",\"two\",\"three\"],\"username\":\"mike\"}",result);
+    EXPECT_EQ("{\"user\":{\"login\":\"littlemole\",\"pwd\":\"secret\",\"tags\":[\"one\",\"two\",\"three\"],\"username\":\"mike\"}}",result);
     MOL_TEST_ASSERT_CNTS(0,0);
 }
 
@@ -1662,7 +1584,7 @@ TEST_F(BasicTest, SimpleRestParams)
 		server.listen(8765);
 		theLoop().run();
 	}
-    EXPECT_EQ("{\"Accept-Language\":\"de-DE\",\"filter\":\"123456789\",\"id\":\"a\",\"sid\":{\"domain\":\"localhost\",\"expires\":\"\",\"isSecure\":true,\"maxAge\":100,\"name\":\"sid\",\"path\":\"/\",\"value\":\"987654321\"}}",result);
+    EXPECT_EQ("{\"Input\":{\"Accept-Language\":\"de-DE\",\"filter\":\"123456789\",\"id\":\"a\",\"sid\":{\"domain\":\"localhost\",\"expires\":\"\",\"isSecure\":true,\"maxAge\":100,\"name\":\"sid\",\"path\":\"/\",\"value\":\"987654321\"}}}",result);
     MOL_TEST_ASSERT_CNTS(0,0);
 }
 
@@ -1729,7 +1651,7 @@ TEST_F(BasicTest, SimpleRestPost)
 		.then( [&result,&server]()
 		{
 			HttpClient::url("http://localhost:8765/path/a")
-			->POST("{\"login\" : \"littlemole\",\"pwd\" : \"secret\",\"tags\" : [\"one\",\"two\",\"three\"],\"username\" : \"mike\"\n}")
+			->POST("{\"user\":{\"login\" : \"littlemole\",\"pwd\" : \"secret\",\"tags\" : [\"one\",\"two\",\"three\"],\"username\" : \"mike\"\n}}")
 			.then([&result,&server](prio::Response& res)
 			{
 				result = res.body();
@@ -1747,7 +1669,7 @@ TEST_F(BasicTest, SimpleRestPost)
 		server.listen(8765);
 		theLoop().run();
 	}
-    EXPECT_EQ("{\"login\":\"littlemole\",\"pwd\":\"secret\",\"tags\":[\"one\",\"two\",\"three\"],\"username\":\"mike\"}",result);
+    EXPECT_EQ("{\"user\":{\"login\":\"littlemole\",\"pwd\":\"secret\",\"tags\":[\"one\",\"two\",\"three\"],\"username\":\"mike\"}}",result);
     MOL_TEST_ASSERT_CNTS(0,0);
 }
 
@@ -1770,7 +1692,7 @@ TEST_F(BasicTest, SimpleRestPost_invalid)
 		.then( [&result,&server]()
 		{
 			HttpClient::url("http://localhost:8765/path/a")
-			->POST("{\"login\" : \"<littlemole>\",\"pwd\" : \"secret\",\"tags\" : [\"one\",\"two\",\"three\"],\"username\" : \"mike\"\n}")
+			->POST("{\"user\":{\"login\" : \"<littlemole>\",\"pwd\" : \"secret\",\"tags\" : [\"one\",\"two\",\"three\"],\"username\" : \"mike\"\n}}")
 			.then([&result,&server](prio::Response& res)
 			{
 				result = res.body();
