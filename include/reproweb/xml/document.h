@@ -20,6 +20,17 @@ public:
 		return doc;
 	}
 
+
+	static DocumentPtr parse_str(const std::string& src)
+	{
+		auto doc = Document::create();
+		if(!doc->parse(src))
+		{
+			throw DOMException();
+		}
+		return doc;
+	}
+
 	virtual ~Document();
 
     virtual ElementPtr				documentElement();

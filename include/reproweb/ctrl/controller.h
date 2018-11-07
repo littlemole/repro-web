@@ -73,7 +73,7 @@ private:
 	{
 		fc.registerHandler(m, p, [fun,&fc](prio::Request& req, prio::Response& res)
 		{
-			invoke_coro_handler<T,C,Args...>(fc,req,res,fun);						
+			invoke_coro_handler/*<T,C,Args...>*/(fc,req,res,fun);						
 		});
 	}
 	

@@ -29,24 +29,6 @@ namespace reproweb {
 
 
 
-
-inline void output_xml(prio::Response& res,const std::string& xml)
-{
-	res
-	.body(xml)
-	.contentType("application/xml")
-	.ok()
-	.flush();
-}
-
-template<class T>
-void output_xml(prio::Response& res, T& t)
-{
-	auto doc = toXml(t);
-	output_xml(res, doc->toString() );
-}
-
-
 ///////////////////////////////////////////////////////////////////////////////////////////
 ///////////////////////////////////////////////////////////////////////////////////////////
 
@@ -349,6 +331,9 @@ void fromXml(xml::DocumentPtr doc,T& t )
 
 //////////////////////////////////////////////////////////////
 
+
+//////////////////////////////////////////////////////////////
+
 template<class T>
 struct XmlEntity
 {
@@ -364,6 +349,54 @@ struct XmlEntity
 		return value;
 	}
 };
+
+
+
+//////////////////////////////////////////////////////////////
+
+template<class T>
+class HandlerParam<XmlEntity<T>>
+{
+public:
+
+	static XmlEntity<T> get(prio::Request& req,  prio::Response& res)
+	{
+		auto doc = xml::Document::parse_str(req.body());
+
+		XmlEntity<T> t;
+		fromXml(doc,t.value);
+		validate(t.value);
+
+		return t;
+	}
+};
+
+//////////////////////////////////////////////////////////////
+
+
+inline void output_xml(prio::Response& res,const std::string& xml)
+{
+	res
+	.body(xml)
+	.contentType("application/xml")
+	.ok()
+	.flush();
+}
+
+template<class T>
+void output_xml(prio::Response& res, T& t)
+{
+	auto doc = toXml(t);
+	output_xml(res, doc->toString() );
+}
+
+
+template<class T>
+void output_xml(prio::Response& res, XmlEntity<T>& t)
+{
+	auto doc = toXml(t.value);
+	output_xml(res, doc->toString() );
+}
 
 
 //////////////////////////////////////////////////////////////
