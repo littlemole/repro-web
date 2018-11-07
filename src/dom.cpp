@@ -703,7 +703,7 @@ void Node::insertBefore( NodePtr beforeElement, NodePtr n )
     std::vector<NodePtr>::iterator it = element;
     it++;
 
-    for ( it; it != children_->nodes_.end(); it++ )
+    while( it != children_->nodes_.end() )
     {
         if ( (*it).get() == beforeElement.get() )
         {
@@ -713,13 +713,13 @@ void Node::insertBefore( NodePtr beforeElement, NodePtr n )
             return;
         }
         element++;
+        it++;
     }
 }
 
 void Node::insertAfter( NodePtr afterElement, NodePtr n )
 {
-    std::vector<NodePtr>::iterator it = children_->nodes_.begin();
-    for ( it; it != children_->nodes_.end(); it++ )
+    for ( std::vector<NodePtr>::iterator it = children_->nodes_.begin(); it != children_->nodes_.end(); it++ )
     {
         if ( (*it).get() == afterElement.get() )
         {
@@ -813,7 +813,7 @@ void Element::innerXml(const std::string& s)
     if ( d )
     {
         children_->clear();
-        Element* root = d->parse( this, s);
+        d->parse( this, s);
     }
 }
 
@@ -858,7 +858,7 @@ void Element::outerXml(const std::string& s)
     if ( d )
     {
         clear();
-        Element* root = d->parse( this, s);
+        d->parse( this, s);
 
         auto p = parent_.lock();
 
