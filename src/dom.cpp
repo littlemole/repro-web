@@ -927,7 +927,6 @@ ElementPtr  Element::getElementByName(const std::string& name)
 NodeListPtr Element::getElementsByTagName(const std::string& tag)
 {
     auto nodes_ = std::make_shared<NodeList>();
-    nodes_->bDetach_ =true;
     getElementsByTagNameWalker(tag,nodes_);
     return nodes_;
 }
@@ -935,7 +934,6 @@ NodeListPtr Element::getElementsByTagName(const std::string& tag)
 NodeListPtr Element::getElementsByTagNameQ(const std::string& tag, const std::string& ns )
 {
     auto nodes_ = std::make_shared<NodeList>();
-    nodes_->bDetach_ =true;
     getElementsByTagNameWalkerQ(tag,ns,nodes_);
     return nodes_;
 }
@@ -943,8 +941,6 @@ NodeListPtr Element::getElementsByTagNameQ(const std::string& tag, const std::st
 ElementPtr  Element::getElementByTagName(const std::string& tag)
 {
     auto nodes_ = std::make_shared<NodeList>();
-    //NodeList nodes_;
-    nodes_->bDetach_ =true;
     getElementsByTagNameWalker(tag,nodes_);
     if ( nodes_->length() > 0 )
         return std::dynamic_pointer_cast<Element>(nodes_->item(0));
@@ -955,8 +951,6 @@ ElementPtr  Element::getElementByTagName(const std::string& tag)
 ElementPtr Element::getElementByTagNameQ(const std::string& tag, const std::string& ns )
 {
     auto nodes_ = std::make_shared<NodeList>();
-    //NodeList nodes_;
-    nodes_->bDetach_ =true;
     getElementsByTagNameWalkerQ(tag,ns,nodes_);
     if ( nodes_->length() > 0 )
         return std::dynamic_pointer_cast<Element>(nodes_->item(0));
@@ -1062,34 +1056,22 @@ std::string  Element::defaultNamespace()
 /////////////////////////////////////////////////////////////////////////////
 
 NodeList::NodeList(const NodeList& n)
-    : bDetach_ (false)
 {
     *this = n;
 }
 
 NodeList::~NodeList()
 {
-    if ( bDetach_ )
-        return;
-    clear();
 }
 
 NodeList& NodeList::operator=(const NodeList& nl) 
 {
     nodes_   = nl.nodes_;
-	bDetach_ = nl.bDetach_;	
 	return *this;
 }
 
 void NodeList::clear()
 {
-    /*
-    for ( std::vector<NodePtr>::iterator it = nodes_.begin();
-        it != nodes_.end(); it++)
-    {
-        delete *it;
-    }
-    */
     nodes_.clear();
 }
 
@@ -1144,8 +1126,6 @@ ElementPtr  NodeList::getChildByName(const std::string& name )
 NodeListPtr  NodeList::getChildrenByName(const std::string& name )
 {
     auto nodes_ = std::make_shared<NodeList>();
-//    NodeList nodes_;
-    nodes_->bDetach_ =true;
     int l = length();
     for ( int i = 0; i < l; i++ )
     {
@@ -1177,8 +1157,6 @@ ElementPtr  NodeList::getChildByNameNS(const std::string& name, const std::strin
 NodeListPtr  NodeList::getChildrenByNameNS(const std::string& name, const std::string& ns )
 {
     auto nodes_ = std::make_shared<NodeList>();
-    //NodeList nodes_;
-    nodes_->bDetach_ =true;
     int l = length();
     for ( int i = 0; i < l; i++ )
     {

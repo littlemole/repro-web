@@ -76,7 +76,7 @@ friend class Document;
 friend class Node;
 friend class Element;
 public:
-	NodeList() : bDetach_(false){};
+	NodeList(){};
     NodeList(const NodeList& n);
     virtual ~NodeList();
 
@@ -86,7 +86,6 @@ public:
     NodePtr operator[](int index)	;
     void add(NodePtr n);
     void erase(NodePtr n );
-	void detach() { bDetach_ = true; }
 
 	ElementPtr			 getChildByName(const std::string& name );
 	NodeListPtr			 getChildrenByName(const std::string& name );
@@ -99,7 +98,6 @@ public:
 private:
 
     std::vector<NodePtr> nodes_;
-	bool				 bDetach_;
 };
 
 ///////////////////////////////////////////////////////////////////////////////
