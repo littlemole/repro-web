@@ -1,7 +1,7 @@
 #ifndef INCLUDE_PROMISE_WEB_CONTROLLER_H_
 #define INCLUDE_PROMISE_WEB_CONTROLLER_H_
 
-#include "reproweb/ctrl/parameter.h"
+#include "reproweb/serialization/parameter.h"
 
 namespace reproweb  {
 
@@ -84,7 +84,7 @@ private:
 	{
 		fc.registerHandler(m,p, [&fc,fun]( prio::Request& req,  prio::Response& res)
 		{
-			invoke_handler<T,C,Args...>(fc,req,res,fun);
+			invoke_handler/*<T,C,Args...>*/(fc,req,res,fun);
 		});
 	}
 #endif

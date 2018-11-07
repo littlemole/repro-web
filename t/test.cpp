@@ -10,16 +10,19 @@
 #include "priohttp/conversation.h"
 #include "priohttp/client_conversation.h"
 #include "priohttp/client.h"
-#define MOL_ENABLE_UGLY_HELPER_MACROS
-#include <reproweb/json/json.h>
-#include <reproweb/tools/serializer.h>
-#undef MOL_ENABLE_UGLY_HELPER_MACROS
+
 #include <reproweb/ctrl/controller.h>
 #include <reproweb/tools/config.h>
 #include <reproweb/json/jwt.h>
 #include <reproweb/ctrl/ssi.h>
 #include <reprocurl/asyncCurl.h>
 #include <reproweb/ctrl/front_controller.h>
+
+#include <reproweb/json/json.h>
+#include <reproweb/serialization/json.h>
+#include <reproweb/serialization/xml.h>
+#include <reproweb/serialization/web.h>
+
 #include <reproweb/web_webserver.h>
 #include <reproweb/view/i18n.h>
 #include <reproweb/view/tpl.h>
@@ -247,24 +250,24 @@ public:
 		res.body( qp.get("param") );
 		res.ok().flush();
 	}
-
-	repro::Future<User> getUser()//prio::Request& req, prio::Response& res)
+ 
+	repro::Future<Entity<User>> getUser()//prio::Request& req, prio::Response& res)
 	{
-		auto p = promise<User>();
+		auto p = promise<Entity<User>>();
 
 		nextTick( [p]()
 		{
 			User user{ "mike", "littlemole", "secret", { "one", "two", "three"} };
-			p.resolve(user);
+			p.resolve( Entity<User>{user} );
 		});
 
 		return p.future();
 	}
    
  
-	repro::Future<Input> getParams( Parameter<Input> params)//, prio::Request& req, prio::Response& res)
+	repro::Future<Entity<Input>> getParams( Parameter<Input> params)//, prio::Request& req, prio::Response& res)
 	{
-		auto p = promise<Input>();
+		auto p = promise<Entity<Input>>();
 
 		std::cout << "======================================" << std::endl;
 		std::cout << params->cookie.str() << std::endl;
@@ -275,19 +278,19 @@ public:
 
 		nextTick( [p,params]()
 		{
-			p.resolve(params.value);
+			p.resolve(Entity<Input> {params.value} );
 		});
 
 		return p.future();
 	}
 
-	repro::Future<User> postUser(Entity<User> user)//, prio::Request& req, prio::Response& res)
+	repro::Future<Entity<User>> postUser(Entity<User> user)//, prio::Request& req, prio::Response& res)
 	{
-		auto p = promise<User>();
+		auto p = promise<Entity<User>>();
 
 		nextTick( [p,user]()
 		{
-			p.resolve(user.value);
+			p.resolve(user);
 		});
 
 		return p.future();
@@ -308,19 +311,19 @@ public:
 
 #ifdef _RESUMABLE_FUNCTIONS_SUPPORTED
 
-	repro::Future<User> getUserCoro() //prio::Request& req, prio::Response& res)
+	repro::Future<Entity<User>> getUserCoro() //prio::Request& req, prio::Response& res)
 	{
 		//co_await nextTick();
 
 		User user{ "mike", "littlemole", "secret", { "one", "two", "three"} };
-		co_return user;
+		co_return Entity<User> {user};
 	}
 
 
-	repro::Future<User> postUserCoro(Entity<User> user)//, prio::Request& req, prio::Response& res)
+	repro::Future<Entity<User>> postUserCoro(Entity<User> user)//, prio::Request& req, prio::Response& res)
 	{
 		//co_await nextTick();
-		co_return user.value;
+		co_return user;
 	}
 
 
