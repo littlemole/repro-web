@@ -1334,7 +1334,7 @@ TEST_F(BasicTest, toXml)
  
 	std::cout << s << std::endl;
 
-	EXPECT_EQ("<user><username>mike</username><login>littlemole</login><pwd>secret</pwd><tags>one</tags><tags>two</tags><tags>three</tags></user>",s);
+	EXPECT_EQ("<?xml version=\"1.0\" encoding=\"UTF-8\" standalone=\"yes\" ?>\r\n<user><username>mike</username><login>littlemole</login><pwd>secret</pwd><tags>one</tags><tags>two</tags><tags>three</tags></user>",s);
 
 	User other;
 	fromXml(doc,other);
@@ -1356,7 +1356,7 @@ TEST_F(BasicTest, toXml)
 
 	std::cout << s << std::endl;
  
-	EXPECT_EQ("<Input><id>id</id><filter>filter</filter><sid>sid</sid><Accept-Language>de_DE</Accept-Language><Accept-Language>de</Accept-Language><sid><name>name</name><value>value</value><expires /><maxAge>0</maxAge><domain /><path /><isSecure>0</isSecure></sid></Input>",s);
+	EXPECT_EQ("<?xml version=\"1.0\" encoding=\"UTF-8\" standalone=\"yes\" ?>\r\n<Input><id>id</id><filter>filter</filter><sid>sid</sid><Accept-Language>de_DE</Accept-Language><Accept-Language>de</Accept-Language><sid><name>name</name><value>value</value><expires /><maxAge>0</maxAge><domain /><path /><isSecure>0</isSecure></sid></Input>",s);
 
  
 	XmlTest xt;
@@ -1364,7 +1364,7 @@ TEST_F(BasicTest, toXml)
  
 	s = doc->toString();
 
-	EXPECT_EQ("<XmlTest id=\"42\"><level1 index=\"1\"><level2><v>one</v><v>two</v><v>three</v></level2></level1></XmlTest>",s);
+	EXPECT_EQ("<?xml version=\"1.0\" encoding=\"UTF-8\" standalone=\"yes\" ?>\r\n<XmlTest id=\"42\"><level1 index=\"1\"><level2><v>one</v><v>two</v><v>three</v></level2></level1></XmlTest>",s);
 
 	std::cout << s << std::endl;
 
@@ -1385,7 +1385,7 @@ TEST_F(BasicTest, toXml)
 	s = doc->toString();
 std::cout << s << std::endl;
 
-	EXPECT_EQ("<XmlTest id=\"42\"><level1 index=\"1\"><level2><v>one</v><v>two</v><v>three</v></level2></level1></XmlTest>", s);
+	EXPECT_EQ("<?xml version=\"1.0\" encoding=\"UTF-8\" standalone=\"yes\" ?>\r\n<XmlTest id=\"42\"><level1 index=\"1\"><level2><v>one</v><v>two</v><v>three</v></level2></level1></XmlTest>", s);
 }
 
 

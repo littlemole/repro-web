@@ -33,6 +33,7 @@ public:
 	virtual void character (const XML_Char *s, int len);
 	virtual void start(const XML_Char* el, const XML_Char **attr);
 	virtual void end(const XML_Char* el);
+	virtual void decl(const XML_Char *version, const XML_Char *encoding, int standalone);
 
 
 	Element*				parent_;
@@ -65,6 +66,14 @@ Element* XMLParser::parse( DocumentPtr doc, const std::string& input )
 //////////////////////////////////////////////////////////////////////
 // workhorse
 //////////////////////////////////////////////////////////////////////
+
+void XMLParser::decl(const XML_Char *v, const XML_Char *e, int s)
+{
+	doc_->version(v);
+	doc_->encoding(e);
+	doc_->standalone(s);
+}
+
 
 Element* XMLParser::parse( DocumentPtr d, Element* root, const std::string& input )
 {
@@ -134,14 +143,46 @@ Document::Document()
 	//root_.parent_   = 0;
 	root_->nodeType(Node::ELEMENT);
 
-//	encoding      = "UTF-8";
-//	version       = "1.0";
-//	standalone    = "no";
+	encoding_      = "UTF-8";
+	version_       = "1.0";
+	standalone_    = true;
 }
 
 Document::~Document()
 {
 }
+
+std::string Document::version()
+{
+	return version_;
+}
+
+std::string Document::encoding()
+{
+	return encoding_;
+}
+
+bool Document::standalone()
+{
+	return standalone_;
+}
+
+
+void Document::version(const std::string& v)
+{
+	version_ = v;
+}
+
+void Document::encoding(const std::string& e)
+{
+	encoding_ = e;
+}
+
+void Document::standalone(bool b)
+{
+	standalone_ = b;
+}
+
 
 XMLParser Document::getParser()
 {
@@ -162,8 +203,17 @@ void  Document::documentElement(ElementPtr r)
 
 std::string Document::toString()
 {
-	//std::string ret = "<?xml version=\"" + version + "\" encoding=\"" + encoding + "\" standalone=\"" + standalone + "\" ?>\r\n";
-	return root_->innerXml();
+	std::ostringstream oss;
+	oss << "<?xml version=\"" + version_ + "\" encoding=\"" + encoding_ + "\" standalone=\"";
+	if(standalone_){
+		oss << "yes";
+	}
+	else {
+		oss << "no";
+	}
+    oss << "\" ?>\r\n";
+	oss << root_->innerXml();
+	return oss.str();
 }
 
 Element* Document::parse( const std::string& src )

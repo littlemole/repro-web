@@ -21,6 +21,7 @@ public:
 		XML_SetElementHandler( p_, startHandler, endHandler);
 		XML_SetCharacterDataHandler( p_, charHandler);
 		XML_SetUserData( p_, (void*)this);
+		XML_SetXmlDeclHandler( p_, declHandler);
 	}
 	virtual ~Expat()
 	{
@@ -33,6 +34,7 @@ public:
 		XML_SetElementHandler( p_, startHandler, endHandler);
 		XML_SetCharacterDataHandler( p_, charHandler);
 		XML_SetUserData( p_, (void*)this);
+		XML_SetXmlDeclHandler( p_, declHandler);
 		return ret;
 	}
 	// parse it!
@@ -65,6 +67,7 @@ public:
 	virtual void character (const XML_Char *s, int len)=0;
 	virtual void start(const XML_Char* el, const XML_Char **attr)=0;
 	virtual void end(const XML_Char* el)=0;
+	virtual void decl(const XML_Char *version, const XML_Char *encoding, int standalone) = 0;
 
 	// handler-imp
 	static void charHandler (void *userData, const XML_Char *s, int len)
@@ -78,6 +81,11 @@ public:
 	static void endHandler(void *userData, const XML_Char *el)
 	{
 		((Expat*)userData)->end(el);
+	}
+
+	static void declHandler(void *userData, const XML_Char *version, const XML_Char *encoding, int standalone)
+	{
+		((Expat*)userData)->decl(version,encoding,standalone);
 	}
 
 protected:

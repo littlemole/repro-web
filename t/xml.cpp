@@ -15,7 +15,8 @@ class BasicTest : public ::testing::Test {
   {}
 };
 
-const char* testXML = "<root xmlns='http://blabla' xmlns:x='http://xyz'>\r\n"
+const char* testXML = "<?xml version=\"1.0\" encoding=\"UTF-8\" standalone=\"yes\"?>\r\n"
+"<root xmlns='http://blabla' xmlns:x='http://xyz'>\r\n"
 "<x:element>\r\n"
 "<name id='&quot;x'>littlemole</name>\r\n"
 "<email>littlemole@oha7.org</email>\r\n"

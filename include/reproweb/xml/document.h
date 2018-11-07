@@ -34,6 +34,14 @@ public:
 
 	virtual std::string				toString();
 
+	std::string version();
+	std::string encoding();
+	bool standalone();
+
+	void version(const std::string& v);
+	void encoding(const std::string& e);
+	void standalone(bool b);
+
 private:
 
     Document();
@@ -47,6 +55,10 @@ protected:
     ElementPtr						root_;
 
 	XMLParser getParser();
+
+	std::string version_;
+	std::string encoding_;
+	bool standalone_;
 };
 
 }}
