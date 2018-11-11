@@ -78,6 +78,7 @@ message("+++++++++++++++++")
 		find_library(JSONCPP_LIBRARY NAMES jsoncpp)
 		find_library(CURL_LIBRARY NAMES libcurl)
 		find_library(ZLIB_LIBRARY NAMES zlib.lib)
+		find_library(EXPAT_LIBRARY NAMES expat.lib)
 		find_library(REPROCURL_LIBRARY NAMES reprocurl)
 
 		set(LIBS debug ${CMAKE_PROJECT_NAME} optimized ${CMAKE_PROJECT_NAME} 
@@ -89,6 +90,7 @@ message("+++++++++++++++++")
 			${JSONCPP_LIBRARY} 
 			${CURL_LIBRARY} 
 			${ZLIB_LIBRARY}
+			${EXPAT_LIBRARY}
 			${LIBS} 
 		)
     else()
@@ -109,6 +111,7 @@ message("+++++++++++++++++")
 		find_library(REPROCURLD_LIBRARY NAMES reprocurld)
 		find_library(ZLIB_LIBRARY NAMES zlib.lib)
 		find_library(ZLIBD_LIBRARY NAMES zlibd.lib)
+		find_library(EXPAT_LIBRARY NAMES expat.lib)
 
 
 		set(LIBS debug ${CMAKE_PROJECT_NAME} optimized ${CMAKE_PROJECT_NAME} debug ${PRIOCPPD_LIBRARY} optimized  ${PRIOCPP_LIBRARY} 
@@ -120,6 +123,7 @@ message("+++++++++++++++++")
 			${NG2HTTP_LIBRARY}
 			${JSONCPP_LIBRARY} 
 			${CURL_LIBRARY} 
+			${EXPAT_LIBRARY}
 			debug ${ZLIBD_LIBRARY} optimized ${ZLIB_LIBRARY}
 			${LIBS}
 		)
@@ -139,6 +143,7 @@ message("+++++++++++++++++")
     pkg_check_modules(LIBEVENT REQUIRED libevent_pthreads)
     pkg_check_modules(CRYPTONEAT REQUIRED cryptoneat)
     pkg_check_modules(JSONCPP REQUIRED jsoncpp)
+    pkg_check_modules(EXPAT REQUIRED expat)
 
     set(LIBEVENT_LIBRARY ${LIBEVENT_LIBRARIES})
 
@@ -149,8 +154,7 @@ message("+++++++++++++++++")
 		debug priohttpd optimized priohttp 
 		debug priocppd optimized priocpp 
 		debug cryptoneatd optimized cryptoneat 
-		${GTEST_LIBRARIES} ${OPENSSL_LIBRARIES} ${NGHTTP2_LIBRARIES} ${CURL_LIBRARIES} ${JSONCPP_LIBRARIES} ${STDLIB} z
-		z
+		${GTEST_LIBRARIES} ${OPENSSL_LIBRARIES} ${NGHTTP2_LIBRARIES} ${CURL_LIBRARIES} ${JSONCPP_LIBRARIES} ${EXPAT_LIBRARIES} ${STDLIB} z
 	)
 
     set(LIBS debug ${CMAKE_PROJECT_NAME} optimized ${CMAKE_PROJECT_NAME} ${LIBS} )
