@@ -2,15 +2,12 @@
 #include "reproweb/ctrl/controller.h"
 #include "reproweb/view/i18n.h"
 #include "reproweb/web_webserver.h"
-#include <signal.h>
   
 #include "model.h"
-#include "valid.h"
 #include "view.h"
 #include "service.h"
 #include "controller.h"
 #include "ws.h"
-#include <curl/curl.h>
 
 using namespace diy;  
 using namespace prio;

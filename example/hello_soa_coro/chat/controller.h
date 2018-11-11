@@ -3,7 +3,6 @@
 
 #include "model.h"
 #include "view.h"
-#include "valid.h"
 
 #include "cryptoneat/cryptoneat.h"
 #include "reproweb/ctrl/controller.h"
@@ -20,9 +19,9 @@ public:
      
 	Future<std::string> index( Parameter<SessionCookie> params,Request& req)
 	{
-		Json::Value viewModel = co_await model_->chat(params->sid);
+		Json::Value session = co_await model_->chat(params->sid);
 
-		co_return co_await view_->render_index(req,viewModel); 
+		co_return co_await view_->render_index(req,session["user"]); 
 	}
 
 	Future<std::string> show_login( Request& req, Response& res)

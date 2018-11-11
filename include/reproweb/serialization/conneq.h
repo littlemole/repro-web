@@ -54,13 +54,11 @@ public:
 
         if(req.headers.content_type() == "application/xml")
         {
-            auto doc = xml::Document::parse_str(req.body());
-            fromXml(doc,t.value);
+            fromXml(req.body(),t.value);
         }
         else
         {
-            Json::Value json = JSON::parse(req.body());
-            fromJson(json,t.value);
+            fromJson(req.body(),t.value);
         }
 
         validate(t);

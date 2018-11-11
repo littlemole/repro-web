@@ -24,9 +24,8 @@ public:
 
 		reply =	co_await redis->cmd("EXPIRE", sid, 180);
 
-		Json::Value json = reproweb::JSON::parse(payload);
 		User user;
-		fromJson(json,user);
+		fromJson(payload,user);
 
 		co_return Session(sid,user);
 	}

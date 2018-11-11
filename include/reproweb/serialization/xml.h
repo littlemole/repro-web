@@ -374,6 +374,14 @@ void fromXml(xml::DocumentPtr doc,T& t )
 }
 
 
+
+template<class T>
+void fromXml(const std::string& xml, T& t )
+{
+	auto doc = xml::Document::parse_str(xml);
+	fromXml(doc->documentElement(),t);
+}
+
 //////////////////////////////////////////////////////////////
 
 

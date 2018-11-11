@@ -1,7 +1,6 @@
 #include "test.h"
 #include "reproweb/ctrl/controller.h"
 #include "reproweb/web_webserver.h"
-#include <signal.h>
   
 #include "repo.h"
 #include "controller.h"

@@ -289,6 +289,14 @@ void fromJson(const Json::Value& from, T& t)
 	m. template deserialize<JsonSerializer>(&from,t);
 }
 
+
+template<class T>
+void fromJson(const std::string& from, T& t)
+{
+	Json::Value json = JSON::parse(from);
+	fromJson(json,t);
+}
+
 //////////////////////////////////////////////////////////////
 
 template<class T>
