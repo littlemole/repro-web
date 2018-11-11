@@ -6,6 +6,7 @@
 #include "repo.h"
 #include <regex>
 #include <reproweb/tools/validation.h>
+#include <reproweb/serialization/web.h>
 
 
 class ExampleController

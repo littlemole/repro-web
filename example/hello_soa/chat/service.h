@@ -171,7 +171,7 @@ public:
 		.then([p](Json::Value json)
 		{
 			User user;
-			fromJson(user,json);
+			fromJson(json,user);
 
 			p.resolve(user);
 		})
@@ -192,7 +192,7 @@ public:
 		.then([p](Json::Value json)		
 		{
 			User user;
-			fromJson(user,json);
+			fromJson(json,user);
 
 			p.resolve(user);
 		})

@@ -3,6 +3,9 @@
 
 #include "repo.h"
 #include "cryptoneat/cryptoneat.h"
+#include <reproweb/serialization/web.h>
+#include <reproweb/serialization/json.h>
+//#include <reproweb/serialization/conneq.h>
 
 using namespace reproweb;
 
@@ -10,47 +13,106 @@ class Controller
 {
 public:
 
-	Controller( std::shared_ptr<UserRepository> repo)
+	Controller( std::shared_ptr<UserMysqlRepository> repo)
 		: userRepository(repo)
 	{}
 
-	Future<User> get_user( Parameter<Input> params, Request& req, Response& res)
+	async_json_t<User> get_user( Request& req, Response& res)
 	{
-		//std::string email = Valid::login(req.path.args().get("email"));
+		std::string email = Valid::login(req.path.args().get("email"));
 
-		User user = co_await userRepository->get_user(params->email);
+		auto p = json_promise<User>();
 
-		co_return scrub(user);
-	}
-
-	Future<User> login_user( Entity<Login> login, Request& req, Response& res)
-	{
-		User user = co_await userRepository->get_user(login->login());
-
-		cryptoneat::Password pass;
-		bool verified = pass.verify(login->hash(), user.hash() );
-
-		if(!verified) 
+		userRepository->get_user(email)
+		.then([p](User user)
 		{
-			throw LoginEx("error.msg.login.failed");
-		}
+			p.resolve( scrub(user) );
+		})
+		.otherwise(reject(p));		
 
-		co_return scrub(user);
+		return p.future();
 	}
-
-	Future<User> register_user( Entity<User> user, Request& req, Response& res)
+/*
+	void login_user( Request& req, Response& res)
 	{
-		co_await userRepository->register_user(*user);
+		//auto p = json_promise<User>();
 
-		co_return user.value;
+		Login login;
+		fromJson( JSON::parse(req.body()), login);
+
+		std::cout << JSON::stringify(toJson(login)) << std::endl;
+
+		userRepository->get_user(login.login())
+		.then([&res,login](User user)
+		{
+
+			std::cout << JSON::stringify(toJson(user)) << std::endl;
+
+			cryptoneat::Password pass;
+			bool verified = pass.verify(login.hash(), user.hash() );
+
+			if(!verified) 
+			{
+				throw LoginEx("error.msg.login.failed");
+			}
+
+			res.body(JSON::flatten(toJson(user))).ok().flush();
+		})
+		.otherwise( [&res](const std::exception& ex)
+		{
+			res.body(ex.what()).error().flush();
+		});	
+		
+	}
+*/
+
+	async_json_t<User> login_user( json_t<Login> login, Request& req, Response& res)
+	{
+		auto p = json_promise<User>();
+
+		std::cout << JSON::stringify(toJson(login.value)) << std::endl;
+
+		userRepository->get_user(login.value.login())
+		.then([p,login](User user)
+		{
+
+			std::cout << JSON::stringify(toJson(user)) << std::endl;
+
+			cryptoneat::Password pass;
+			bool verified = pass.verify(login.value.hash(), user.hash() );
+
+			if(!verified) 
+			{
+				throw LoginEx("error.msg.login.failed");
+			}
+
+			p.resolve( scrub(user) );
+		})
+		.otherwise(reject(p));	
+		
+		return p.future();
+	}
+	
+	async_json_t<User> register_user( json_t<User> user, Request& req, Response& res)
+	{
+		auto p = json_promise<User>();
+
+		userRepository->register_user(user.value)
+		.then([p,user]()
+		{
+			p.resolve(scrub(user.value));
+		})
+		.otherwise(reject(p));
+
+		return p.future();
 	}
 
 private:
-	std::shared_ptr<UserRepository> userRepository;
+	std::shared_ptr<UserMysqlRepository> userRepository;
 
-	static User scrub(const User& user) 
+	static json_t<User> scrub(const User& user) 
 	{
-		return User(user.username(),user.login(),"",user.avatar_url());
+		return json_t<User> { User(user.username(),user.login(),"",user.avatar_url()) };
 	}
 };
 

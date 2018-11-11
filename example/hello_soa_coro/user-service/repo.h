@@ -2,19 +2,18 @@
 #define _DEF_GUARD_DEFINE_REPROWEB_HELLO_WORLD_REPO_DEFINE_
 
 #include "repromysql/mysql-async.h"
-#include "entities.h"
-
+#include "entities.h" 
+ 
 using namespace prio;
 using namespace repro;
 using namespace reproweb;
 
-
-class UserRepository
+class UserMysqlRepository
 {
 public:
 
-	UserRepository(std::shared_ptr<repromysql::MysqlPool> my)
-		: mysql(my)
+	UserMysqlRepository(std::shared_ptr<repromysql::MysqlPool> mp)
+		: mysql(mp)
 	{}
 
 	Future<> register_user( User user )
@@ -29,35 +28,40 @@ public:
 		cryptoneat::Password pass;
 		std::string hash = pass.hash(user.hash());
 
-		try
+		mysql->execute(
+					"INSERT INTO users (username,email,pwd,avatar_url) VALUES ( ? , ? , ? , ? )",
+					user.username(),user.login(),hash,user.avatar_url()
+		)
+		.then([p,user](repromysql::mysql_async::Ptr)
 		{
-			repromysql::mysql_async::Ptr r = co_await mysql->execute(
-						"INSERT INTO users (username,email,pwd,avatar_url) VALUES ( ? , ? , ? , ? )",
-						user.username(),user.login(),hash,user.avatar_url()
-			);
-		}
-		catch(const std::exception& ex)
+			p.resolve();
+		})
+		.otherwise([p](const std::exception& ex)
 		{
 			std::cout << "register failed: " << ex.what() << std::endl;
-			throw LoginAlreadyTakenEx("error.msg.login.already.taken");
-		}
+			p.reject(LoginAlreadyTakenEx("error.msg.login.already.taken"));
+		});
 
-		co_return;
+		return p.future();
 	}
 
 	Future<User> get_user( const std::string& login )
 	{
 		auto p = promise<User>();
 
-		try
+		std::cout << "get_user " << login << std::endl;
+
+		mysql->query(
+				"SELECT username,email,pwd,avatar_url FROM users WHERE email = ? ;",
+				login
+		)
+		.then([p](repromysql::result_async::Ptr r)
 		{
-			repromysql::result_async::Ptr r = co_await mysql->query(
-					"SELECT username,email,pwd,avatar_url FROM users WHERE email = ? ;",
-					login
-			);
+			std::cout << "got_user " << std::endl;
 
 			if( r->fetch() )
 			{
+				std::cout << "fetched_user " << std::endl;
 				User result( 
 					r->field(0).getString(), 
 					r->field(1).getString(), 
@@ -65,18 +69,21 @@ public:
 					r->field(3).getString()
 				);
 
-				co_return result;
+				p.resolve(result);
 			}
 			else
 			{
+				std::cout << "no user " << std::endl;
 				throw UserNotFoundEx("error.msg.login.failed");
-			}		
-		}
-		catch(const std::exception& ex)
+			}
+		})
+		.otherwise([p](const std::exception& ex)
 		{
-			 throw UserNotFoundEx("error.msg.login.failed");
-		}
-		co_return User();
+			std::cout << "get_user throw" << std::endl;
+			p.reject(UserNotFoundEx("error.msg.login.failed"));
+		});
+
+		return p.future();
 	}
 
 private:
@@ -84,9 +91,10 @@ private:
 	std::shared_ptr<repromysql::MysqlPool> mysql;
 };
 
-struct UserPool : public repromysql::MysqlPool
+
+struct UserMysqlPool : public repromysql::MysqlPool 
 {
-	UserPool(std::shared_ptr<Config> config) 
+	UserMysqlPool(std::shared_ptr<Config> config) 
 	  : MysqlPool(config->getString("mysql")) 
 	{}
 };

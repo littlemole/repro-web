@@ -100,10 +100,10 @@ namespace detail {
 namespace reproweb {
 
     template<class T>
-    using has_serializer_t = decltype(std::declval<T>().serialize());
+    using has_meta_t = decltype(std::declval<T>().meta());
 
     template<class T>
-    using has_serializer = std::experimental::is_detected<has_serializer_t, T>;
+    using has_meta = std::experimental::is_detected<has_meta_t, T>;
 
     template<class T>
     using has_valid_t = decltype(std::declval<T>().validate());
@@ -125,7 +125,6 @@ namespace reproweb {
         static void invoke( T& t) 
         {}
     };
-
 
 //////////////////////////////////////////////////////////////
 

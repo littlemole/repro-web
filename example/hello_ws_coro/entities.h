@@ -7,6 +7,8 @@
 #include "reproweb/tools/config.h"
 #include "cryptoneat/cryptoneat.h"
 #include "reproweb/tools/validation.h"
+#include <reproweb/serialization/web.h>
+#include <reproweb/serialization/json.h>
 
 using namespace prio;
 using namespace repro;
@@ -50,12 +52,12 @@ public:
 	std::string login() const 	  	{ return login_; }
 	std::string hash() const  	  	{ return hash_; }
 
-	Serializer<Login> serialize()
+	auto meta() const
 	{
-		return {
+		return metadata(
 			"login",		&Login::login_,
 			"pwd",			&Login::hash_
-		};
+		);
 	}	
 
 	void validate()
@@ -100,14 +102,14 @@ public:
 	std::string hash() const  	  	{ return hash_; }
 	std::string avatar_url() const  { return avatar_url_; }
 	
-	Serializer<User> serialize()
+	auto meta() const
 	{
-		return {
+		return metadata(
 			"username", 	&User::name_,
 			"login",		&User::login_,
 			"pwd",			&User::hash_,
 			"avatar_url",	&User::avatar_url_
-		};
+		);
 	}	
 
 	void validate()
@@ -175,11 +177,11 @@ class SessionID
 public:
 	std::string sid;
 
-	Serializer<SessionID> serialize()
+	auto meta() const
 	{
-		return {
+		return metadata(
 			"repro_web_sid", &SessionID::sid
-		};
+		);
 	}	
 
 	void validate()

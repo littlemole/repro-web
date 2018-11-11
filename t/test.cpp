@@ -251,23 +251,23 @@ public:
 		res.ok().flush();
 	}
  
-	repro::Future<Entity<User>> getUser()//prio::Request& req, prio::Response& res)
+	async_json_t<User> getUser()//prio::Request& req, prio::Response& res)
 	{
-		auto p = promise<Entity<User>>();
+		auto p = json_promise<User>();//promise<json_t<User>>();
 
 		nextTick( [p]()
 		{
 			User user{ "mike", "littlemole", "secret", { "one", "two", "three"} };
-			p.resolve( Entity<User>{user} );
+			p.resolve( json_t<User>{user} );
 		});
 
 		return p.future();
 	}
    
  
-	repro::Future<Entity<Input>> getParams( Parameter<Input> params)//, prio::Request& req, prio::Response& res)
+	repro::Future<json_t<Input>> getParams( Parameter<Input> params)//, prio::Request& req, prio::Response& res)
 	{
-		auto p = promise<Entity<Input>>();
+		auto p = promise<json_t<Input>>();
 
 		std::cout << "======================================" << std::endl;
 		std::cout << params->cookie.str() << std::endl;
@@ -278,15 +278,15 @@ public:
 
 		nextTick( [p,params]()
 		{
-			p.resolve(Entity<Input> {params.value} );
+			p.resolve(json_t<Input> {params.value} );
 		});
 
 		return p.future();
 	}
 
-	repro::Future<Entity<User>> postUser(Entity<User> user)//, prio::Request& req, prio::Response& res)
+	repro::Future<json_t<User>> postUser(json_t<User> user)//, prio::Request& req, prio::Response& res)
 	{
-		auto p = promise<Entity<User>>();
+		auto p = promise<json_t<User>>();
 
 		nextTick( [p,user]()
 		{
@@ -311,16 +311,16 @@ public:
 
 #ifdef _RESUMABLE_FUNCTIONS_SUPPORTED
 
-	repro::Future<Entity<User>> getUserCoro() //prio::Request& req, prio::Response& res)
+	repro::Future<json_t<User>> getUserCoro() //prio::Request& req, prio::Response& res)
 	{
 		//co_await nextTick();
 
 		User user{ "mike", "littlemole", "secret", { "one", "two", "three"} };
-		co_return Entity<User> {user};
+		co_return json_t<User> {user};
 	}
 
 
-	repro::Future<Entity<User>> postUserCoro(Entity<User> user)//, prio::Request& req, prio::Response& res)
+	repro::Future<json_t<User>> postUserCoro(json_t<User> user)//, prio::Request& req, prio::Response& res)
 	{
 		//co_await nextTick();
 		co_return user;
@@ -1799,7 +1799,7 @@ TEST_F(BasicTest, SimpleRestCoro)
 		server.listen(8765);
 		theLoop().run();
 	}
-    EXPECT_EQ("{\"login\":\"littlemole\",\"pwd\":\"secret\",\"tags\":[\"one\",\"two\",\"three\"],\"username\":\"mike\"}",result);
+    EXPECT_EQ("{\"user\":{\"login\":\"littlemole\",\"pwd\":\"secret\",\"tags\":[\"one\",\"two\",\"three\"],\"username\":\"mike\"}}",result);
     MOL_TEST_ASSERT_CNTS(0,0);
 }
 
@@ -1840,7 +1840,7 @@ TEST_F(BasicTest, SimpleRestPostCoro)
 		server.listen(8765);
 		theLoop().run();
 	}
-    EXPECT_EQ("{\"login\":\"littlemole\",\"pwd\":\"secret\",\"tags\":[\"one\",\"two\",\"three\"],\"username\":\"mike\"}",result);
+    EXPECT_EQ("{\"user\":{\"login\":\"littlemole\",\"pwd\":\"secret\",\"tags\":[\"one\",\"two\",\"three\"],\"username\":\"mike\"}}",result);
     MOL_TEST_ASSERT_CNTS(0,0);
 }
 

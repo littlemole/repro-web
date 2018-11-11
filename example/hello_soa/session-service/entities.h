@@ -3,6 +3,7 @@
 
 #include "reproweb/tools/config.h"
 #include "reproweb/json/json.h"
+#include <reproweb/serialization/json.h>
 #include "valid.h"
 
 class User
@@ -25,15 +26,14 @@ public:
 	std::string login() const 	  	{ return login_; }
 	std::string avatar_url() const  { return avatar_url_; }
 
-	static reproweb::Jsonizer<User>& jsonize()
+	auto meta() const
 	{
-		static Jsonizer<User> jsonizer {
-			"login", 		&User::login_,
-			"username", 	&User::name_,
-			"avatar_url", 	&User::avatar_url_
-		};
-		return jsonizer;
-	}	
+		return metadata(
+			"login", &User::login_,
+			"username", &User::name_,
+			"avatar_url", &User::avatar_url_
+		);
+	}
 	
 private:
 	std::string name_;	
@@ -58,15 +58,7 @@ public:
 
 	std::string sid() const  	{ return sid_; }
 	Json::Value profile() const { return profile_; }
-
-	static reproweb::Jsonizer<Session>& jsonize()
-	{
-		static Jsonizer<Session> jsonizer {
-			"sid", 		&Session::sid_,
-			"profile", 	&Session::profile_
-		};
-		return jsonizer;
-	}		
+		
 
 private:
 	std::string sid_;
@@ -80,6 +72,13 @@ private:
 	}
 };
 
+auto meta(const Session&)
+{
+	return metadata(
+		getter_setter("sid",&Session::sid),
+		getter_setter("profile",&Session::profile)
+	);
+}
 
 class AppConfig : public reproweb::WebAppConfig
 {

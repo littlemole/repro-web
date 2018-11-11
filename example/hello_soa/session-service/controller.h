@@ -3,6 +3,7 @@
 
 #include "repo.h"
 #include "cryptoneat/cryptoneat.h"
+#include <reproweb/serialization/web.h>
 
 using namespace reproweb;
 
@@ -30,7 +31,7 @@ public:
 		return p.future();
 	}
 
-	Future<Json::Value> write_session( Entity<User> user, Request& req, Response& res)
+	Future<Json::Value> write_session( json_t<User> user, Request& req, Response& res)
 	{
 		auto p = promise<Json::Value>();
 

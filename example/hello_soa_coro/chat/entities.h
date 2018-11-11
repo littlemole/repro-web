@@ -4,6 +4,8 @@
 
 #include "reproweb/tools/config.h"
 #include "reproweb/json/json.h"
+#include "reproweb/serialization/json.h"
+#include "reproweb/serialization/web.h"
 #include "valid.h"
 
 class Input
@@ -12,11 +14,11 @@ public:
 
 	std::string sid;
 
-	reproweb::Serializer<Input> serialize()
+	auto meta() const
 	{
-		return {
+		return metadata(
 			"repro_web_sid", 		&Input::sid
-		};
+		);
 	}	
 
 	void validate()
@@ -51,12 +53,12 @@ public:
 	std::string login() const 	  		{ return login_; }
 	std::string hash() const  	  		{ return hash_; }
 
-	reproweb::Serializer<Login> serialize()
+	auto meta() const
 	{
-		return {
+		return metadata(
 			"login", 		&Login::login_,
 			"pwd", 			&Login::hash_
-		};
+		);
 	}	
 
 	void validate()
@@ -100,14 +102,14 @@ public:
 	std::string hash() const  	  		{ return hash_; }
 	std::string avatar_url() const  	{ return avatar_url_; }
 
-	reproweb::Serializer<User> serialize()
+	auto meta() const
 	{
-		return {
+		return metadata(
 			"username", 	&User::name_,
 			"login", 		&User::login_,
 			"pwd", 			&User::hash_,
 			"avatar_url", 	&User::avatar_url_
-		};
+		);
 	}	
 
 	void validate()

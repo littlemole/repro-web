@@ -125,6 +125,31 @@ GetterSetterConst<T,M> getter_setter( const char* n, M (T::*g)() const )
 template<class T>
 class MetaData;
 
+template<class T>
+class MetaData<T()>
+{
+public:
+
+    const char* entity = 0;
+    const char* name = 0;
+
+    template<class S>
+    void serialize( const T& from, void* to ) const
+    {
+    }
+
+
+    template<class S>
+    void deserialize( const void* from, T& to ) const
+    {
+    }
+
+    MetaData<T()>& operator[](const char* n)
+    {
+        entity = n;
+		return *this;
+    }    
+};
 
 ///////////////////////////////////////////////////////////////////////////////////////////
 
@@ -367,13 +392,25 @@ auto metadata( GetterSetterConst<T,M>&& getterSetter, Args&& ... args)
 ///////////////////////////////////////////////////////////////////////////////////////////
 
 template<class T>
-auto meta_of(const T& t, typename std::enable_if<std::is_class<T>::value>::type* = nullptr) 
+auto meta_of(const T& t, typename std::enable_if<std::is_class<T>::value && has_meta<T>::value>::type* = nullptr) 
 {
-    typedef decltype( meta(std::declval<T>()) ) meta_t;
-    static meta_t m = meta(t);
+    typedef decltype( t.meta() ) meta_t;
 
+    static meta_t m = t.meta();
     return m;
 }
+
+
+template<class T>
+auto meta_of(const T& t, typename std::enable_if<std::is_class<T>::value && !has_meta<T>::value>::type* = nullptr) 
+{
+    typedef decltype( meta(t) ) meta_t;
+
+    static meta_t m = meta(t);
+    return m;
+}
+
+    
 
 ///////////////////////////////////////////////////////////////////////////////////////////
 

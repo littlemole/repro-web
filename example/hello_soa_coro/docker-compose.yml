@@ -29,7 +29,7 @@ services:
         BACKEND: ${BACKEND}
         BUILDCHAIN: ${BUILDCHAIN}
     ports:
-     - "9879:9879"          
+     - "9878:9878"          
   redis:
     image: "redis:alpine"
   mysql:

@@ -7,6 +7,7 @@
 
 #include "cryptoneat/cryptoneat.h"
 #include "reproweb/ctrl/controller.h"
+#include <reproweb/serialization/web.h>
 
 using namespace reproweb;
 

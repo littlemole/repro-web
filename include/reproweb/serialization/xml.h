@@ -11,6 +11,36 @@
 
 namespace reproweb {
 
+//////////////////////////////////////////////////////////////
+
+template<class T>
+struct xml_t
+{
+	T value;
+
+	T* operator->()
+	{
+		return &value;
+	}
+
+	T& operator*()
+	{
+		return value;
+	}
+};
+
+
+template<class T>
+using async_xml_t = repro::Future<xml_t<T>>;
+
+
+template<class T>
+auto xml_promise()
+{
+	return repro::promise<xml_t<T>>();
+}
+
+
 ///////////////////////////////////////////////////////////////////////////////////////////
 ///////////////////////////////////////////////////////////////////////////////////////////
 
@@ -328,38 +358,20 @@ void fromXml(xml::DocumentPtr doc,T& t )
 //////////////////////////////////////////////////////////////
 
 
-//////////////////////////////////////////////////////////////
-
-template<class T>
-struct XmlEntity
-{
-	T value;
-
-	T* operator->()
-	{
-		return &value;
-	}
-
-	T& operator*()
-	{
-		return value;
-	}
-};
-
 
 
 //////////////////////////////////////////////////////////////
 
 template<class T>
-class HandlerParam<XmlEntity<T>>
+class HandlerParam<xml_t<T>>
 {
 public:
 
-	static XmlEntity<T> get(prio::Request& req,  prio::Response& res)
+	static xml_t<T> get(prio::Request& req,  prio::Response& res)
 	{
 		auto doc = xml::Document::parse_str(req.body());
 
-		XmlEntity<T> t;
+		xml_t<T> t;
 		fromXml(doc,t.value);
 		validate(t.value);
 
@@ -388,7 +400,7 @@ void output_xml(prio::Response& res, T& t)
 
 
 template<class T>
-void output_xml(prio::Response& res, XmlEntity<T>& t)
+void output_xml(prio::Response& res, xml_t<T>& t)
 {
 	auto doc = toXml(t.value);
 	output_xml(res, doc->toString() );
@@ -399,14 +411,14 @@ void output_xml(prio::Response& res, XmlEntity<T>& t)
 
 
 template<class R,class C, class ... Args>
-void invoke_handler(FrontController& fc, prio::Request& req,  prio::Response& res, repro::Future<XmlEntity<R>> (C::*fun)(Args...) )
+void invoke_handler(FrontController& fc, prio::Request& req,  prio::Response& res, repro::Future<xml_t<R>> (C::*fun)(Args...) )
 {
 	try
 	{
-		HandlerInvoker<XmlEntity<R>(C,Args...)>::invoke(req,res,fun)
-		.then([&res](XmlEntity<R> r)
+		HandlerInvoker<xml_t<R>(C,Args...)>::invoke(req,res,fun)
+		.then([&res](xml_t<R> r)
 		{
-			output_xml(res,r.value);
+			output_xml(res,r);
 		})
 		.otherwise([&fc,&req,&res](const std::exception& ex)
 		{
@@ -424,13 +436,13 @@ void invoke_handler(FrontController& fc, prio::Request& req,  prio::Response& re
 #ifdef _RESUMABLE_FUNCTIONS_SUPPORTED
 
 template<class R,class C, class ... Args>
-Async invoke_coro_handler(FrontController& fc, prio::Request& req,  prio::Response& res, repro::Future<XmlEntity<R>> (C::*fun)(Args...) )
+Async invoke_coro_handler(FrontController& fc, prio::Request& req,  prio::Response& res, repro::Future<xml_t<R>> (C::*fun)(Args...) )
 {
 	try
 	{
-		XmlEntity<R> r = co_await HandlerInvoker<XmlEntity<R>(C,Args...)>::invoke(req,res,fun);
+		xml_t<R> r = co_await HandlerInvoker<xml_t<R>(C,Args...)>::invoke(req,res,fun);
 
-		output_xml(res,r.value);
+		output_xml(res,r);
 	}
 	catch(std::exception& ex)
 	{

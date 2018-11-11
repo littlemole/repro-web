@@ -14,7 +14,7 @@ public:
 		: sessionRepository(repo)
 	{}
 
-	Future<Json::Value> get_session( Parameter<Input> params, Request& req, Response& res)
+	Future<Json::Value> get_session( Parameter<SessionId> params, Request& req, Response& res)
 	{
 		//std::string sid = Valid::session_id(req.path.args().get("sid"));
 
@@ -23,14 +23,14 @@ public:
 		co_return session.profile();
 	}
 
-	Future<Json::Value> write_session( Entity<User> user, Request& req, Response& res)
+	Future<Json::Value> write_session( json_t<User> user, Request& req, Response& res)
 	{
 		Session session = co_await sessionRepository->write_user_session(*user);
 
 		co_return toJson(session);
 	}	
 
-	reproweb::Async remove_session( Parameter<Input> params,Request& req, Response& res)
+	reproweb::Async remove_session( Parameter<SessionId> params,Request& req, Response& res)
 	{
 		//std::string sid = Valid::session_id(req.path.args().get("sid"));
 

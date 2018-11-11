@@ -4,6 +4,8 @@
 
 #include "reproweb/tools/config.h"
 #include "reproweb/json/json.h"
+#include <reproweb/ctrl/controller.h>
+#include <reproweb/serialization/json.h>
 
 using namespace prio;
 using namespace repro;
@@ -37,16 +39,15 @@ public:
 	std::string hash() const  	  { return hash_; }
 	std::string avatar_url() const  { return avatar_url_; }
 
-	static reproweb::Jsonizer<User>& jsonize()
+	auto meta() const
 	{
-		static Jsonizer<User> jsonizer {
-			"username", 	&User::name_,
-			"login", 		&User::login_,
-			"pwd", 			&User::hash_,
-			"avatar_url", 	&User::avatar_url_
-		};
-		return jsonizer;
-	}	
+		return metadata(
+			"login", &User::login_,
+			"username", &User::name_,
+			"pwd", &User::hash_,
+			"avatar_url", &User::avatar_url_
+		);
+	}
 	
 private:
 	std::string name_;	
@@ -54,6 +55,7 @@ private:
 	std::string hash_;	
 	std::string avatar_url_;	
 };
+
 
 
 class Session

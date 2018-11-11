@@ -1,30 +1,12 @@
 #ifndef _MOL_DEF_GUARD_DEFINE_REPROWEB_SERIALIZER_WEB_DEF_GUARD_
 #define _MOL_DEF_GUARD_DEFINE_REPROWEB_SERIALIZER_WEB_DEF_GUARD_
 
-//#include <functional>
-//#include <set>
-//#include <priocpp/api.h>
-//#include <cryptoneat/cryptoneat.h>
-//#include <priohttp/queryparams.h>
-//#include <priohttp/arg.h>
-//#include <priohttp/response.h>
-//#include <reproweb/json/json.h>
+
 #include <reproweb/serialization/meta.h>
 #include <reproweb/serialization/parameter.h>
 
-//#include <cryptoneat/cryptoneat.h>
-//#include <priohttp/queryparams.h>
-//#include <priohttp/arg.h>
-//#include <priohttp/request.h>
-//#include <reproweb/json/json.h>
-//#include <reproweb/xml/document.h>
 
 namespace reproweb {
-
-///////////////////////////////////////////////////////////////////////////////////////////
-
-
-
 
 ///////////////////////////////////////////////////////////////////////////////////////////
 ///////////////////////////////////////////////////////////////////////////////////////////

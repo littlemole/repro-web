@@ -36,21 +36,7 @@ void validate( T& t)
 //////////////////////////////////////////////////////////////
 //////////////////////////////////////////////////////////////
 
-template<class T>
-struct Entity
-{
-	T value;
 
-	T* operator->()
-	{
-		return &value;
-	}
-
-	T& operator*()
-	{
-		return value;
-	}
-};
 
 //////////////////////////////////////////////////////////////
 
@@ -251,7 +237,7 @@ void invoke_handler(FrontController& fc, prio::Request& req,  prio::Response& re
 			{
 				res.contentType("test/html");
 			}
-			res.body(r).flush();
+			res.body(r).ok().flush();
 		})
 		.otherwise([&fc,&req,&res](const std::exception& ex)
 		{
@@ -279,7 +265,7 @@ Async invoke_coro_handler(FrontController& fc, prio::Request& req,  prio::Respon
 		{
 			res.contentType("test/html");
 		}
-		res.body(r).flush();
+		res.body(r).ok().flush();
 	}
 	catch(std::exception& ex)
 	{

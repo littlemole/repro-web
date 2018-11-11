@@ -820,7 +820,7 @@ void Element::innerXml(const std::string& s)
 std::string Element::outerXml()
 {
     std::string ret = "";
-    if ( (type_ == Node::ELEMENT) )//|| (type_ == Node::SCRIPT) )
+    if ( type_ == Node::ELEMENT )
     {
         ret += "<" + nodename_;
         std::string as = atts();
@@ -831,7 +831,7 @@ std::string Element::outerXml()
         bool b = true;
         if ( nodename_.size() > 0 && nodename_[0] == '/' )
             b = false;
-        if ( (!hasChildNodes()) && (isAlone()) && b )//&& (document_->doctype() != mol::HTML) )
+        if ( (!hasChildNodes()) && (isAlone()) && b )
             ret += " /";
         ret += ">";
     }

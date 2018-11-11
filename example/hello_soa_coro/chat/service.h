@@ -137,7 +137,7 @@ public:
 		Json::Value json = co_await Service::post<RegistrationEx>( config->registrationService(), user );
 
 		User result;
-		fromJson(result,json);
+		fromJson(json,result);
 
 		co_return result;
 	}
@@ -151,7 +151,7 @@ public:
 		Json::Value value = co_await Service::post<LoginEx>( config->loginService(), json );
 
 		User user;
-		fromJson(user,value);
+		fromJson(value,user);
 
 		co_return user;
 	}

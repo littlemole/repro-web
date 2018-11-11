@@ -6,28 +6,56 @@
 
 namespace reproweb {
 
+//////////////////////////////////////////////////////////////
+
+template<class T>
+struct entity
+{
+	T value;
+
+	T* operator->()
+	{
+		return &value;
+	}
+
+	T& operator*()
+	{
+		return value;
+	}
+};
+
+
+template<class T>
+using async_t = repro::Future<entity<T>>;
+
+template<class T>
+auto async_entity()
+{
+	return repro::promise<entity<T>>();
+}
+
 
 ///////////////////////////////////////////////////////////////////////////////////////////
 ///////////////////////////////////////////////////////////////////////////////////////////
 
 template<class T>
-class HandlerParam<T,typename std::enable_if<std::is_class<T>::value>::type>
+class HandlerParam<entity<T>,typename std::enable_if<std::is_class<T>::value>::type>
 {
 public:
 
-	static T get(prio::Request& req,  prio::Response& res)
+	static entity<T> get(prio::Request& req,  prio::Response& res)
 	{
-        T t;
+        entity<T> t;
 
         if(req.headers.content_type() == "application/xml")
         {
             auto doc = xml::Document::parse_str(req.body());
-            fromXml(doc,t);
+            fromXml(doc,t.value);
         }
         else
         {
             Json::Value json = JSON::parse(req.body());
-            fromJson(json,t);
+            fromJson(json,t.value);
         }
 
         validate(t);
@@ -66,14 +94,14 @@ void output_conneq(prio::Request& req,  prio::Response& res,T& t)
 //////////////////////////////////////////////////////////////
 
 template<class R,class C, class ... Args>
-void invoke_handler(FrontController& fc, prio::Request& req,  prio::Response& res, repro::Future<R> (C::*fun)(Args...) )
+void invoke_handler(FrontController& fc, prio::Request& req,  prio::Response& res, repro::Future<entity<R>> (C::*fun)(Args...) )
 {
 	try
 	{
-		HandlerInvoker<R(C,Args...)>::invoke(req,res,fun)
-		.then([&res](R r)
+		HandlerInvoker<entity<R>(C,Args...)>::invoke(req,res,fun)
+		.then([&req,&res](entity<R> r)
 		{
-			output_conneq((res,r);
+			output_conneq(req,res,r.value);
 		})
 		.otherwise([&fc,&req,&res](const std::exception& ex)
 		{
@@ -93,13 +121,13 @@ void invoke_handler(FrontController& fc, prio::Request& req,  prio::Response& re
 
 
 template<class R,class C, class ... Args>
-Async invoke_coro_handler(FrontController& fc, prio::Request& req,  prio::Response& res, repro::Future<R> (C::*fun)(Args...) )
+Async invoke_coro_handler(FrontController& fc, prio::Request& req,  prio::Response& res, repro::Future<entity<R>> (C::*fun)(Args...) )
 {
 	try
 	{
-		R r = co_await HandlerInvoker<R(C,Args...)>::invoke(req,res,fun);
+		entity<R> r = co_await HandlerInvoker<entity<R>(C,Args...)>::invoke(req,res,fun);
 
-		output_conneq(req,res,r);
+		output_conneq(req,res,r.value);
 	}
 	catch(std::exception& ex)
 	{

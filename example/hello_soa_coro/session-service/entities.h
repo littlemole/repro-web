@@ -3,7 +3,8 @@
 
 #include "reproweb/tools/config.h"
 #include "reproweb/json/json.h"
-//#include "valid.h"
+#include "reproweb/serialization/json.h"
+#include "reproweb/serialization/web.h"
 #include "reproweb/tools/validation.h"
 
 using namespace reproweb;
@@ -19,17 +20,17 @@ public:
 };
 
 
-class Input
+class SessionId
 {
 public:
 
 	std::string sid;
 
-	reproweb::Serializer<Input> serialize()
+	auto meta() const
 	{
-		return {
-			"sid", 		&Input::sid
-		};
+		return metadata(
+			"sid", 		&SessionId::sid
+		);
 	}	
 
 	void validate()
@@ -67,7 +68,14 @@ public:
 	std::string login() const 	  	{ return login_; }
 	std::string avatar_url() const  { return avatar_url_; }
 
-	reproweb::Serializer<User> serialize();
+	auto meta() const
+	{
+		return metadata(
+			"login", 		&User::login_,
+			"username", 	&User::name_,
+			"avatar_url", 	&User::avatar_url_
+		);
+	}
 	
 private:
 	std::string name_;	
@@ -76,14 +84,6 @@ private:
 };
  
 
-reproweb::Serializer<User> User::serialize()
-{
-	return {
-		"login", 		&User::login_,
-		"username", 	&User::name_,
-		"avatar_url", 	&User::avatar_url_
-	};
-}
 
 class Session
 {
@@ -102,12 +102,12 @@ public:
 	std::string sid() const  	{ return sid_; }
 	Json::Value profile() const { return profile_; }
 
-	reproweb::Serializer<Session> serialize()
+	auto meta() const
 	{
-		return {
+		return metadata(
 			"sid", 		&Session::sid_,
 			"profile", 	&Session::profile_
-		};
+		);
 	}		
 
 private:

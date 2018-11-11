@@ -296,7 +296,12 @@ make image CXX=clang++
 ``` 
 at this point do *make run* to start the image with a bash shell and tinker around.
 
-or look at the examples
+or look at the examples.
+
+### docker with clang++ and thread sanitizer
+```bash
+make image CXX=clang++ TS=-fsanitize=thread
+```
 
 ```bash
 cd examples/hello_world

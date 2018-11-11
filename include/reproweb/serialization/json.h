@@ -10,10 +10,42 @@ namespace reproweb {
 
 
 ///////////////////////////////////////////////////////////////////////////////////////////
+
+template<class T>
+struct json_t
+{
+	T value;
+
+	T* operator->()
+	{
+		return &value;
+	}
+
+	T& operator*()
+	{
+		return value;
+	}
+};
+
+template<class T>
+using async_json_t = repro::Future<json_t<T>>;
+
+template<class T>
+auto json_promise()
+{
+	return repro::promise<json_t<T>>();
+}
+
 ///////////////////////////////////////////////////////////////////////////////////////////
 
 
 inline Json::Value toJson( Json::Value& json)
+{
+	return json;
+}
+
+
+inline const Json::Value toJson( const Json::Value& json)
 {
 	return json;
 }
@@ -127,6 +159,18 @@ Json::Value toJson(const std::vector<T>& t)
     return result;
 }
 
+inline Json::Value exToJson(const std::exception& ex)
+{
+	Json::Value result(Json::objectValue);
+	Json::Value err(Json::objectValue);
+
+	err["type"] = typeid(ex).name();
+	err["msg"] = ex.what();
+
+	result["error"] = err;
+	return result;
+}
+
 ///////////////////////////////////////////////////////////////////////////////////////////
 ///////////////////////////////////////////////////////////////////////////////////////////
 
@@ -238,8 +282,8 @@ void fromJson(const Json::Value& from, T& t)
 		{
 			Json::Value member = from[m.entity];
 			m. template deserialize<JsonSerializer>(&member,t);
+			return;
 		}
-		return;
 	}
 
 	m. template deserialize<JsonSerializer>(&from,t);
@@ -248,15 +292,21 @@ void fromJson(const Json::Value& from, T& t)
 //////////////////////////////////////////////////////////////
 
 template<class T>
-class HandlerParam<Entity<T>>
+class HandlerParam<json_t<T>>
 {
 public:
 
-	static Entity<T> get(prio::Request& req,  prio::Response& res)
+	static json_t<T> get(prio::Request& req,  prio::Response& res)
 	{
+		/*
+		std::cout << "----------------------" << std::endl;
+		std::cout << req.body() << std::endl;
+		std::cout << "----------------------" << std::endl;
+		*/
+	
 		Json::Value json = JSON::parse(req.body());
 
-		Entity<T> t;
+		json_t<T> t;
 		fromJson(json,t.value);
 		validate(t.value);
 
@@ -301,7 +351,7 @@ void output_json(prio::Response& res, T& t)
 
 
 template<class T>
-void output_json(prio::Response& res, Entity<T>& t)
+void output_json(prio::Response& res, json_t<T>& t)
 {
 	output_json(res, toJson(t.value) );
 }
@@ -309,12 +359,12 @@ void output_json(prio::Response& res, Entity<T>& t)
 //////////////////////////////////////////////////////////////
 
 template<class R,class C, class ... Args>
-void invoke_handler(FrontController& fc, prio::Request& req,  prio::Response& res, repro::Future<Entity<R>> (C::*fun)(Args...) )
+void invoke_handler(FrontController& fc, prio::Request& req,  prio::Response& res, repro::Future<json_t<R>> (C::*fun)(Args...) )
 {
 	try
 	{
-		HandlerInvoker<Entity<R>(C,Args...)>::invoke(req,res,fun)
-		.then([&res](Entity<R> r)
+		HandlerInvoker<json_t<R>(C,Args...)>::invoke(req,res,fun)
+		.then([&res](json_t<R> r)
 		{
 			output_json(res,r);
 		})
@@ -354,12 +404,12 @@ void invoke_handler(FrontController& fc, prio::Request& req,  prio::Response& re
 
 #ifdef _RESUMABLE_FUNCTIONS_SUPPORTED
 
-template<class R,class C, class ... Args>
+template<class C, class ... Args>
 Async invoke_coro_handler(FrontController& fc, prio::Request& req,  prio::Response& res, repro::Future<Json::Value> (C::*fun)(Args...) )
 {
 	try
 	{
-		Json::Value r = co_await HandlerInvoker<Entity<R>(C,Args...)>::invoke(req,res,fun);
+		Json::Value r = co_await HandlerInvoker<Json::Value(C,Args...)>::invoke(req,res,fun);
 
 		output_json(res,r);
 	}
@@ -373,11 +423,11 @@ Async invoke_coro_handler(FrontController& fc, prio::Request& req,  prio::Respon
 }
 
 template<class R,class C, class ... Args>
-Async invoke_coro_handler(FrontController& fc, prio::Request& req,  prio::Response& res, repro::Future<Entity<R>> (C::*fun)(Args...) )
+Async invoke_coro_handler(FrontController& fc, prio::Request& req,  prio::Response& res, repro::Future<json_t<R>> (C::*fun)(Args...) )
 {
 	try
 	{
-		Entity<R> r = co_await HandlerInvoker<Entity<R>(C,Args...)>::invoke(req,res,fun);
+		json_t<R> r = co_await HandlerInvoker<json_t<R>(C,Args...)>::invoke(req,res,fun);
 
 		output_json(res,r);
 	}
