@@ -56,9 +56,9 @@ private:
 	std::shared_ptr<UserRepository> userRepository;
 
 
-	static entity<User> scrub(const User& user) 
+	static User scrub(const User& user) 
 	{
-		return entity<User> { User(user.username(),user.login(),"",user.avatar_url()) };
+		return User(user.username(),user.login(),"",user.avatar_url());
 	}
 
 
@@ -75,8 +75,6 @@ public:
 
 	void on_user_not_found_ex(const UserNotFoundEx& ex,Request& req, Response& res)
 	{
-				std::cout << "UNF " << typeid(ex).name() << ":" << ex.what() << std::endl;
-
 		render_error(ex,res.not_found());
 	}		
 
@@ -87,8 +85,6 @@ public:
 
 	void on_login_ex(const LoginEx& ex,Request& req, Response& res)
 	{
-				std::cout << "lgx " << typeid(ex).name() << ":" << ex.what() << std::endl;
-
 		render_error(ex,res.forbidden());
 	}	
 
@@ -104,8 +100,6 @@ public:
 
 	void on_std_ex(const std::exception& ex,Request& req, Response& res)
 	{
-				std::cout << "sex " << typeid(ex).name() << ":" << ex.what() << std::endl;
-
 		render_error(ex,res.error());
 	}
 
@@ -114,8 +108,6 @@ private:
 	template<class E>
 	void render_error(const E& ex, Response& res)
 	{
-		std::cout << typeid(ex).name() << ":" << ex.what() << std::endl;
-
 		Json::Value json = exToJson(ex);
 
 		std::cout << JSON::stringify(json) << std::endl;

@@ -13,6 +13,11 @@ struct entity
 {
 	T value;
 
+	entity() {}
+	entity(T t)
+		: value(std::move(t))
+	{}
+
 	T* operator->()
 	{
 		return &value;

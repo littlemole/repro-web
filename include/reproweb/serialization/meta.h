@@ -284,7 +284,6 @@ public:
         if(getterSetter.getter)
         {
             std::remove_const_t<std::remove_reference_t<M>> m = (from.*getterSetter.getter)();
-
             S::serialize( getterSetter.name, m, to);
         }
         MetaData<T(Args...)>:: template serialize<S>(from,to);
@@ -296,7 +295,6 @@ public:
     {
         if(getterSetter.setter)
         {
-
             std::remove_const_t<std::remove_reference_t<M>> m;
             S::deserialize( getterSetter.name, from, m);
             (to.*getterSetter.setter)(m);
@@ -331,9 +329,7 @@ public:
     {
         if(getterSetter.getter)
         {
-
             std::remove_const_t<std::remove_reference_t<M>> m = (from.*getterSetter.getter)();
-
             S::serialize( getterSetter.name, m, to);
         }
         MetaData<T(Args...)>:: template serialize<S>(from,to);
@@ -345,7 +341,6 @@ public:
     {
         if(getterSetter.setter)
         {
-
             std::remove_const_t<std::remove_reference_t<M>> m;
             S::deserialize( getterSetter.name, from, m);
             (to.*getterSetter.setter)(m);

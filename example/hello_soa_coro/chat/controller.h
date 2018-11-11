@@ -18,67 +18,43 @@ public:
 		: model_(model), view_(view)
 	{}
      
-	Async index( Parameter<Input> params,Request& req, Response& res)
+	Future<std::string> index( Parameter<SessionCookie> params,Request& req)
 	{
-		//std::string sid = Valid::session_id(req.headers.cookies());
-
 		Json::Value viewModel = co_await model_->chat(params->sid);
 
-		view_->render_index(req,res,viewModel); 
-
-		co_return;
+		co_return co_await view_->render_index(req,viewModel); 
 	}
 
-	Async show_login( Request& req, Response& res)
+	Future<std::string> show_login( Request& req, Response& res)
 	{
-		view_->render_login(req,res,"");
-
-		co_return;
+		co_return co_await view_->render_login(req,"");
 	}
 
-	Async show_registration( Request& req, Response& res)
+	Future<std::string> show_registration( Request& req, Response& res)
 	{
-		view_->render_registration(req,res,"");		
-
-		co_return;
+		co_return co_await view_->render_registration(req,"");
 	}
 
-	Async login( Form<Login> form, Request& req, Response& res)
+	Async login( Form<Login> credentials, Response& res)
 	{
-//		QueryParams qp(req.body());
-		//std::string login = Valid::login<LoginEx>(params);
-		//std::string pwd   = Valid::passwd<LoginEx>(params);
-
-		std::string sid = co_await model_->login(form->login(),form->hash());
+		std::string sid = co_await model_->login(*credentials);
 
 		view_->redirect_to_index(res,sid);
 
 		co_return;
 	}
 
-	Async logout( Request& req, Response& res)
+	Async logout( Parameter<SessionCookie> params, Response& res)
 	{
-		std::string sid = Valid::session_id(req.headers.cookies());
-
-		co_await model_->logout(sid);
+		co_await model_->logout(params->sid);
 
 		view_->redirect_to_login(res);
 
 		co_return;
 	}
 
-	Async register_user( Form<User> user, Request& req, Response& res)
+	Async register_user( Form<User> user, Response& res)
 	{
-		/*
-		QueryParams qp(req.body());
-		std::string username   = Valid::username(qp);
-		std::string login      = Valid::login<RegistrationEx>(qp);
-		std::string pwd        = Valid::passwd<RegistrationEx>(qp);
-		std::string avatar_url = Valid::avatar(qp);
-		*/
-
-		//User user(username,login,pwd,avatar_url);
-
 		std::string sid = co_await model_->register_user(*user);
 
 		view_->redirect_to_index(res,sid);
@@ -95,6 +71,16 @@ private:
 
 class Exceptions
 {
+private:
+
+	auto render(prio::Response& res)
+	{
+		return [&res](std::string content)
+		{
+			res.ok().body(content).contentType("text/html").flush();
+		};
+	}
+
 public:
 
 	Exceptions(std::shared_ptr<View> v)
@@ -103,17 +89,17 @@ public:
 
 	void on_auth_ex(const AuthEx& ex, prio::Request& req, prio::Response& res)
 	{
-		view->render_login(req,res,ex.what());
+		view->render_login(req,"").then(render(res));
 	}		
 
 	void on_login_ex(const LoginEx& ex,prio::Request& req, prio::Response& res)
 	{
-		view->render_login(req,res,ex.what());
+		view->render_login(req,ex.what()).then(render(res));
 	}	
 
 	void on_register_ex(const RegistrationEx& ex,prio::Request& req, prio::Response& res)
 	{
-		view->render_registration(req,res,ex.what());
+		view->render_registration(req,ex.what()).then(render(res));
 	}	
 
 	void on_std_ex(const std::exception& ex,prio::Request& req, prio::Response& res)

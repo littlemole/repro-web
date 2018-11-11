@@ -413,9 +413,7 @@ inline void output_xml(prio::Response& res,const std::string& xml)
 template<class T>
 void output_xml(prio::Response& res, T& t)
 {
-	std::cout << "toXml: " << typeid(t).name() << " " << JSON::stringify(toJson(t)) << std::endl;
 	auto doc = toXml(t);
-	std::cout << "toXml: " << doc->toString() << std::endl;
 	output_xml(res, doc->toString() );
 }
 

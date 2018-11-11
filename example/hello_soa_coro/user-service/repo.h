@@ -49,8 +49,6 @@ public:
 	{
 		auto p = promise<User>();
 
-		std::cout << "get_user" << std::endl;
-
 		try
 		{
 			repromysql::result_async::Ptr r = co_await mysql->query(
@@ -58,20 +56,14 @@ public:
 					login
 			);
 
-			std::cout << "get_user q" << std::endl;
-
 			if( r->fetch() )
 			{
-				std::cout << "get_user fetch" << std::endl;
-
 				User result( 
 					r->field(0).getString(), 
 					r->field(1).getString(), 
 					r->field(2).getString(),
 					r->field(3).getString()
 				);
-
-				std::cout << "get_user" << std::endl;
 
 				co_return result;
 			}

@@ -19,30 +19,30 @@ public:
 		version_ = conf->getString("version");
 	}
 
-	void render_index(Request& req, Response& res, Json::Value value)
+	Future<std::string> render_index(Request& req, Json::Value value)
 	{
 		value["page"] = "index";
 		value["version"] = version_;
 
-		render(req,res,"index",value);
+		return render_content(req,"index",value);
 	}
 
-	void render_login(Request& req, Response& res, const std::string& errMsg )
+	Future<std::string> render_login(Request& req,const std::string& errMsg )
 	{
 		Json::Value value = error_msg(get_locale(req),errMsg);
 		value["page"] = "login";
 		value["version"] = version_;
 
-		render(req,res,"login",value);
+		return render_content(req,"login",value);
 	}
 
-	void render_registration(Request& req, Response& res, const std::string& errMsg )
+	Future<std::string> render_registration(Request& req, const std::string& errMsg )
 	{
 		Json::Value value = error_msg(get_locale(req),errMsg);
 		value["page"] = "register";
 		value["version"] = version_;
 
-		render(req,res,"register",value);
+		return render_content(req,"register",value);
 	}	
 
 	void redirect_to_index(Response& res, const std::string& sid)

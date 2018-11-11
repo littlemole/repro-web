@@ -17,12 +17,12 @@ public:
 	{
   		Session session = co_await sessionService->get_user_session(sid);
 		
-		co_return session.profile();
+		co_return toJson(session.profile())["user"];
 	}
 
-	Future<std::string> login( std::string login, std::string pwd )
+	Future<std::string> login( Login login )
 	{
-		User user = co_await userService->login_user(login,pwd);
+		User user = co_await userService->login_user(login);
 
 		Session session = co_await sessionService->write_user_session(user);
 

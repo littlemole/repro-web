@@ -17,7 +17,6 @@ int main(int argc, char **argv)
 		DEL  ( "/session/{sid}",	&Controller::remove_session),
 		POST ( "/session",			&Controller::write_session),
 
-		ex_handler(&Exceptions::on_no_session_ex),
 		ex_handler(&Exceptions::on_std_ex),
 
 		singleton<AppConfig(diy::Context)>(),
@@ -25,9 +24,7 @@ int main(int argc, char **argv)
 
 		singleton<SessionRepository(SessionPool)>(),
 
-		singleton<Controller(SessionRepository)>(),
-
-		singleton<Exceptions()>()
+		singleton<Controller(SessionRepository)>()
 	};	
 
 	std::string cert = inject<AppConfig>(ctx)->getString("cert");

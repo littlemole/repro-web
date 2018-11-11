@@ -12,12 +12,12 @@ class Service
 {
 public:
 
-	template<class E>
-	static Future<Json::Value> get(const std::string& serviceUrl)
+	template<class T, class E>
+	static Future<T> get(const std::string& serviceUrl)
 	{
 		reprocurl::request req( serviceUrl );
 
-		return invoke<E>(req);
+		return invoke<T,E>(req);
 	}
 
 	template<class E>
@@ -32,8 +32,6 @@ public:
 
 		reprocurl::response res = co_await reprocurl::fetch(req);
 
-		std::cout << res.status() << ":" << res.content() << std::endl;
-
 		if(res.status() != 200)
 		{
 			Json::Value json = reproweb::JSON::parse(res.content());
@@ -43,39 +41,34 @@ public:
 		co_return;
 	}	
 
-	template<class E, class T>
-	static Future<Json::Value> post(const std::string& serviceUrl, T& t)
+	template<class R, class E, class T>
+	static Future<R> post(const std::string& serviceUrl, T& t)
 	{
 		reprocurl::request req( serviceUrl );
 
-		std::cout << serviceUrl << ":" << std::endl;
-		std::cout << JSON::flatten(toJson(t))  << std::endl;
-
 		req.data( JSON::flatten(toJson(t))).method("POST");
 
-		return invoke<E>(req);
+		return invoke<R,E>(req);
 	}
 
-	template<class E, class T>
-	static Future<Json::Value> put(const std::string& serviceUrl, T& t)
+	template<class R, class E, class T>
+	static Future<R> put(const std::string& serviceUrl, T& t)
 	{
 		reprocurl::request req( serviceUrl );
 
 		req.data( JSON::flatten(toJson(t))).method("PUT");
 
-		return invoke<E>(req);
+		return invoke<R,E>(req);
 	}
 
 private:
 
-	template<class E>
-	static Future<Json::Value> invoke(reprocurl::request& req)
+	template<class T,class E>
+	static Future<T> invoke(reprocurl::request& req)
 	{
 		req.insecure();//.verbose();
 
 		reprocurl::response res = co_await reprocurl::fetch(req);
-
-		std::cout << res.status() << ":" << res.content() << std::endl;
 
 		Json::Value json = reproweb::JSON::parse(res.content());
 
@@ -84,7 +77,9 @@ private:
 			throw E(json["error"]["msg"].asString());
 		}
 
-		co_return json;
+		T t;
+		fromJson(json,t);
+		co_return t;
 	}
 };
 
@@ -98,19 +93,16 @@ public:
 
 	Future<Session> get_user_session( std::string sid)
 	{
-		Json::Value json = co_await Service::get<AuthEx>( config->sessionService(sid) );
+		User user = co_await Service::get<User,AuthEx>( config->sessionService(sid) );
 
-		co_return Session(sid,json["user"]);
+		co_return Session(sid,user);
 	}
 
 	Future<Session> write_user_session(User user)
 	{
-		Json::Value json = co_await Service::post<AuthEx>( config->sessionService(), user );
+		Session session = co_await Service::post<Session,AuthEx>( config->sessionService(), user );
 
-		co_return Session(
-			json["sid"].asString(),
-			json["profile"]["user"]
-		);
+		co_return session;	
 	}
 
 	Future<> remove_user_session( std::string sid)
@@ -134,27 +126,15 @@ public:
 
 	Future<User> register_user( User user )
 	{
-		Json::Value json = co_await Service::post<RegistrationEx>( config->registrationService(), user );
-
-		User result;
-		fromJson(json,result);
+		User result = co_await Service::post<User,RegistrationEx>( config->registrationService(), user );
 
 		co_return result;
 	}
 
-	Future<User> login_user( const std::string& login, const std::string& pwd )
+	Future<User> login_user( Login login )
 	{
-		Json::Value json(Json::objectValue);
-		Json::Value creds(Json::objectValue);
-		creds["login"] = login;
-		creds["pwd"] = pwd;
-		json["login"] = creds;
-
-		Json::Value value = co_await Service::post<LoginEx>( config->loginService(), json );
-
-		User result;
-		fromJson(value,result);
-
+		User result = co_await Service::post<User,LoginEx>( config->loginService(), login );
+		
 		co_return result;
 	}
 private:

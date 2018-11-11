@@ -59,12 +59,12 @@ public:
 			.then([this,msg](Session session)
 			{
 				// populate result
-				Json::Value profile = session.profile();
+				User profile = session.profile();
 
 				Json::Value result(Json::objectValue);
-				result["uid"]   = profile["username"];
-				result["login"] = profile["login"];
-				result["img"]   = profile["avatar_url"];
+				result["uid"]   = profile.username();
+				result["login"] = profile.login();
+				result["img"]   = profile.avatar_url();
 				result["msg"]   = msg;
 
 				// publish msg to all subscribers

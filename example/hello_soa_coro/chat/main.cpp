@@ -50,7 +50,6 @@ int main(int argc, char **argv)
 		singleton<View(AppConfig,TplStore,I18N)>(),
 		singleton<Controller(Model,View)>(),
 
-		singleton<EventBus()>(),
 		singleton<WebSocketController(SessionService,EventBus)>(),
 
 		singleton<Exceptions(View)>()

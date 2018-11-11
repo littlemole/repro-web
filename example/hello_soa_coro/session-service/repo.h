@@ -25,14 +25,19 @@ public:
 		reply =	co_await redis->cmd("EXPIRE", sid, 180);
 
 		Json::Value json = reproweb::JSON::parse(payload);
-		co_return Session(sid,json);
+		User user;
+		fromJson(json,user);
+
+		co_return Session(sid,user);
 	}
 
 	Future<Session> write_user_session(User user)
 	{
-		Session session(toJson(user));
+		Session session(user);
 
-		reproredis::RedisResult::Ptr reply = co_await redis->cmd("SET", session.sid(), session.profile());
+		Json::Value json = toJson(session.profile());
+
+		reproredis::RedisResult::Ptr reply = co_await redis->cmd("SET", session.sid(), JSON::flatten(json));
 
 		reply = co_await redis->cmd("EXPIRE", session.sid(), 180);
 

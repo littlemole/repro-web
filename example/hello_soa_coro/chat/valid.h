@@ -11,7 +11,7 @@ using namespace prio;
 MAKE_REPRO_EX(AuthEx)
 MAKE_REPRO_EX(LoginEx)
 MAKE_REPRO_EX(RegistrationEx)
-
+/*
 class Valid
 {
 public:
@@ -89,5 +89,5 @@ public:
 	}    
 };
 
-
+*/
 #endif

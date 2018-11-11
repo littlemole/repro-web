@@ -2,8 +2,6 @@
 #define INCLUDE_PROMISE_WEB_CONTROLLER_XXX_PARAMETER_H_
 
 #include "reproweb/ctrl/front_controller.h"
-//#include "diycpp/ctx.h"
-//#include "reproweb/tools/serializer.h"
 #include <priohttp/response.h>
 #include "priohttp/multipart.h"
 #include "reproweb/traits.h"
@@ -235,7 +233,7 @@ void invoke_handler(FrontController& fc, prio::Request& req,  prio::Response& re
 		{
 			if(res.headers.content_type().empty())
 			{
-				res.contentType("test/html");
+				res.contentType("text/html");
 			}
 			res.body(r).ok().flush();
 		})
@@ -263,7 +261,7 @@ Async invoke_coro_handler(FrontController& fc, prio::Request& req,  prio::Respon
 
 		if(res.headers.content_type().empty())
 		{
-			res.contentType("test/html");
+			res.contentType("text/html");
 		}
 		res.body(r).ok().flush();
 	}

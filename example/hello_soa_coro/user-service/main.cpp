@@ -32,13 +32,10 @@ int main(int argc, char **argv)
 		ex_handler(&Exceptions::on_register_ex),
 		ex_handler(&Exceptions::on_std_ex),
 
-		singleton<AppConfig()>(),
 		singleton<UserPool(AppConfig)>(),
 		singleton<UserRepository(UserPool)>(),
 
-		singleton<Controller(UserRepository)>(),
-
-		singleton<Exceptions()>()
+		singleton<Controller(UserRepository)>()
 	};	
 
 	std::string cert = diy::inject<AppConfig>(ctx)->getString("cert");

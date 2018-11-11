@@ -8,7 +8,7 @@
 #include "reproweb/serialization/web.h"
 #include "valid.h"
 
-class Input
+class SessionCookie
 {
 public:
 
@@ -17,7 +17,7 @@ public:
 	auto meta() const
 	{
 		return metadata(
-			"repro_web_sid", 		&Input::sid
+			"repro_web_sid", 		&SessionCookie::sid
 		);
 	}	
 
@@ -150,20 +150,29 @@ public:
 	Session()
 	{}
 
-	Session(Json::Value profile) 
+	Session(User profile) 
 		:sid_(make_session_id()), profile_(profile)
 	{}
 
-	Session(const std::string& sid,Json::Value profile) 
+	Session(const std::string& sid,User profile) 
 		:sid_(sid), profile_(profile)
 	{}
 
 	std::string sid() const  { return sid_; }
-	Json::Value profile() const     { return profile_; }
+	User profile() const     { return profile_; }
+
+
+	auto meta() const
+	{
+		return metadata(
+			"sid", 		&Session::sid_,
+			"profile", 	&Session::profile_
+		);
+	}	
 
 private:
 	std::string sid_;
-	Json::Value profile_;	
+	User profile_;	
 
 	static std::string make_session_id()
 	{
