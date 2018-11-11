@@ -70,7 +70,7 @@ inline bool wantXml(prio::Request& req,  prio::Response& res)
     if ( res.headers.content_type() == "application/xml")
         return true;
 
-    if( req.headers.accept() == "applicaton/xml")
+    if( req.headers.accept() == "application/xml")
         return true;
 
     return false;
@@ -81,12 +81,12 @@ void output_conneq(prio::Request& req,  prio::Response& res,T& t)
 {
     if(wantXml(req,res))
     {
-        res.contentType("applicaton/xml");
+        res.contentType("application/xml");
         output_xml(res,t);
     }
     else
     {
-        res.contentType("applicaton/json");
+        res.contentType("application/json");
         output_json(res,t);
     }
 }

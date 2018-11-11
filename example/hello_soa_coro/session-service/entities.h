@@ -74,7 +74,7 @@ public:
 			"login", 		&User::login_,
 			"username", 	&User::name_,
 			"avatar_url", 	&User::avatar_url_
-		);
+		)["user"];
 	}
 	
 private:

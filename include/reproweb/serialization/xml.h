@@ -55,7 +55,10 @@ void toXml( const std::vector<T>& from, xml::ElementPtr to);
 inline void toXml( const std::string& from, xml::ElementPtr to)
 {
 	xml::TextPtr txt = to->ownerDocument()->createTextNode(from);
-	to->appendChild(txt);
+	if(txt)
+	{
+		to->appendChild(txt);
+	}
 }
 
 inline void toXml( const int& from, xml::ElementPtr to)
@@ -77,29 +80,45 @@ inline void toXml( const prio::HeaderValues& from, xml::ElementPtr to)
 
 inline void toXml( const char* n,  std::string from, xml::ElementPtr to)
 {
+	if(!n) return;
+
 	xml::ElementPtr el = to->ownerDocument()->createElement(n);
-	to->appendChild(el);
+	if(el)
+	{
+		to->appendChild(el);
+	}
 	if(!from.empty())
 	{
 		xml::TextPtr txt = to->ownerDocument()->createTextNode(from);
-		el->appendChild(txt);
+		if(txt)
+		{
+			el->appendChild(txt);
+		}
 	}
 }
 
 inline void toXml( const char* n,  int from, xml::ElementPtr to)
 {
+	if(!n) return;
+
 	std::ostringstream oss;
 	oss << from;
 
 	std::string tmp = oss.str();
 
 	xml::ElementPtr el = to->ownerDocument()->createElement(n);
-	to->appendChild(el);
+	if(el)
+	{
+		to->appendChild(el);
+	}
 
 	if(!tmp.empty())
 	{
 		xml::TextPtr txt = to->ownerDocument()->createTextNode(oss.str());
-		el->appendChild(txt);
+		if(txt)
+		{
+			el->appendChild(txt);
+		}
 	}
 }
 
@@ -394,7 +413,9 @@ inline void output_xml(prio::Response& res,const std::string& xml)
 template<class T>
 void output_xml(prio::Response& res, T& t)
 {
+	std::cout << "toXml: " << typeid(t).name() << " " << JSON::stringify(toJson(t)) << std::endl;
 	auto doc = toXml(t);
+	std::cout << "toXml: " << doc->toString() << std::endl;
 	output_xml(res, doc->toString() );
 }
 

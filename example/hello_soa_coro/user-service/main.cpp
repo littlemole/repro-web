@@ -15,10 +15,10 @@ int main(int argc, char **argv)
 {
 	prio::Libraries<
 		repromysql::MySQL,
-		prio::EventLoop, 
+		prio::EventLoop,
 		cryptoneat::SSLUser> 
 	init;
-
+ 
 	WebApplicationContext ctx {
 
 		GET  ( "/user/{email}",		&Controller::get_user),
@@ -33,10 +33,10 @@ int main(int argc, char **argv)
 		ex_handler(&Exceptions::on_std_ex),
 
 		singleton<AppConfig()>(),
-		singleton<UserMysqlPool(AppConfig)>(),
-		singleton<UserMysqlRepository(UserMysqlPool)>(),
+		singleton<UserPool(AppConfig)>(),
+		singleton<UserRepository(UserPool)>(),
 
-		singleton<Controller(UserMysqlRepository)>(),
+		singleton<Controller(UserRepository)>(),
 
 		singleton<Exceptions()>()
 	};	

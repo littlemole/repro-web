@@ -81,8 +81,7 @@ Element* XMLParser::parse( DocumentPtr d, Element* root, const std::string& inpu
 	parent_ = root;
 	if ( !Expat::parse( input.c_str(), (int)(input.size()) ) )
 	{
-
-		return 0;
+		throw DOMException();
 	}		
 	return root;
 }
@@ -232,7 +231,7 @@ NodePtr Document::createNode( Node::NodeType t, NodePtr parent, const std::strin
 {
     if ( (name.size() == 0) && (value.size() == 0) )
 	{
-        return NodePtr();
+        throw DOMException();
 	}
 	return NodePtr(new Node( shared_from_this(), parent, t, name, value));
 }
@@ -241,7 +240,7 @@ ElementPtr Document::createElement( const std::string& name)
 {
     if ( name.size() == 0 )
 	{
-        return ElementPtr();
+        throw DOMException();
 	}
 	return ElementPtr(new Element( shared_from_this(), name ));
 }
@@ -250,7 +249,7 @@ ElementPtr Document::createElementNS( const std::string& name, const std::string
 {
     if ( name.size() == 0 )
 	{
-        return ElementPtr();
+        throw DOMException();
 	}
 
 	ElementPtr e = ElementPtr(new Element( shared_from_this(), name ));
@@ -260,11 +259,12 @@ ElementPtr Document::createElementNS( const std::string& name, const std::string
 
 TextPtr Document::createTextNode( const std::string& value)
 {
+	/*
     if ( value.size() == 0 )
 	{
         return TextPtr();
 	}
-
+*/
 	return TextPtr(new Text( shared_from_this(), value ));
 }
 

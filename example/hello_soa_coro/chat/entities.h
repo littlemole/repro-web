@@ -58,7 +58,7 @@ public:
 		return metadata(
 			"login", 		&Login::login_,
 			"pwd", 			&Login::hash_
-		);
+		)["login"];
 	}	
 
 	void validate()
@@ -109,7 +109,7 @@ public:
 			"login", 		&User::login_,
 			"pwd", 			&User::hash_,
 			"avatar_url", 	&User::avatar_url_
-		);
+		)["user"];
 	}	
 
 	void validate()

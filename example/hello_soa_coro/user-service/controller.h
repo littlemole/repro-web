@@ -3,9 +3,7 @@
 
 #include "repo.h"
 #include "cryptoneat/cryptoneat.h"
-#include <reproweb/serialization/web.h>
-#include <reproweb/serialization/json.h>
-//#include <reproweb/serialization/conneq.h>
+#include "reproweb/serialization/conneq.h"
 
 using namespace reproweb;
 
@@ -13,74 +11,57 @@ class Controller
 {
 public:
 
-	Controller( std::shared_ptr<UserMysqlRepository> repo)
+	Controller( std::shared_ptr<UserRepository> repo)
 		: userRepository(repo)
 	{}
 
-	async_json_t<User> get_user( Request& req, Response& res)
+	async_t<User> get_user( Parameter<Email> email, Request& req, Response& res)
 	{
-		std::string email = Valid::login(req.path.args().get("email"));
+		User user = co_await userRepository->get_user(email->value);
 
-		auto p = json_promise<User>();
-
-		userRepository->get_user(email)
-		.then([p](User user)
-		{
-			p.resolve( scrub(user) );
-		})
-		.otherwise(reject(p));		
-
-		return p.future();
+		co_return scrub(user);
 	}
 
-	async_json_t<User> login_user( json_t<Login> login, Request& req, Response& res)
+	async_t<User> login_user( entity<Login> login, Request& req, Response& res)
 	{
-		auto p = json_promise<User>();
-
-		std::cout << JSON::stringify(toJson(login.value)) << std::endl;
-
-		userRepository->get_user(login.value.login())
-		.then([p,login](User user)
+		try 
 		{
-
-			std::cout << JSON::stringify(toJson(user)) << std::endl;
+			User user = co_await userRepository->get_user(login->login());
 
 			cryptoneat::Password pass;
-			bool verified = pass.verify(login.value.hash(), user.hash() );
+			bool verified = pass.verify(login->hash(), user.hash() );
 
 			if(!verified) 
 			{
 				throw LoginEx("error.msg.login.failed");
 			}
 
-			p.resolve( scrub(user) );
-		})
-		.otherwise(reject(p));	
-		
-		return p.future();
-	}
-	
-	async_json_t<User> register_user( json_t<User> user, Request& req, Response& res)
-	{
-		auto p = json_promise<User>();
-
-		userRepository->register_user(user.value)
-		.then([p,user]()
+			co_return scrub(user);
+		}
+		catch(const std::exception& ex)
 		{
-			p.resolve(scrub(user.value));
-		})
-		.otherwise(reject(p));
+			std::cout << ex.what() << std::endl;
+			throw;
+		}
+	}
 
-		return p.future();
+	async_t<User> register_user( entity<User> user, Request& req, Response& res)
+	{
+		co_await userRepository->register_user(*user);
+
+		co_return scrub(*user);
 	}
 
 private:
-	std::shared_ptr<UserMysqlRepository> userRepository;
+	std::shared_ptr<UserRepository> userRepository;
 
-	static json_t<User> scrub(const User& user) 
+
+	static entity<User> scrub(const User& user) 
 	{
-		return json_t<User> { User(user.username(),user.login(),"",user.avatar_url()) };
+		return entity<User> { User(user.username(),user.login(),"",user.avatar_url()) };
 	}
+
+
 };
 
 
@@ -94,6 +75,8 @@ public:
 
 	void on_user_not_found_ex(const UserNotFoundEx& ex,Request& req, Response& res)
 	{
+				std::cout << "UNF " << typeid(ex).name() << ":" << ex.what() << std::endl;
+
 		render_error(ex,res.not_found());
 	}		
 
@@ -104,6 +87,8 @@ public:
 
 	void on_login_ex(const LoginEx& ex,Request& req, Response& res)
 	{
+				std::cout << "lgx " << typeid(ex).name() << ":" << ex.what() << std::endl;
+
 		render_error(ex,res.forbidden());
 	}	
 
@@ -119,6 +104,8 @@ public:
 
 	void on_std_ex(const std::exception& ex,Request& req, Response& res)
 	{
+				std::cout << "sex " << typeid(ex).name() << ":" << ex.what() << std::endl;
+
 		render_error(ex,res.error());
 	}
 
@@ -131,9 +118,12 @@ private:
 
 		Json::Value json = exToJson(ex);
 
+		std::cout << JSON::stringify(json) << std::endl;
+
 		res
 		.body(JSON::flatten(json))
 		.contentType("application/json")
+		.error()
 		.flush();
 	}
 };

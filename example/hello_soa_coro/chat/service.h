@@ -100,7 +100,7 @@ public:
 	{
 		Json::Value json = co_await Service::get<AuthEx>( config->sessionService(sid) );
 
-		co_return Session(sid,json);
+		co_return Session(sid,json["user"]);
 	}
 
 	Future<Session> write_user_session(User user)
@@ -109,7 +109,7 @@ public:
 
 		co_return Session(
 			json["sid"].asString(),
-			json["profile"]
+			json["profile"]["user"]
 		);
 	}
 
@@ -145,15 +145,17 @@ public:
 	Future<User> login_user( const std::string& login, const std::string& pwd )
 	{
 		Json::Value json(Json::objectValue);
-		json["login"] = login;
-		json["pwd"] = pwd;
+		Json::Value creds(Json::objectValue);
+		creds["login"] = login;
+		creds["pwd"] = pwd;
+		json["login"] = creds;
 
 		Json::Value value = co_await Service::post<LoginEx>( config->loginService(), json );
 
-		User user;
-		fromJson(value,user);
+		User result;
+		fromJson(value,result);
 
-		co_return user;
+		co_return result;
 	}
 private:
 

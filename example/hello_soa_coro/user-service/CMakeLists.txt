@@ -29,7 +29,6 @@ set(LINKERFLAGS "")
 set(STDLIB "")
 set(FLAGS "")
 
-set(VERSION "$ENV{VERSION}")
 
 if ("${CMAKE_CXX_COMPILER_ID}" STREQUAL "Clang")
     set(STDLIB "c++abi")
@@ -43,15 +42,13 @@ endif()
 
 IF (WIN32)
 
-	if(NOT CMAKE_BUILD_TYPE)
-	  set(CMAKE_BUILD_TYPE "Debug" CACHE STRING "Choose the type of build, options are: Debug Release RelWithDebInfo MinSizeRel." FORCE)
-	endif()
+if(NOT CMAKE_BUILD_TYPE)
+  set(CMAKE_BUILD_TYPE "Debug" CACHE STRING "Choose the type of build, options are: Debug Release RelWithDebInfo MinSizeRel." FORCE)
+endif()
 
-	set(VERSION "${CMAKE_CXX_COMPILER_ID}_${CMAKE_BUILD_TYPE}")
-
-	message("+++++++++++++++++")
-	message("${CMAKE_BUILD_TYPE}")
-	message("+++++++++++++++++")
+message("+++++++++++++++++")
+message("${CMAKE_BUILD_TYPE}")
+message("+++++++++++++++++")
 
 	set(OSLIBS "Ws2_32" "Rpcrt4" "Shlwapi")
 	set(BUILDFLAGS "-await ${FLAGS}")
@@ -71,7 +68,8 @@ IF (WIN32)
 		find_library(CRYPTONEAT_LIBRARY NAMES cryptoneat)
 		find_library(JSONCPP_LIBRARY NAMES jsoncpp)
 		find_library(CURL_LIBRARY NAMES libcurl)
-		find_library(ZLIB_LIBRARY NAMES zlib.lib)
+		find_library(CURL_LIBRARY NAMES libcurl)
+		find_library(EXPAT_LIBRARY NAMES expat.lib)
 		find_library(REPROCURL_LIBRARY NAMES reprocurl)
 		find_library(REPROWEB_LIBRARY NAMES reproweb)
 		find_library(REPROMYSQL_LIBRARY NAMES repromysql)
@@ -87,11 +85,14 @@ IF (WIN32)
 			${NG2HTTP_LIBRARY} 
 			${JSONCPP_LIBRARY} 
 			${CURL_LIBRARY} 
+			${EXPAT_LIBRARY} 
 			${ZLIB_LIBRARY}
 			${MYSQL_LIBRARY}
 			${LIBS} 
 		)
     else()
+    	find_library(PRIOCPP_LIBRARY NAMES priocpp.lib)
+    	find_library(PRIOCPPD_LIBRARY NAMES priocppd.lib)
 
 		find_library(PRIOCPP_LIBRARY NAMES priocpp)
 		find_library(PRIOCPPD_LIBRARY NAMES priocppd)
@@ -112,6 +113,7 @@ IF (WIN32)
 		find_library(REPROMYSQL_LIBRARY NAMES repromysql)
 		find_library(REPROMYSQLD_LIBRARY NAMES repromysqld)
 		find_library(MYSQL_LIBRARY NAMES libmysql)
+		find_library(EXPAT_LIBRARY NAMES expat.lib)
 
 
 		set(LIBS  
@@ -125,6 +127,7 @@ IF (WIN32)
 			${NG2HTTP_LIBRARY}
 			${JSONCPP_LIBRARY} 
 			${CURL_LIBRARY} 
+			${EXPAT_LIBRARY} 
 			${MYSQL_LIBRARY}
 			debug ${ZLIBD_LIBRARY} optimized ${ZLIB_LIBRARY}
 			${LIBS}
@@ -138,6 +141,7 @@ IF (WIN32)
 
     find_package(PkgConfig)
     pkg_check_modules(CURL REQUIRED libcurl)
+    pkg_check_modules(EXPAT REQUIRED expat)
     pkg_check_modules(NGHTTP2 REQUIRED libnghttp2)
     pkg_check_modules(PRIOCPP REQUIRED priocpp)
     pkg_check_modules(PRIOHTTP REQUIRED priohttp)
@@ -160,7 +164,7 @@ IF (WIN32)
 		debug repromysqld optimized repromysql
 		debug priocppd optimized priocpp 
 		debug cryptoneatd optimized cryptoneat 
-		${GTEST_LIBRARIES} ${OPENSSL_LIBRARIES} ${NGHTTP2_LIBRARIES} ${CURL_LIBRARIES} ${JSONCPP_LIBRARIES} ${MYSQL_LIBRARIES} ${STDLIB} z
+		${GTEST_LIBRARIES} ${OPENSSL_LIBRARIES} ${NGHTTP2_LIBRARIES} ${CURL_LIBRARIES} ${EXPAT_LIBRARIES} ${JSONCPP_LIBRARIES} ${MYSQL_LIBRARIES} ${STDLIB} z
 	)
 
 
@@ -177,7 +181,7 @@ message("+++++++++++++++++")
 
 set(CMAKE_EXE_LINKER_FLAGS  "${CMAKE_EXE_LINKER_FLAGS} ${LINKERFLAGS}" )
 set(CMAKE_CXX_FLAGS_DEBUG  	"${CMAKE_CXX_FLAGS_DEBUG} -DMOL_PROMISE_DEBUG")
-set(CMAKE_CXX_FLAGS  		"${CMAKE_CXX_FLAGS} ${BUILDFLAGS} -DVERSION=${VERSION}")
+set(CMAKE_CXX_FLAGS  		"${CMAKE_CXX_FLAGS} ${BUILDFLAGS}")
 
 
 ############################################
@@ -218,6 +222,7 @@ file(GLOB SOURCES "./*.cpp")
 
 file(COPY pem DESTINATION .)
 file(COPY config.json DESTINATION .)
+
 
 
 ############################################

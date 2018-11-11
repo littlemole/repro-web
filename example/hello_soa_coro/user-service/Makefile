@@ -1,4 +1,4 @@
-CXX = g++
+CXX = clang++
 BACKEND=libevent
 BUILDCHAIN = make
 
@@ -12,7 +12,7 @@ release : override DEBUG = -O3
 
 LIBEVENT=$(shell pkg-config libevent_pthreads --libs)
 PKG_INC=$(shell pkg-config cryptoneat reprocpp mysqlclient --cflags)
-PKG_LIB=$(shell pkg-config jsoncpp cryptoneat libnghttp2 zlib libcurl --libs)
+PKG_LIB=$(shell pkg-config jsoncpp cryptoneat libnghttp2 zlib libcurl expat --libs)
 
 # if not g++ we assume clang++
 DEFAULT_LIBS = -stdlib=libc++ -fcoroutines-ts  -lc++abi -std=c++14 

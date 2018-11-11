@@ -1,7 +1,0 @@
-{
-    "mysql"  : "mysql://userservice:serviceuser@mysql/userservice",
-    "sqlite" : "./user.db",
-    "cert"   : "pem/server.pem"
-}
-
- 

@@ -1,13 +1,11 @@
 #ifndef _DEF_GUARD_DEFINE_REPROWEB_HELLO_WORLD_MODEL_ENTITIES_DEFINE_
 #define _DEF_GUARD_DEFINE_REPROWEB_HELLO_WORLD_MODEL_ENTITIES_DEFINE_
 
-#include "reproweb/json/json.h"
 #include "reproweb/tools/config.h"
+#include "reproweb/json/json.h"
+#include "reproweb/serialization/json.h"
+#include "reproweb/serialization/web.h"
 #include "reproweb/tools/validation.h"
-#include <reproweb/ctrl/controller.h>
-#include <reproweb/serialization/json.h>
-#include <reproweb/serialization/xml.h>
-#include <reproweb/serialization/web.h>
 
 using namespace reproweb;
 using namespace repro;
@@ -19,6 +17,7 @@ MAKE_REPRO_EX(UserNotFoundEx)
 MAKE_REPRO_EX(LoginEx)
 MAKE_REPRO_EX(LoginAlreadyTakenEx)
 MAKE_REPRO_EX(RegistrationEx)
+
 
 
 class Valid 
@@ -64,6 +63,26 @@ public:
    
 };
 
+class Email
+{
+public:
+
+	std::string value;
+
+	auto meta() const
+	{
+		return metadata(
+			"email", 		&Email::value
+		);
+	}	
+
+	void validate()
+	{
+		Valid::login(value);
+	}
+};
+
+
 class Login
 {
 public:
@@ -87,14 +106,13 @@ public:
 		Valid::passwd(hash_);
 	}
 
-	auto meta () const
+	auto meta() const
 	{
-		return metadata (
-			"login",&Login::login_,
-			"pwd", &Login::hash_
-		);
+		return metadata(
+			"login", 		&Login::login_,
+			"pwd", 			&Login::hash_
+		)["login"];
 	}
-
 	
 protected:
 	std::string login_;	
@@ -129,20 +147,21 @@ public:
 		Valid::avatar(avatar_url_);
 	}
 
-	auto meta () const
+	auto meta() const
 	{
-		return metadata (
-			"username", &User::name_,
-			"login",&User::login_,
-			"pwd", &User::hash_,
-			"avatar_url", &User::avatar_url_
-		);
+		return metadata(
+			"username", 	&User::name_,
+			"login", 		&User::login_,
+			"pwd", 			&User::hash_,
+			"avatar_url", 	&User::avatar_url_
+		)["user"];
 	}
-
+	
 private:
 	std::string name_;	
 	std::string avatar_url_;	
 };
+
 
 
 class AppConfig : public reproweb::Config
