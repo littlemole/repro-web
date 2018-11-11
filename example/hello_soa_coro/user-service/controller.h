@@ -32,39 +32,6 @@ public:
 
 		return p.future();
 	}
-/*
-	void login_user( Request& req, Response& res)
-	{
-		//auto p = json_promise<User>();
-
-		Login login;
-		fromJson( JSON::parse(req.body()), login);
-
-		std::cout << JSON::stringify(toJson(login)) << std::endl;
-
-		userRepository->get_user(login.login())
-		.then([&res,login](User user)
-		{
-
-			std::cout << JSON::stringify(toJson(user)) << std::endl;
-
-			cryptoneat::Password pass;
-			bool verified = pass.verify(login.hash(), user.hash() );
-
-			if(!verified) 
-			{
-				throw LoginEx("error.msg.login.failed");
-			}
-
-			res.body(JSON::flatten(toJson(user))).ok().flush();
-		})
-		.otherwise( [&res](const std::exception& ex)
-		{
-			res.body(ex.what()).error().flush();
-		});	
-		
-	}
-*/
 
 	async_json_t<User> login_user( json_t<Login> login, Request& req, Response& res)
 	{
