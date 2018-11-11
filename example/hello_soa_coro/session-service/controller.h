@@ -14,21 +14,21 @@ public:
 		: sessionRepository(repo)
 	{}
 
-	Future<Json::Value> get_session( Parameter<SessionId> params, Request& req, Response& res)
+	Future<Json::Value> get_session( Parameter<SessionId> params )
 	{
 		Session session = co_await sessionRepository->get_user_session(params->sid);
 
 		co_return toJson(session.profile());
 	}
 
-	Future<Json::Value> write_session( json_t<User> user, Request& req, Response& res)
+	Future<Json::Value> write_session( json_t<User> user)
 	{
 		Session session = co_await sessionRepository->write_user_session(*user);
 
 		co_return toJson(session);
 	}	
 
-	reproweb::Async remove_session( Parameter<SessionId> params,Request& req, Response& res)
+	reproweb::Async remove_session( Parameter<SessionId> params, Response& res)
 	{
 		co_await sessionRepository->remove_user_session(params->sid);
 

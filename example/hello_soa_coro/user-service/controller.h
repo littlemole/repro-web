@@ -15,14 +15,14 @@ public:
 		: userRepository(repo)
 	{}
 
-	async_t<User> get_user( Parameter<Email> email, Request& req, Response& res)
+	async_t<User> get_user( Parameter<Email> email )
 	{
 		User user = co_await userRepository->get_user(email->value);
 
 		co_return scrub(user);
 	}
 
-	async_t<User> login_user( entity<Login> login, Request& req, Response& res)
+	async_t<User> login_user( entity<Login> login )
 	{
 		try 
 		{
@@ -45,7 +45,7 @@ public:
 		}
 	}
 
-	async_t<User> register_user( entity<User> user, Request& req, Response& res)
+	async_t<User> register_user( entity<User> user )
 	{
 		co_await userRepository->register_user(*user);
 
@@ -53,15 +53,13 @@ public:
 	}
 
 private:
-	std::shared_ptr<UserRepository> userRepository;
 
+	std::shared_ptr<UserRepository> userRepository;
 
 	static User scrub(const User& user) 
 	{
 		return User(user.username(),user.login(),"",user.avatar_url());
 	}
-
-
 };
 
 

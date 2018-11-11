@@ -70,15 +70,14 @@ private:
 
 		reprocurl::response res = co_await reprocurl::fetch(req);
 
-		Json::Value json = reproweb::JSON::parse(res.content());
-
 		if(res.status() != 200)
 		{
+			Json::Value json = reproweb::JSON::parse(res.content());
 			throw E(json["error"]["msg"].asString());
 		}
 
 		T t;
-		fromJson(json,t);
+		fromJson(res.content(),t);
 		co_return t;
 	}
 };

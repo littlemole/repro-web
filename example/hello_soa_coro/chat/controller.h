@@ -24,12 +24,12 @@ public:
 		co_return co_await view_->render_index(req,session["user"]); 
 	}
 
-	Future<std::string> show_login( Request& req, Response& res)
+	Future<std::string> show_login( Request& req)
 	{
 		co_return co_await view_->render_login(req,"");
 	}
 
-	Future<std::string> show_registration( Request& req, Response& res)
+	Future<std::string> show_registration( Request& req)
 	{
 		co_return co_await view_->render_registration(req,"");
 	}
@@ -72,7 +72,7 @@ class Exceptions
 {
 private:
 
-	auto render(prio::Response& res)
+	auto flush(prio::Response& res)
 	{
 		return [&res](std::string content)
 		{
@@ -88,17 +88,17 @@ public:
 
 	void on_auth_ex(const AuthEx& ex, prio::Request& req, prio::Response& res)
 	{
-		view->render_login(req,"").then(render(res));
+		view->render_login(req,"").then(flush(res));
 	}		
 
 	void on_login_ex(const LoginEx& ex,prio::Request& req, prio::Response& res)
 	{
-		view->render_login(req,ex.what()).then(render(res));
+		view->render_login(req,ex.what()).then(flush(res));
 	}	
 
 	void on_register_ex(const RegistrationEx& ex,prio::Request& req, prio::Response& res)
 	{
-		view->render_registration(req,ex.what()).then(render(res));
+		view->render_registration(req,ex.what()).then(flush(res));
 	}	
 
 	void on_std_ex(const std::exception& ex,prio::Request& req, prio::Response& res)
