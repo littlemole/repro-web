@@ -305,13 +305,7 @@ class HandlerParam<json_t<T>>
 public:
 
 	static json_t<T> get(prio::Request& req,  prio::Response& res)
-	{
-		/*
-		std::cout << "----------------------" << std::endl;
-		std::cout << req.body() << std::endl;
-		std::cout << "----------------------" << std::endl;
-		*/
-	
+	{	
 		Json::Value json = JSON::parse(req.body());
 
 		json_t<T> t;

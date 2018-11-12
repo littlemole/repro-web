@@ -16,7 +16,6 @@ class FilterChain;
 class HandlerInfo;
 class HttpFilterInfo;
 
-//extern FrontController& frontController();
 
 typedef std::function<void(
 	prio::Request& req,

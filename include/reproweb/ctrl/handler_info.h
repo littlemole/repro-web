@@ -85,14 +85,11 @@ public:
 
 	virtual bool match(const std::exception& ex)
 	{
-		//std::cout << "ex handler match " << typeid(E).name() << " =?= " << typeid(ex).name() << std::endl;
-
 		return typeid(ex) == typeid(E);
 	}
 
 	virtual bool isa(const std::exception& ex)
 	{
-		//std::cout << "ex handler isa  " << typeid(E).name() << " =?= " << typeid(ex).name() << std::endl;
 		return dynamic_cast<const E*>(&ex) != nullptr;
 	}
 
