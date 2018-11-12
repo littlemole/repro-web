@@ -106,7 +106,9 @@ public:
 
 	Future<> remove_user_session( std::string sid)
 	{
-		return Service::remove<AuthEx>( config->sessionService(sid) );
+		co_await Service::remove<AuthEx>( config->sessionService(sid) );
+		
+		co_return;
 	}
 
 private:
