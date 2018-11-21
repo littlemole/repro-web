@@ -1,6 +1,6 @@
 {
-    "user-service" : "https://localhost:9877",
-    "session-service" : "https://localhost:9878",
+    "user-service" : "https://127.0.0.1:9877",
+    "session-service" : "https://127.0.0.1:9878",
     "cert"   : "pem/server.pem",
     "view"   : "/view/",
     "htdocs" : "/htdocs/",

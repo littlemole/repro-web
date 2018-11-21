@@ -183,13 +183,6 @@ void Document::standalone(bool b)
 }
 
 
-XMLParser Document::getParser()
-{
-	 XMLParser parser;
-	return parser;
-}
-
-
 ElementPtr  Document::documentElement()
 {
     return root_;
@@ -218,12 +211,14 @@ std::string Document::toString()
 Element* Document::parse( const std::string& src )
 {
     clear();
-    return getParser().parse(shared_from_this(),src);
+	XMLParser p;
+    return p.parse(shared_from_this(),src);
 }
 
 Element* Document::parse( Element* root, const std::string& src )
 {
-    return getParser().parse(shared_from_this(),root,src);
+	XMLParser p;
+    return p.parse(shared_from_this(),root,src);
 }
 
 

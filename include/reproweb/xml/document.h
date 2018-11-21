@@ -65,8 +65,6 @@ protected:
 	void clear( ElementPtr el);
     ElementPtr						root_;
 
-	XMLParser getParser();
-
 	std::string version_;
 	std::string encoding_;
 	bool standalone_;

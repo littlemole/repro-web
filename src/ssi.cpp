@@ -118,6 +118,53 @@ std::string SSIResolver::tmpl(Request& req, const std::string& htdocs)
 
 bool SSIResolver::match(const std::string& tmpl)
 {
+	static std::regex r("<!--#include +virtual=(?:[\"'])([^\"']+)(?:[\"']) *-->");
+
+	std::size_t start = 0;
+	std::size_t startpos = 0;
+	std::size_t endpos = std::string::npos;
+
+	startpos = tmpl.find("<!--#include");
+
+	while (startpos != std::string::npos)
+	{
+		endpos = tmpl.find("-->", startpos + 12);
+		if (endpos == std::string::npos)
+		{
+			return false;
+		}
+
+		std::string ssi = tmpl.substr(startpos, endpos-startpos + 3);
+		std::smatch m;
+		if (!std::regex_search(ssi, m, r))
+		{
+			return false;
+		}
+
+		if (m.size() < 2)
+		{
+			return false;
+		}
+
+		parts_.push_back(tmpl.substr(start, startpos-start));
+		includes_.push_back(m[1]);
+		start = endpos + 3;
+		startpos = tmpl.find("<!--#include",start);
+	}
+
+	parts_.push_back(tmpl.substr(start));
+
+	if (parts_.size() - 1 == includes_.size())
+	{
+		return true;
+	}
+
+	return false;
+}
+
+/*
+bool SSIResolver::match(const std::string& tmpl)
+{
     std::regex r("<!--#include +virtual=(?:[\"'])([^\"']+)(?:[\"']) *-->");
     std::smatch match;
 
@@ -144,7 +191,7 @@ bool SSIResolver::match(const std::string& tmpl)
             
     return false;
 }
-
+*/
 
 ssi_content::ssi_content(const std::string& htdocs_path,const std::string& filter)
 	: htdocs_(htdocs_path), filter_(filter)
