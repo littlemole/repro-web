@@ -265,20 +265,23 @@ public:
 	}
    
  
-	repro::Future<json_t<Input>> getParams( Parameter<Input> params)//, prio::Request& req, prio::Response& res)
+	repro::Future<std::string> getParams( Parameter<Input> params)//, prio::Request& req, prio::Response& res)
 	{
-		auto p = promise<json_t<Input>>();
+		auto p = promise<std::string>();
 
-		std::cout << "======================================" << std::endl;
-		std::cout << params->cookie.str() << std::endl;
-		std::cout << params->sid << std::endl;
-		std::cout << params->filter << std::endl;
-		std::cout << params->id << std::endl;
-		std::cout << "======================================" << std::endl;
+		std::ostringstream oss;
+		oss << "======================================" << std::endl;
+		oss << params->cookie.str() << std::endl;
+		oss << params->sid << std::endl;
+		oss << params->filter << std::endl;
+		oss << params->id << std::endl;
+		oss << "======================================" << std::endl;
 
-		nextTick( [p,params]()
+		std::string out = oss.str();
+
+		nextTick( [p,params,out]()
 		{
-			p.resolve(json_t<Input> {params.value} );
+			p.resolve( out );
 		});
 
 		return p.future();
@@ -1086,7 +1089,7 @@ TEST_F(BasicTest, autoHandleSSI)
 }
 
 
- 
+  
 
 TEST_F(BasicTest, SimpleInclude) 
 {
@@ -1221,7 +1224,7 @@ TEST_F(BasicTest, I18NtplWithMarkup)
 	"email: {{ login }}\n"
 	"<p><!--#i18n key = 'login.main.greeting' --></p>\n"
 	"</body>\n"
-	"</html>\n";    
+	"</html>\n";     
  
 	Json::Value json(Json::objectValue);
 	json["username"] = "Michael";
@@ -1249,7 +1252,7 @@ TEST_F(BasicTest, I18NtplWithMarkup)
 
 }
  
-
+ 
  
 
 TEST_F(BasicTest, fromParams) 
@@ -1308,7 +1311,7 @@ auto meta(const XmlTest::XmlTest1::XmlTest2& t)
 	);
 }
 
-
+    
 
 auto meta(const XmlTest::XmlTest1& t)
 {
@@ -1317,7 +1320,7 @@ auto meta(const XmlTest::XmlTest1& t)
 		"level2", &XmlTest::XmlTest1::level2
 	);
 }
-
+ 
 
 auto meta(const XmlTest& t)
 {
@@ -1326,7 +1329,7 @@ auto meta(const XmlTest& t)
 			"level1", &XmlTest::level1
 	)["XmlTest"];
 }
-
+ 
 
 TEST_F(BasicTest, toXml) 
 {
@@ -1350,21 +1353,9 @@ TEST_F(BasicTest, toXml)
 	EXPECT_EQ("two",other.tags[1]);
 	EXPECT_EQ("three",other.tags[2]);
  
-  
-	Input input { "id", "filter", "sid", HeaderValues("de_DE"), Cookie("name","value"), "de"};
-
-	doc = toXml(input);
-
-	s = doc->toString();
-
-	std::cout << s << std::endl;
- 
-	EXPECT_EQ("<?xml version=\"1.0\" encoding=\"UTF-8\" standalone=\"yes\" ?>\r\n<Input><id>id</id><filter>filter</filter><sid>sid</sid><Accept-Language>de_DE</Accept-Language><Accept-Language>de</Accept-Language><sid><name>name</name><value>value</value><expires /><maxAge>0</maxAge><domain /><path /><isSecure>0</isSecure></sid></Input>",s);
-
- 
 	XmlTest xt;
 	doc = toXml(xt);
- 
+   
 	s = doc->toString();
 
 	EXPECT_EQ("<?xml version=\"1.0\" encoding=\"UTF-8\" standalone=\"yes\" ?>\r\n<XmlTest id=\"42\"><level1 index=\"1\"><level2><v>one</v><v>two</v><v>three</v></level2></level1></XmlTest>",s);
@@ -1412,7 +1403,7 @@ TEST_F(BasicTest, toJson)
 	EXPECT_EQ("two",other.tags[1]);
 	EXPECT_EQ("three",other.tags[2]);
 }
-
+ 
  
 TEST_F(BasicTest, toJsonArray) 
 {
@@ -1426,14 +1417,14 @@ TEST_F(BasicTest, toJsonArray)
 
 	std::string s = JSON::flatten(json); 
 
-	EXPECT_EQ("[{\"user\":{\"login\":\"littlemole\",\"pwd\":\"secret\",\"tags\":[\"one\",\"two\",\"three\"],\"username\":\"mike\"}},{\"user\":{\"login\":\"littlemole\",\"pwd\":\"secret\",\"tags\":[\"one\",\"two\",\"three\"],\"username\":\"mike\"}},{\"user\":{\"login\":\"littlemole\",\"pwd\":\"secret\",\"tags\":[\"one\",\"two\",\"three\"],\"username\":\"mike\"}}]",s);
+	EXPECT_EQ("[{\"login\":\"littlemole\",\"pwd\":\"secret\",\"tags\":[\"one\",\"two\",\"three\"],\"username\":\"mike\"},{\"login\":\"littlemole\",\"pwd\":\"secret\",\"tags\":[\"one\",\"two\",\"three\"],\"username\":\"mike\"},{\"login\":\"littlemole\",\"pwd\":\"secret\",\"tags\":[\"one\",\"two\",\"three\"],\"username\":\"mike\"}]",s);
 
 	std::vector<User> other;
 	fromJson(json,other);
 
 	for(int i = 0; i < 3; i++)
 	{
-		EXPECT_EQ("mike",other[i].username);
+	 	EXPECT_EQ("mike",other[i].username);
 		EXPECT_EQ("littlemole",other[i].login);
 		EXPECT_EQ("secret",other[i].pwd);
 
@@ -1443,6 +1434,100 @@ TEST_F(BasicTest, toJsonArray)
 	}
 }
 
+class Users 
+{
+public:
+	std::string something;
+	std::vector<User> users;
+
+	auto meta() const
+	{
+		return metadata(
+			"something", &Users::something,
+			"users", &Users::users
+		);
+	}
+};
+   
+TEST_F(BasicTest, toJsonArray2) 
+{
+	User user{ "mike", "littlemole", "secret", { "one", "two", "three"} };
+	Users users { "the thing", { user } };
+
+	Json::Value json = toJson(users);
+
+	std::string s = JSON::flatten(json); 
+
+	EXPECT_EQ("{\"something\":\"the thing\",\"users\":[{\"login\":\"littlemole\",\"pwd\":\"secret\",\"tags\":[\"one\",\"two\",\"three\"],\"username\":\"mike\"}]}",s);
+
+	Users other;
+	fromJson(json,other);
+
+	EXPECT_EQ("the thing",other.something);
+
+	EXPECT_EQ("mike",other.users[0].username);
+	EXPECT_EQ("littlemole",other.users[0].login);
+	EXPECT_EQ("secret",other.users[0].pwd);
+
+	EXPECT_EQ("one",other.users[0].tags[0]);
+	EXPECT_EQ("two",other.users[0].tags[1]);
+	EXPECT_EQ("three",other.users[0].tags[2]);
+}
+
+class ArrayTest 
+{
+public:
+
+	std::vector<std::vector<int>> array;
+
+	auto meta() const 
+	{
+		return metadata(
+			"array", &ArrayTest::array
+		);
+	}
+};
+ 
+TEST_F(BasicTest, toJsonArray3) 
+{
+	ArrayTest at { { {1,2,3}, {4,5,6} } };
+
+	Json::Value json = toJson(at);
+
+	std::string s = JSON::flatten(json); 
+
+	EXPECT_EQ("{\"array\":[[1,2,3],[4,5,6]]}",s);
+
+	ArrayTest other;
+	fromJson(json,other);
+
+	EXPECT_EQ(1,other.array[0][0]);
+	EXPECT_EQ(2,other.array[0][1]);
+	EXPECT_EQ(3,other.array[0][2]);
+	EXPECT_EQ(4,other.array[1][0]);
+	EXPECT_EQ(5,other.array[1][1]);
+	EXPECT_EQ(6,other.array[1][2]);
+
+}
+
+TEST_F(BasicTest, toJsonArray4) 
+{
+	std::vector<std::vector<std::string>> v { {"a","b"}, {"c","d"} };
+
+	Json::Value json = toJson(v);
+
+	std::string s = JSON::flatten(json); 
+
+	EXPECT_EQ("[[\"a\",\"b\"],[\"c\",\"d\"]]",s);
+
+	std::vector<std::vector<std::string>> other;
+	fromJson(json,other);
+
+	EXPECT_EQ("a",other[0][0]);
+	EXPECT_EQ("b",other[0][1]);
+	EXPECT_EQ("c",other[1][0]);
+	EXPECT_EQ("d",other[1][1]);
+}
 
 TEST_F(BasicTest, SimpleRest) 
 {
@@ -1587,7 +1672,7 @@ TEST_F(BasicTest, SimpleRestParams)
 		server.listen(8765);
 		theLoop().run();
 	}
-    EXPECT_EQ("{\"Input\":{\"Accept-Language\":\"de-DE\",\"filter\":\"123456789\",\"id\":\"a\",\"sid\":{\"domain\":\"localhost\",\"expires\":\"\",\"isSecure\":true,\"maxAge\":100,\"name\":\"sid\",\"path\":\"/\",\"value\":\"987654321\"}}}",result);
+    EXPECT_EQ("======================================\nsid=987654321;max-Age=100;domain=localhost;path=/;secure\n987654321\n123456789\na\n======================================\n",result);
     MOL_TEST_ASSERT_CNTS(0,0);
 }
 
@@ -1855,7 +1940,7 @@ TEST_F(BasicTest, SimpleRestPostJsonCoro)
 
 		POST ("/path/a",&TestController::postUserJsonCoro)
 	};
-
+ 
 	{
 		reproweb::WebServer server(ctx);
 

@@ -38,125 +38,43 @@ auto json_promise()
 
 ///////////////////////////////////////////////////////////////////////////////////////////
 
-
-inline Json::Value toJson( Json::Value& json)
+inline void toJson( const char* name, Json::Value& from, Json::Value& to)
 {
-	return json;
+	to[name] = from;
 }
 
-
-inline const Json::Value toJson( const Json::Value& json)
+inline void toJson( const char* name,const Json::Value& from, Json::Value& to)
 {
-	return json;
+	to[name] = from;
 }
 
-inline Json::Value toJson(  const std::string& t)
+inline void toJson( const char* name, const std::string& from, Json::Value& to)
 {
-    Json::Value result(t);
-    return result;
+    to[name] = from;
 }
 
-
-inline Json::Value toJson( const int& t)
+template<class T >
+void toJson( const char* name, const T& from, Json::Value& to, typename std::enable_if<std::is_arithmetic<T>::value>::type* = nullptr)
 {
-    Json::Value result(t);
-    return result;
-}
-
-inline Json::Value toJson( prio::Headers& headers)
-{
-	Json::Value result(Json::objectValue);
-
-	for( auto& h : headers.raw() )
-	{
-		result[h.first] = headers.get(h.first);
-	}
-
-	return result;
-}
-
-inline Json::Value toJson( const prio::HeaderValue& header)
-{
-	Json::Value result(Json::objectValue);
-
-	std::map<std::string,std::string> h = header.params();
-
-	for ( auto& m : h)
-	{
-		result[m.first] = toJson(m.second);
-	}
-
-	return result;
-}
-
-
-inline Json::Value toJson(  const prio::HeaderValues& headers)
-{
-	Json::Value result(Json::objectValue);
-
-	unsigned int size = headers.size();
-	for ( unsigned int i = 0; i < size; i++)
-	{
-		result[headers[i].main()] = toJson(headers[i]);
-	}
-
-	return result;
-}
-
-inline Json::Value toJson( prio::QueryParams& qp)
-{
-	Json::Value result(Json::objectValue);
-
-	for( auto& k : qp.keys() )
-	{
-		result[k] = qp.get(k);
-	}
-
-	return result;
-}
-
-inline Json::Value toJson( prio::Args& args)
-{
-	Json::Value result(Json::objectValue);
-
-	for( auto& k : args.keys() )
-	{
-		result[k] = args.get(k);
-	}
-
-	return result;
-}
-
-
-inline Json::Value toJson(  const prio::Cookie& cookie)
-{
-	Json::Value result(Json::objectValue);
-
-	result["name"] = cookie.name();
-	result["value"] = cookie.value();
-	result["expires"] = cookie.expires();
-	result["maxAge"] = cookie.maxAge();
-	result["domain"] = cookie.domain();
-	result["path"] = cookie.path();
-	result["isSecure"] = cookie.isSecure();
-
-	return result;
+	to[name] = from;
 }
 
 template<class T>
-Json::Value toJson(const T& t);
+void toJson(const char* name, const T& from, Json::Value& to, typename std::enable_if<std::is_class<T>::value>::type* = nullptr);
 
 template<class T>
-Json::Value toJson(const std::vector<T>& t)
+void toJson(const char* name, const std::vector<T>& from, Json::Value& to)
 {
     Json::Value result(Json::arrayValue);
 
-    for ( auto& i : t)
+    for ( auto& i : from)
     {
-        result.append(toJson(i));
+		Json::Value item(Json::objectValue);
+		toJson(name,i,item);
+        result.append(item[name]);
     }
 
-    return result;
+    to[name] = result;
 }
 
 inline Json::Value exToJson(const std::exception& ex)
@@ -179,27 +97,35 @@ inline void fromJson( const Json::Value& from, std::string& t)
     t = from.asString();
 }
 
-
 inline void fromJson( const Json::Value& from, int& t)
 {
     t = from.asInt();
 }
 
-inline void fromJson( prio::Cookie& cookie, Json::Value& json )
+inline void fromJson( const Json::Value& from, double& t)
 {
-	cookie.name(json["name"].asString());
-	cookie.value(json["value"].asString());
-	cookie.expires(json["expires"].asString());
-	cookie.maxAge(json["maxAge"].asInt());
-	cookie.domain(json["domain"].asString());
-	cookie.path(json["path"].asString());
-
-	if(json["isSecure"].asBool())
-	{
-		cookie.isSecure();
-	}
+    t = from.asDouble();
 }
 
+inline void fromJson( const Json::Value& from, float& t)
+{
+    t = from.asFloat();
+}
+
+inline void fromJson( const Json::Value& from, bool& t)
+{
+    t = from.asBool();
+}
+
+inline void fromJson( const Json::Value& from, long long& t)
+{
+    t = from.asInt64();
+}
+
+inline void fromJson( const Json::Value& from, char& t)
+{
+    t = from.asInt();
+}
 
 template<class T>
 void fromJson(const Json::Value&, T& t);
@@ -228,9 +154,8 @@ public:
     {
         Json::Value& json = *( (Json::Value*)to);
 
-        json[name] = toJson(from);
+		toJson(name,from,json);
     }
-
 
     template<class T>
     static void deserialize( const char* name, const void* from, T& to) 
@@ -239,13 +164,21 @@ public:
 
         fromJson( json[name], to);
     }
-    
 };
 
 ///////////////////////////////////////////////////////////////////////////////////////////
 ///////////////////////////////////////////////////////////////////////////////////////////
 
 
+template<class T>
+void toJson(const char* name, const T& from, Json::Value& to, typename std::enable_if<std::is_class<T>::value>::type*)
+{
+    const auto& m = meta_of(from);
+
+	to[name] = Json::Value(Json::objectValue);
+
+	m. template serialize<JsonSerializer>(from,&(to[name]));
+}
 
 template<class T>
 Json::Value toJson(const T& t)
@@ -256,8 +189,7 @@ Json::Value toJson(const T& t)
 
 	if(m.entity)
 	{
-		result[m.entity] = Json::Value(Json::objectValue);
-	    m. template serialize<JsonSerializer>(t,&(result[m.entity]));
+		toJson(m.entity,t,result);
 	}
 	else
 	{
@@ -267,9 +199,23 @@ Json::Value toJson(const T& t)
     return result;
 }
 
+template<class T>
+Json::Value toJson(const std::vector<T>& t)
+{
+    Json::Value result(Json::arrayValue);
+
+	for ( auto& i : t)
+	{
+		Json::Value item(Json::objectValue);
+		toJson("dummy",i,item);
+		result.append(item["dummy"]);
+	}
+
+    return result;
+}
+
 
 ///////////////////////////////////////////////////////////////////////////////////////////
-
 
 template<class T>
 void fromJson(const Json::Value& from, T& t)
@@ -288,7 +234,6 @@ void fromJson(const Json::Value& from, T& t)
 
 	m. template deserialize<JsonSerializer>(&from,t);
 }
-
 
 template<class T>
 void fromJson(const std::string& from, T& t)

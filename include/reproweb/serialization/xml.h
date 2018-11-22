@@ -46,37 +46,11 @@ auto xml_promise()
 
 
 template<class T>
-void toXml( const T& from, xml::ElementPtr to);
+void toXml( const T& from, xml::ElementPtr to, typename std::enable_if<std::is_class<T>::value>::type* = nullptr);
 
 template<class T>
 void toXml( const std::vector<T>& from, xml::ElementPtr to);
 
-
-inline void toXml( const std::string& from, xml::ElementPtr to)
-{
-	xml::TextPtr txt = to->ownerDocument()->createTextNode(from);
-	if(txt)
-	{
-		to->appendChild(txt);
-	}
-}
-
-inline void toXml( const int& from, xml::ElementPtr to)
-{
-	std::ostringstream oss;
-	oss << from;
-	toXml(oss.str(),to);
-}
-
-inline void toXml( const prio::HeaderValues& from, xml::ElementPtr to)
-{
-	size_t size = from.size();
-	for( size_t i = 0; i < size; i++)
-	{
-		std::string s = from[i].main();
-		toXml(s,to);
-	}
-}
 
 inline void toXml( const char* n,  std::string from, xml::ElementPtr to)
 {
@@ -97,7 +71,8 @@ inline void toXml( const char* n,  std::string from, xml::ElementPtr to)
 	}
 }
 
-inline void toXml( const char* n,  int from, xml::ElementPtr to)
+template<class T>
+void toXml( const char* n,  T from, xml::ElementPtr to, typename std::enable_if<std::is_arithmetic<T>::value>::type* = nullptr)
 {
 	if(!n) return;
 
@@ -122,16 +97,8 @@ inline void toXml( const char* n,  int from, xml::ElementPtr to)
 	}
 }
 
-inline void toXml( const prio::Cookie& cookie, xml::ElementPtr el)
-{
-	toXml("name",cookie.name(),el);
-	toXml("value",cookie.value(),el);
-	toXml("expires",cookie.expires(),el);
-	toXml("maxAge",cookie.maxAge(),el);
-	toXml("domain",cookie.domain(),el);
-	toXml("path",cookie.path(),el);
-	toXml("isSecure",cookie.isSecure(),el);
-}
+template<class T>
+void toXml( const char* n, const T& from, xml::ElementPtr to, typename std::enable_if<std::is_class<T>::value>::type* = nullptr );
 
 
 inline void fromXml( xml::ElementPtr from, std::string& to)
@@ -139,7 +106,8 @@ inline void fromXml( xml::ElementPtr from, std::string& to)
 	to = from->innerXml();
 }
 
-inline void fromXml( xml::ElementPtr from, int& to)
+template<class T>
+void fromXml( xml::ElementPtr from, T& to, typename std::enable_if<std::is_arithmetic<T>::value>::type* = nullptr)
 {
 	std::istringstream iss(from->innerXml());
 	iss >> to;
@@ -150,7 +118,7 @@ inline void fromXml( xml::ElementPtr from, int& to)
 
 
 template<class T>
-void fromXml( xml::ElementPtr from, T& to);
+void fromXml( xml::ElementPtr from, T& to, typename std::enable_if<std::is_class<T>::value>::type* = nullptr);
 
 template<class T>
 void fromXml( xml::ElementPtr from, std::vector<T>&  to);
@@ -170,13 +138,16 @@ public:
 			xmlTo->setAttribute(name+1,from);
 			return;
 		}
-
+/*
 		xml::ElementPtr el = xmlTo->ownerDocument()->createElement(name);
 		xmlTo->appendChild(el);
 		toXml(from,el);
+*/
+		toXml(name,from,xmlTo);
     }
 
-    static void serialize( const char* name, const int& from, void* to ) 
+	template<class T>
+    static void serialize( const char* name, const T& from, void* to, typename std::enable_if<std::is_arithmetic<T>::value>::type* = nullptr ) 
     {
 		xml::ElementPtr xmlTo = *((xml::ElementPtr*) to);
 
@@ -187,20 +158,25 @@ public:
 			xmlTo->setAttribute(name+1,oss.str());
 			return;
 		}
-
+/*
 		xml::ElementPtr el = xmlTo->ownerDocument()->createElement(name);
 		xmlTo->appendChild(el);
 		toXml(from,el);
+*/
+		toXml(name,from,xmlTo);
     }
 
     template<class T>
-    static void serialize( const char* name, const T& from, void* to ) 
+    static void serialize( const char* name, const T& from, void* to, typename std::enable_if<std::is_class<T>::value>::type* = nullptr ) 
     {
 		xml::ElementPtr xmlTo = *((xml::ElementPtr*) to);
 
+/*
 		xml::ElementPtr el = xmlTo->ownerDocument()->createElement(name);
 		xmlTo->appendChild(el);
 		toXml(from,el);
+*/
+		toXml(name,from,xmlTo);		
     }
 
 
@@ -211,13 +187,17 @@ public:
 
 		for( auto& f : from)
 		{
+/*			
 			xml::ElementPtr el = xmlTo->ownerDocument()->createElement(name);
 			xmlTo->appendChild(el);
 			toXml(f,el);
+*/
+			toXml(name,f,xmlTo);				
 		}
     }
 
-    static void deserialize( const char* name, const void* from, int& to) 
+	template<class T>
+    static void deserialize( const char* name, const void* from, T& to, typename std::enable_if<std::is_arithmetic<T>::value>::type* = nullptr) 
     {
 		xml::ElementPtr xmlFrom = *((xml::ElementPtr*) from);
 
@@ -253,7 +233,7 @@ public:
     }
 
     template<class T>
-    static void deserialize( const char* name, const void* from, T& to) 
+    static void deserialize( const char* name, const void* from, T& to, typename std::enable_if<std::is_class<T>::value>::type* = nullptr) 
     {
 		xml::ElementPtr xmlFrom = *((xml::ElementPtr*) from);
 
@@ -288,13 +268,13 @@ public:
 ///////////////////////////////////////////////////////////////////////////////////////////
 
 template<class T>
-void toXml( const T& from, xml::ElementPtr to)
+void toXml( const char* n, const T& from, xml::ElementPtr to, typename std::enable_if<std::is_class<T>::value>::type*  )
 {
 	const auto& m = meta_of(from);
-
-	if(m.entity)
+	
+	if(n)
 	{
-		xml::ElementPtr el = to->ownerDocument()->createElement(m.entity);
+		xml::ElementPtr el = to->ownerDocument()->createElement(n);
 		to->appendChild(el);		
 	    m. template serialize<XmlSerializer>(from,&el);
 	}
@@ -306,23 +286,31 @@ void toXml( const T& from, xml::ElementPtr to)
 
 
 template<class T>
-void toXml( const std::vector<T>& from, xml::ElementPtr to)
+void toXml( const T& from, xml::ElementPtr to, typename std::enable_if<std::is_class<T>::value>::type* )
 {
-	/*
-	const auto& m = meta_of(from[0]);
+	const auto& m = meta_of(from);
 
-	for( auto& f : from )
+	if(m.entity)
 	{
-
-	    m. template serialize<XmlSerializer>(&from,to);
+		toXml( m.entity, from, to);
+		/*
+		xml::ElementPtr el = to->ownerDocument()->createElement(m.entity);
+		to->appendChild(el);		
+	    m. template serialize<XmlSerializer>(from,&el);
+		*/
 	}
-	*/
+	else
+	{
+	    m. template serialize<XmlSerializer>(from,&to);
+	}
 }
+
+
 
 ///////////////////////////////////////////////////////////////////////////////////////////
 
 template<class T>
-void fromXml( xml::ElementPtr from, T& to)
+void fromXml( xml::ElementPtr from, T& to, typename std::enable_if<std::is_class<T>::value>::type*)
 {
 	const auto& m = meta_of(to);
 
@@ -336,21 +324,6 @@ void fromXml( xml::ElementPtr from, T& to)
 		}
 	}
    	m. template deserialize<XmlSerializer>(&from,to);
-}
-
-
-template<class T>
-void fromXml( xml::ElementPtr from, std::vector<T>&  to)
-{
-	/*
-	const auto& m = meta_of(from[0]);
-
-	for( auto& f : from )
-	{
-
-	    m. template serialize<XmlSerializer>(&from,to);
-	}
-	*/
 }
 
 ///////////////////////////////////////////////////////////////////////////////////////////
