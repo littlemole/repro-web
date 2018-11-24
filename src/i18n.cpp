@@ -33,7 +33,7 @@ std::string I18N::find_locale(std::string locale)
     return locale;
 }
 
-std::string I18N::key(std::string locale, const std::string& k)
+const std::string& I18N::key(std::string locale, const std::string& k)
 {
     locale = find_locale(locale);
     return get_key(locale,k);
@@ -74,7 +74,8 @@ std::string I18N::render(std::string locale, const std::string& txt)
 			return "invalid i18n key";
 		}        
 
-        result << txt.substr(start, startpos-start);
+        //result << txt.substr(start, startpos-start);
+        result.write( txt.c_str() + start, startpos-start);
 
         std::string key = m[1];
         if( props.count(key)==0 && map_[""].count(key)==0 )
@@ -83,7 +84,7 @@ std::string I18N::render(std::string locale, const std::string& txt)
         }
         else
         {
-            std::string value = get_key(locale,key);
+            const std::string& value = get_key(locale,key);
             result.write(value.c_str(),value.size());
         }        
         
@@ -91,7 +92,8 @@ std::string I18N::render(std::string locale, const std::string& txt)
 		startpos = txt.find("<!--#i18n",start);
     }
 
-    result << txt.substr(start);
+    //result << txt.substr(start);
+    result.write( txt.c_str()+start, txt.size()-start );
     return result.str();
 }
 
@@ -133,7 +135,7 @@ std::string I18N::render(std::string locale, const std::string& txt)
 }
 */
 
-std::string I18N::get_key(std::string locale, const std::string& k)
+const std::string& I18N::get_key(std::string locale, const std::string& k)
 {
     if( map_[locale].count(k) > 0 )
     {

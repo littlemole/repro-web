@@ -16,7 +16,7 @@ public:
 
 	std::string find_locale(std::string locale);
 
-	std::string key(std::string locale, const std::string& k);
+	const std::string& key(std::string locale, const std::string& k);
 
 	std::string render(std::string locale, const std::string& txt);
 
@@ -24,7 +24,7 @@ private:
 
 	std::map<std::string,std::map<std::string,std::string>> map_;
 
-	std::string get_key(std::string locale, const std::string& k);
+	const std::string& get_key(std::string locale, const std::string& k);
 	void parse(const std::string& locale,const std::string& content);
 	void load(const std::string& locale,const std::string& path);
 	void load(const std::string& base, const std::vector<std::string>& locales);
