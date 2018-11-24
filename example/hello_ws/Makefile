@@ -19,7 +19,7 @@ DEFAULT_LIBS = -stdlib=libc++ -fcoroutines-ts  -lc++abi -std=c++14
 DEFAULT_OPTS = -std=c++14 -stdlib=libc++ -fcoroutines-ts -D_RESUMABLE_FUNCTIONS_SUPPORTED 
 
 ifeq ($(CXX),g++)
-DEFAULT_OPTS = -std=c++14 
+DEFAULT_OPTS = -std=c++14 $(PG)
 DEFAULT_LIBS = 
 endif
 
@@ -37,8 +37,8 @@ OPTIONS = -g -fpic -Wno-write-strings -pthread -D_REENTRANT $(DEFAULT_OPTS) $(PK
 CPPFLAGS = -Wall -I../include $(DEBUG) $(OPTIONS) $(PROMISE_IMPL)
 
 # target
-LIB = -lreprowebd -lpriohttpd  -lreprocurld -lreproredisd -lreprosqlited -lpriocppd
-DEBUG_LIB = -lreproweb -lpriohttp  -lreprocurl -lreproredis -lreprosqlite -lpriocpp
+LIB = $(PG) -lreprowebd -lpriohttpd  -lreprocurld -lreproredisd -lreprosqlited -lpriocppd
+DEBUG_LIB = $(PG) -lreproweb -lpriohttp  -lreprocurl -lreproredis -lreprosqlite -lpriocpp
 
 BIN_SRC   = .
 BIN_BUILD = ./build

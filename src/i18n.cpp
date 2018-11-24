@@ -43,8 +43,8 @@ std::string I18N::render(std::string locale, const std::string& txt)
 {
     locale = find_locale(locale);
 
-    std::map<std::string,std::string> props = map_[locale];
-    std::regex r("<!--#i18n\\s+key\\s*=\\s*[\"']([^'\"]*)[\"']\\s*-->");
+    std::map<std::string,std::string>& props = map_[locale];
+    static std::regex r("<!--#i18n\\s+key\\s*=\\s*[\"']([^'\"]*)[\"']\\s*-->");
     std::smatch match;
 
     std::string::const_iterator start = txt.begin();

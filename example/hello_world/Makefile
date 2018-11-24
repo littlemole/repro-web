@@ -33,12 +33,12 @@ ifeq ($(BACKEND),boost_asio)
 endif
 
 #final cpp options
-OPTIONS = -g -fpic -Wno-write-strings -pthread -D_REENTRANT $(DEFAULT_OPTS) $(PKG_INC) -DVERSION=$(CONTAINER)
+OPTIONS = $(PG) -g -fpic -Wno-write-strings -pthread -D_REENTRANT $(DEFAULT_OPTS) $(PKG_INC) -DVERSION=$(CONTAINER)
 CPPFLAGS = -Wall -I../include $(DEBUG) $(OPTIONS) $(PROMISE_IMPL)
 
 # target
-LIB = -lreprowebd -lpriohttpd  -lreprocurld -lreproredisd -lreprosqlited -lpriocppd
-DEBUG_LIB = -lreproweb -lpriohttp  -lreprocurl -lreproredis -lreprosqlite -lpriocpp
+LIB = $(PG) -lreprowebd -lpriohttpd  -lreprocurld -lreproredisd -lreprosqlited -lpriocppd
+DEBUG_LIB = $(PG) -lreproweb -lpriohttp  -lreprocurl -lreproredis -lreprosqlite -lpriocpp
 
 BIN_SRC   = .
 BIN_BUILD = ./build

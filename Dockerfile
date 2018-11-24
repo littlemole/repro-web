@@ -14,6 +14,9 @@ ENV BUILDCHAIN=${BUILDCHAIN}
 ARG TS=
 ENV TS=${TS}
 
+ARG PG=
+ENV PG=${PG}
+
 RUN /usr/local/bin/install.sh repro 
 RUN /usr/local/bin/install.sh prio 
 RUN /usr/local/bin/install.sh repro-curl

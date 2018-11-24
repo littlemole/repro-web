@@ -199,6 +199,11 @@ Json::Value toJson(const T& t)
     return result;
 }
 
+inline Json::Value toJson(const Json::Value& t)
+{
+    return t;
+}
+
 template<class T>
 Json::Value toJson(const std::vector<T>& t)
 {
