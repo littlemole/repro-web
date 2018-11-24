@@ -45,6 +45,63 @@ std::string I18N::render(std::string locale, const std::string& txt)
 
     std::map<std::string,std::string>& props = map_[locale];
     static std::regex r("<!--#i18n\\s+key\\s*=\\s*[\"']([^'\"]*)[\"']\\s*-->");
+
+    size_t start = 0;
+    size_t startpos = 0;
+    size_t endpos = std::string::npos;
+
+    startpos = txt.find("<!--#i18n");
+
+    std::ostringstream result;
+
+	while (startpos != std::string::npos)
+	{
+		endpos = txt.find("-->", startpos + 9);
+		if (endpos == std::string::npos)
+		{
+			return "error unterminated i18n comment";
+		}
+
+		std::string i18n = txt.substr(startpos, endpos-startpos + 3);
+		std::smatch m;
+		if (!std::regex_search(i18n, m, r))
+		{
+			return "invalid i18n comment";
+		}
+
+		if (m.size() < 2)
+		{
+			return "invalid i18n key";
+		}        
+
+        result << txt.substr(start, startpos-start);
+
+        std::string key = m[1];
+        if( props.count(key)==0 && map_[""].count(key)==0 )
+        {
+            result << key;
+        }
+        else
+        {
+            std::string value = get_key(locale,key);
+            result.write(value.c_str(),value.size());
+        }        
+        
+        start = endpos + 3;
+		startpos = txt.find("<!--#i18n",start);
+    }
+
+    result << txt.substr(start);
+    return result.str();
+}
+
+/*
+std::string I18N::render(std::string locale, const std::string& txt)
+{
+    locale = find_locale(locale);
+
+    std::map<std::string,std::string>& props = map_[locale];
+    static std::regex r("<!--#i18n\\s+key\\s*=\\s*[\"']([^'\"]*)[\"']\\s*-->");
     std::smatch match;
 
     std::string::const_iterator start = txt.begin();
@@ -74,7 +131,7 @@ std::string I18N::render(std::string locale, const std::string& txt)
     result.write(&*start,end-start);
     return result.str();
 }
-
+*/
 
 std::string I18N::get_key(std::string locale, const std::string& k)
 {

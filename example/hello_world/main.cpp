@@ -106,5 +106,6 @@ int main(int argc, char **argv)
 	}
 
 	MOL_TEST_PRINT_CNTS();	
+	std::cout << "exit" << std::endl;
     return 0;
 }

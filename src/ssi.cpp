@@ -162,36 +162,6 @@ bool SSIResolver::match(const std::string& tmpl)
 	return false;
 }
 
-/*
-bool SSIResolver::match(const std::string& tmpl)
-{
-    std::regex r("<!--#include +virtual=(?:[\"'])([^\"']+)(?:[\"']) *-->");
-    std::smatch match;
-
-    std::string::const_iterator start = tmpl.begin();
-    std::string::const_iterator end   = tmpl.end();    
-
-    std::vector<std::string> result;
-    
-    while (std::regex_search (start,end,match,r)) 
-    {
-        if ( match.size() > 1 )
-        {
-            parts_.push_back(std::string(start,match[0].first));
-            includes_.push_back(match[1]);
-        }
-        start = match[0].second;
-    }
-    parts_.push_back(std::string(start,end));
-
-    if ( parts_.size() -1 == includes_.size())
-    {
-        return true;
-    }
-            
-    return false;
-}
-*/
 
 ssi_content::ssi_content(const std::string& htdocs_path,const std::string& filter)
 	: htdocs_(htdocs_path), filter_(filter)
