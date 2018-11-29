@@ -33,12 +33,12 @@ ifeq ($(BACKEND),boost_asio)
 endif
 
 #final cpp options
-OPTIONS = -g -fpic -Wno-write-strings -pthread -D_REENTRANT $(DEFAULT_OPTS) $(PKG_INC) -DVERSION=$(CONTAINER)
+OPTIONS =  -fpic -Wno-write-strings -pthread -D_REENTRANT $(DEFAULT_OPTS) $(PKG_INC) -DVERSION=$(CONTAINER)
 CPPFLAGS = -Wall -I../include $(DEBUG) $(OPTIONS) $(PROMISE_IMPL)
 
 # target
-LIB = -lreprowebd -lpriohttpd  -lreprocurld -lreproredisd -lreprosqlited -lpriocppd
-DEBUG_LIB = -lreproweb -lpriohttp  -lreprocurl -lreproredis -lreprosqlite -lpriocpp
+DEBUG_LIB = -lreprowebd -lpriohttpd  -lreprocurld -lreproredisd -lreprosqlited -lpriocppd
+LIB = -lreproweb -lpriohttp  -lreprocurl -lreproredis -lreprosqlite -lpriocpp
 
 BIN_SRC   = .
 BIN_BUILD = ./build
@@ -59,9 +59,9 @@ BIN_BINS = $(BIN_BUILD)/hello_world_debug.bin $(BIN_BUILD)/hello_world.bin
 
 all:
 	make clean_obj
-	make -e $(BIN_BUILD)/hello_world_debug.bin
-	make clean_obj
-	make -e $(BIN_BUILD)/hello_world.bin
+	make -e $(BIN_BUILD)/hello_world_debug.bin DEBUG="$(DEBUG)"
+
+release: clean_obj $(BIN_BUILD)/hello_world.bin
 
 #################################################
 # rules to compile .o files from .cpp source
@@ -95,7 +95,6 @@ clean: clean_obj
 	-find -name "*~" -exec rm {} \;
 	-rm -rf build
 
-release : all
 
 update-dockerfile: clean
 	/bin/sed -i "s/FROM .*/FROM ${BASE_IMAGE}/" Dockerfile

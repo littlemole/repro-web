@@ -1,5 +1,5 @@
 # This is a comment
-FROM littlemole/reproweb_clangpp_libevent_make
+FROM littlemole/reproweb_clangpp_boost_asio_make
 MAINTAINER me <little.mole@oha7.org>
 
 #RUN DEBIAN_FRONTEND=noninteractive apt-get install -y redis-server 

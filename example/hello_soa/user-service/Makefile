@@ -33,12 +33,12 @@ ifeq ($(BACKEND),boost_asio)
 endif
 
 #final cpp options
-OPTIONS = -g -fpic -Wno-write-strings -pthread -D_REENTRANT $(DEFAULT_OPTS) $(PKG_INC)
+OPTIONS = -fpic -Wno-write-strings -pthread -D_REENTRANT $(DEFAULT_OPTS) $(PKG_INC)
 CPPFLAGS = -Wall -I../include $(DEBUG) $(OPTIONS) $(PROMISE_IMPL) -DVERSION=$(CONTAINER)
 
 # target
-LIB = -lreprowebd -lpriohttpd  -lreprocurld  -lrepromysqld -lpriocppd  -lmysqlclient
-DEBUG_LIB = -lreproweb -lpriohttp  -lreprocurl  -lrepromysql -lpriocpp -lmysqlclient
+DEBUG_LIB = -lreprowebd -lpriohttpd  -lreprocurld  -lrepromysqld -lpriocppd  -lmysqlclient
+LIB = -lreproweb -lpriohttp  -lreprocurl  -lrepromysql -lpriocpp -lmysqlclient
 
 BIN_SRC   = .
 BIN_BUILD = ./build
@@ -60,8 +60,8 @@ BIN_BINS = $(BIN_BUILD)/hello_world_debug.bin $(BIN_BUILD)/hello_world.bin
 all:
 	make clean_obj
 	make $(BIN_BUILD)/hello_soa_userservice_debug.bin
-	make clean_obj
-	make $(BIN_BUILD)/hello_soa_userservice.bin
+	
+release: clean_obj $(BIN_BUILD)/hello_soa_userservice.bin
 
 #################################################
 # rules to compile .o files from .cpp source
@@ -95,7 +95,6 @@ clean: clean_obj
 	-find -name "*~" -exec rm {} \;
 	-rm -rf build
 
-release : all
 
 update-dockerfile:
 	/bin/sed -i "s/FROM .*/FROM ${BASE_IMAGE}/" Dockerfile
