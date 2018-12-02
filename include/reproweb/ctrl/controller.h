@@ -64,7 +64,9 @@ private:
 	{
 		fc.registerHandler(m, p, [fun,&fc](prio::Request& req, prio::Response& res)
 		{
-			invoke_coro_handler<C,Args...>(fc,req,res,fun);
+			invoke_coro_handler<C,Args...>(fc,req,res,fun)
+			.then([](){})
+			.otherwise([](const std::exception& ex){ std::cout << ex.what() << std::endl;});
 		});
 	}
 
@@ -73,7 +75,9 @@ private:
 	{
 		fc.registerHandler(m, p, [fun,&fc](prio::Request& req, prio::Response& res)
 		{
-			invoke_coro_handler/*<T,C,Args...>*/(fc,req,res,fun);						
+			invoke_coro_handler/*<T,C,Args...>*/(fc,req,res,fun)
+			.then([](){})
+			.otherwise([](const std::exception& ex){ std::cout << ex.what() << std::endl;});
 		});
 	}
 	

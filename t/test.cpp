@@ -193,13 +193,15 @@ public:
 
 		try {
 
-			auto req = reprocurl::async_curl()->url("http://localhost:8765/path/a");
+			auto req = reprocurl::async_curl()->url("http://127.0.0.1:8765/path/a");
 
 			reprocurl::CurlEasy::Ptr curl = co_await req->perform();
 
 			status = curl->status();
 
 			res.ok().body(curl->response_body()).header("server", "molws");
+
+	//		res.ok().body("hello").header("server", "molws");
 
 			int i = co_await logger_->test();
 
@@ -688,7 +690,9 @@ TEST_F(BasicTest, coroutine)
 	{
 		reproweb::WebServer server(ctx);
 
-		coroutine_example(server,result);
+		coroutine_example(server,result)
+		.then([](){})
+		.otherwise([](const std::exception& ex){});
 
 		server.listen(8765);
 		theLoop().run();
@@ -708,7 +712,7 @@ repro::Future<> coroutine_example(reproweb::WebServer& server, std::string& resu
 	{
 		co_await nextTick();
 
-		auto post = reprocurl::async_curl()->url("http://localhost:8765/path/b")->method("POST");
+		auto post = reprocurl::async_curl()->url("http://127.0.0.1:8765/path/b")->method("POST")->data("dummy");
 
 		reprocurl::CurlEasy::Ptr curl = co_await post->perform();
 
