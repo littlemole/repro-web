@@ -126,6 +126,7 @@ std::string WsConnection::handshake(prio::Request& req)
     {
     	HttpRequest& request = (HttpRequest&)req;
     	request.detach();
+		request.con()->timeouts().rw_timeout_s = 1000L * 60L * 10L;
     }
     else {
     	dispose();
