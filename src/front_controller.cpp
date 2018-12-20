@@ -6,6 +6,7 @@
 #include "priohttp/http_server.h"
 #include "priohttp/conversation.h"
 #include "reproweb/ctrl/handler_info.h"
+#include "reproweb/ctrl/session.h"
 #include "diycpp/ctx.h"
 #include <fstream>
 #include <iostream>
@@ -139,6 +140,7 @@ void FrontController::handle_request(
         try
         {
         	completion_chain->filter(req,res);
+			save_session(req);
         }
         catch(const std::exception& ex)
         {
