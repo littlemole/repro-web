@@ -5,6 +5,7 @@ services:
       context: ./chat
       dockerfile: Dockerfile
       args:
+        TS: ${TS}
         CXX: ${CXX}
         BACKEND: ${BACKEND}
         BUILDCHAIN: ${BUILDCHAIN}
@@ -15,6 +16,7 @@ services:
       context: ./user-service
       dockerfile: Dockerfile
       args:
+        TS: ${TS}
         CXX: ${CXX}
         BACKEND: ${BACKEND}
         BUILDCHAIN: ${BUILDCHAIN}
@@ -25,6 +27,7 @@ services:
       context: ./session-service
       dockerfile: Dockerfile
       args:
+        TS: ${TS}
         CXX: ${CXX}
         BACKEND: ${BACKEND}
         BUILDCHAIN: ${BUILDCHAIN}

@@ -11,6 +11,9 @@ ENV BACKEND=${BACKEND}
 ARG BUILDCHAIN=make
 ENV BUILDCHAIN=${BUILDCHAIN}
 
+ARG TS=
+ENV TS=${TS}
+
 RUN mkdir -p /usr/local/src/reproweb-example
 ADD . /usr/local/src/reproweb-example
 

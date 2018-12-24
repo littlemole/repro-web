@@ -3,6 +3,7 @@
 
 #include "reproweb/ctrl/controller.h"
 #include "reproweb/ctrl/filter.h"
+#include "reproweb/json/json.h"
 #include "cryptoneat/cryptoneat.h"
 #include <ctime>
 
@@ -13,20 +14,20 @@ namespace reproweb
 class Session
 {
 public:
-	Session(Json::Value profile) 
-		:sid_(make_session_id()), profile_(profile)
+
+    Session() 
+    {}
+
+	Session(const std::string& id,Json::Value p) 
+		:sid(id), data(p)
 	{}
 
-	Session(const std::string& sid,Json::Value profile) 
-		:sid_(sid), profile_(profile)
-	{}
-
-	const std::string& sid() const  { return sid_; }
-	Json::Value profile() const     { return profile_; }
+    bool valid = true;
+    bool authenticated = false;
+	std::string sid;
+	Json::Value data;	
 
 private:
-	std::string sid_;
-	Json::Value profile_;	
 };
 
 class SessionProvider
@@ -35,19 +36,19 @@ public:
 
     virtual ~SessionProvider() {}
 
-    virtual Session get_session(const std::string& sid) = 0;
-    virtual void set_session(const std::string& sid, Json::Value json) = 0;
-    virtual Future<> remove_user_session(const std::string& sid) = 0;
+    virtual repro::Future<Session> get_session( std::string sid) = 0;
+    virtual repro::Future<> set_session(Session session) = 0;
+    virtual repro::Future<> remove_user_session(Session session) = 0;
 };
 
-class MemorySessionProvider
+class MemorySessionProvider : public SessionProvider
 {
 public:
 
     MemorySessionProvider()
         : session_timeout_(60*5)
     {
-        cleanup()
+        cleanup();
     }
 
 
@@ -59,50 +60,58 @@ public:
 
     virtual ~MemorySessionProvider() 
     {
-        timer_->cancel();
+        timer_.cancel();
     }
 
-    virtual repro::Future<Session> get_session(const std::string& sid)
+    virtual repro::Future<Session> get_session(std::string sid)
     {
         auto p = repro::promise<Session>();
 
-        nextTick( [this,p,sid]() 
+        prio::nextTick( [this,p,sid]() 
         {
             if(map_.count(sid) == 0)
             {
-                map_[sid] = Json::Value(Json::objectValue);
+                //std::cout << "NEW SESSION "  << std::endl;
+                auto json = Json::Value(Json::objectValue);
+                map_[sid] = Session(sid,json);
             }
+
+           // std::cout << "GET SESSION: " << map_[sid].authenticated << " " << JSON::stringify(map_[sid].data) << std::endl;
             timeouts_[sid] = now() + session_timeout_;
-            p.resolve(Session(sid,map_[sid]);
+            p.resolve(map_[sid]);
         });
 
         return p.future();
     }
 
-    virtual repro::Future<> set_session(const std::string& sid, Json::Value json)
+    virtual repro::Future<> set_session(Session session)
     {
         auto p = repro::promise<>();
 
-        nextTick( [this,p,sid,json]() 
+       // std::cout << "SET SESSION: " << session.authenticated << " " << JSON::stringify(session.data) << std::endl;
+
+        prio::nextTick( [this,p,session]() 
         {
-            map_[sid] = json;
-            timeouts_[sid] = now() + session_timeout_;
+            map_[session.sid] = session;
+            timeouts_[session.sid] = now() + session_timeout_;
             p.resolve();
         });
 
         return p.future();
     }
 
-    virtual Future<> remove_user_session(const std::string& sid)
+    virtual repro::Future<> remove_user_session(Session session)
     {
         auto p = repro::promise<>();
 
-        nextTick( [this,p,sid,json]() 
+       // std::cout << "DEL SESSION: " << session.authenticated << " " << JSON::stringify(session.data) << std::endl;
+
+        prio::nextTick( [this,p,session]() 
         {        
-            if(map_count(sid)!=0)
+            if(map_.count(session.sid)!=0)
             {
-                map_.erase(sid);
-                timeouts_.erase(sid);
+                map_.erase(session.sid);
+                timeouts_.erase(session.sid);
             }
             p.resolve();
         });
@@ -134,7 +143,7 @@ private:
             timeouts_.erase(k);
         }
 
-        timer.after([this]()
+        timer_.after([this]()
         {
             cleanup();
         }, 1000*60*5);
@@ -148,7 +157,8 @@ private:
         return t;
     }
 
-    std::map<std::string,Json::Value> map_;    
+
+    std::map<std::string,Session> map_;    
     std::map<std::string,int> timeouts_;    
 };
 
@@ -165,49 +175,81 @@ public:
         : sid_cookie_name_(cn), session_provider_(sp)
     {}    
 
-    void filter( prio::Request& req, prio::Response& res, std::shared_ptr<FilterChain> chain)
+    void before( prio::Request& req, prio::Response& res, std::shared_ptr<FilterChain> chain)
     {
         get_session(req,res)
         .then([this,&req,&res,chain]( Session session ) 
         {
-            req.attributes.set("_session_", session );
-            req.attributes.set("_session_filter_", this );
+            req.attributes.set("_session_", std::make_shared<Session>(session) );
 
             chain->next(req,res);
+        })
+        .otherwise([this,&req,&res,chain]( const std::exception& ex)
+        {
+            res.error().body(ex.what()).flush();
         });
     }
 
-    void save_session(prio::Request& req)
+
+    void after( prio::Request& req, prio::Response& res, std::shared_ptr<FilterChain> chain)
     {
-        Session session = req.attributes.attr<Session>("_session_");
-        session_provider_->set_session(session.sid(), session.profile());
-    }
+        auto session = req.attributes.attr<std::shared_ptr<Session>>("_session_");
+        if ( session->valid)
+        {
+            std::cout << "session valid" << std::endl;
+            // std::cout << "SESSION: " << session->authenticated << " " << JSON::stringify(session->data) << std::endl;
+
+            session_provider_->set_session(*session)
+            .then([&req,&res,chain]()
+            {
+                chain->next(req,res);     
+            })
+            .otherwise([&req,&res,chain]( const std::exception& ex)
+            {
+                //res.error().body(ex.what()).flush();
+            });
+        }
+        else
+        {
+            std::cout << "session invalid" << std::endl;
+            session_provider_->remove_user_session(*session)
+            .then([&req,&res,chain]()
+            {
+                chain->next(req,res);     
+            })
+            .otherwise([&req,&res,chain]( const std::exception& ex)
+            {
+                //res.error().body(ex.what()).flush();
+            });
+        }
+    }    
 
 private:
 
     std::string sid_cookie_name_;
     std::shared_ptr<SessionProvider> session_provider_;
 
-	static Future<Json::Value> get_session(prio::Request& req, prio::Response& res)
+	repro::Future<Session> get_session(prio::Request& req, prio::Response& res)
 	{
-        const Cookies& cookies = req.headers.cookies();
+        const prio::Cookies& cookies = req.headers.cookies();
 
         std::string sid;
-		if(!cookies.exists(sid_cookie_name_))
+		if(cookies.exists(sid_cookie_name_))
 		{
-			sid = make_session_id();
-		}
-        else
-        {
-            sid = cookies.get(sid_cookie_name_).value()
+            sid = cookies.get(sid_cookie_name_).value();
         }
 
-        res.cookie(Cookie(sid_cookie_name_,sid));
+        if(sid.empty())
+        {
+            sid = make_session_id();
+        }
+
+        res.cookie(prio::Cookie(sid_cookie_name_,sid));
 
 		return session_provider_->get_session(sid);
 	}
 
-	static std::string make_session_id()
+	std::string make_session_id()
 	{
 		std::string sid = sid_cookie_name_ + "::";
 		sid += cryptoneat::toHex(cryptoneat::nonce(64));
@@ -216,18 +258,47 @@ private:
 
 };
 
-void save_session(prio::Request& req)
+template<class F = SessionFilter>
+struct session_filter
 {
-    if(!req.attributes.exists("_session_filter_"))
+    session_filter(const std::string& m, const std::string& p, int prio = 0 )
+        : before(m,p,&F::before,prio), 
+          after(m,p,&F::after,prio)
+    {}
+
+
+	void ctx_register(diy::Context* ctx)
+	{
+        before.ctx_register(ctx);
+        after.ctx_register(ctx);
+	}    
+
+    filter_router<decltype(& F::before)> before;
+    completion_filter_router<decltype(& F::after)> after;
+};
+
+inline std::shared_ptr<Session> req_session(prio::Request& req)
+{
+    if(!req.attributes.exists("_session_"))
     {
-        return;
+        auto json = Json::Value(Json::objectValue);
+        return std::make_shared<Session>("",json);
     }
-
-    SessionFilter* sf = req.attributes.attr<SessionFilter*>("_session_filter_");
-
-    sf->save_session();
+    return req.attributes.attr<std::shared_ptr<Session>>("_session_");
 }
 
+inline bool is_authenticated(prio::Request& req)
+{
+    return req_session(req)->authenticated;
+}
+
+
+inline void invalidate_session(prio::Request& req)
+{
+    auto s = req_session(req);
+    s->valid = false;
+    s->authenticated = false;
+}
 
 }
 

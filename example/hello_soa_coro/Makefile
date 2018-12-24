@@ -1,3 +1,4 @@
+TS =
 CXX = clang++
 BACKEND=libevent
 BUILDCHAIN = make
@@ -9,16 +10,16 @@ update-dockerfile:
 	cd session-service && make update-dockerfile CXX=$(CXX) BACKEND=$(BACKEND) BUILDCHAIN=$(BUILDCHAIN)
 
 build: update-dockerfile ## run the docker image and open a shell
-	cd chat && make build CXX=$(CXX) BACKEND=$(BACKEND) BUILDCHAIN=$(BUILDCHAIN)
-	cd user-service && make build  CXX=$(CXX) BACKEND=$(BACKEND) BUILDCHAIN=$(BUILDCHAIN)
-	cd session-service && make build CXX=$(CXX) BACKEND=$(BACKEND) BUILDCHAIN=$(BUILDCHAIN)
+	cd chat && make build CXX=$(CXX) BACKEND=$(BACKEND) BUILDCHAIN=$(BUILDCHAIN) TS=$(TS)
+	cd user-service && make build  CXX=$(CXX) BACKEND=$(BACKEND) BUILDCHAIN=$(BUILDCHAIN) TS=$(TS)
+	cd session-service && make build CXX=$(CXX) BACKEND=$(BACKEND) BUILDCHAIN=$(BUILDCHAIN) TS=$(TS)
 
 up: update-dockerfile ## run the docker image and open a shell
-	CXX=$(CXX) BACKEND=$(BACKEND) BUILDCHAIN=$(BUILDCHAIN) docker-compose up -d --build
+	CXX=$(CXX) BACKEND=$(BACKEND) BUILDCHAIN=$(BUILDCHAIN) TS=$(TS) docker-compose up -d --build
 
 upforce : update-dockerfile
-	CXX=$(CXX) BACKEND=$(BACKEND) BUILDCHAIN=$(BUILDCHAIN) docker-compose build --no-cache
-	CXX=$(CXX) BACKEND=$(BACKEND) BUILDCHAIN=$(BUILDCHAIN) docker-compose up -d --build --force-recreate
+	CXX=$(CXX) BACKEND=$(BACKEND) BUILDCHAIN=$(BUILDCHAIN) TS=$(TS) docker-compose build --no-cache
+	CXX=$(CXX) BACKEND=$(BACKEND) BUILDCHAIN=$(BUILDCHAIN) TS=$(TS) docker-compose up -d --build --force-recreate
 	
 
 down: ## stop running docker image, if any

@@ -13,6 +13,9 @@ ENV BACKEND=${BACKEND}
 ARG BUILDCHAIN=make
 ENV BUILDCHAIN=${BUILDCHAIN}
 
+ARG TS=
+ENV TS=${TS}
+
 #ENV REDIS_HOST=redis
 
 RUN /usr/local/bin/install.sh  repro-mysql 

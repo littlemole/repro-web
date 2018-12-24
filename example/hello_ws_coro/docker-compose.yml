@@ -5,6 +5,7 @@ services:
       context: .
       dockerfile: Dockerfile
       args:
+        TS: ${TS}
         CXX: ${CXX}
         BACKEND: ${BACKEND}
         BUILDCHAIN: ${BUILDCHAIN}

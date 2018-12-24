@@ -17,6 +17,7 @@ public:
     
     FrontController& registerHandler( const std::string& method, const std::string& path, http_handler_t handler);
     FrontController& registerFilter( const std::string& method, const std::string& path, http_filter_t filter, int prio = 0);
+    FrontController& registerFlushFilter( const std::string& method, const std::string& path, http_filter_t filter, int prio = 0);
     FrontController& registerCompletionFilter( const std::string& method, const std::string& path, http_filter_t filter, int prio = 0);
     FrontController& registerStaticHandler( const std::string& method, const std::string& path, http_handler_t handler);
 
@@ -51,6 +52,7 @@ private:
     std::vector<std::unique_ptr<HandlerInfo>> handlers_;
     std::vector<std::unique_ptr<HandlerInfo>> staticHandlers_;
     std::vector<std::unique_ptr<HttpFilterInfo>> filters_;
+    std::vector<std::unique_ptr<HttpFilterInfo>> flush_filters_;
     std::vector<std::unique_ptr<HttpFilterInfo>> completion_filters_;
     std::vector<std::unique_ptr<ExHandlerInfo>> ex_handlers_;
 

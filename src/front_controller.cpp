@@ -62,6 +62,11 @@ FrontController& FrontController::registerFilter( const std::string& method, con
     return *this;
 }
 
+FrontController& FrontController::registerFlushFilter( const std::string& method, const std::string& path, http_filter_t handler, int prio )
+{
+    flush_filters_.push_back( std::make_unique<HttpFilterInfo>(method,path,handler,prio) );
+    return *this;
+}
 
 FrontController& FrontController::registerCompletionFilter( const std::string& method, const std::string& path, http_filter_t handler, int prio )
 {
@@ -126,6 +131,18 @@ void FrontController::handle_request(
         }
     );
 
+	auto p = repro::promise<>();
+
+    FilterChain::Ptr flush_chain =  make_filter_chain(
+    	flush_filters_,
+		method,
+		path,
+    	[p] (prio::Request& req, prio::Response& res, std::shared_ptr<FilterChain> chain)
+		{
+			p.resolve();
+		}
+    );	
+
     FilterChain::Ptr completion_chain =  make_filter_chain(
     	completion_filters_,
 		method,
@@ -135,12 +152,27 @@ void FrontController::handle_request(
     );
 
     prio::HttpResponse& response = (prio::HttpResponse&)res;
-    response.onFlush([completion_chain,this](prio::Request& req, prio::Response& res)
+    response.onFlushHeaders([p,flush_chain,this](prio::Request& req, prio::Response& res)
+    {
+		prio::nextTick([this,flush_chain,&req,&res]()
+		{
+			try
+			{
+				flush_chain->filter(req,res);
+			}
+			catch(const std::exception& ex)
+			{
+				handle_exception(ex,req,res);
+			}
+		});
+		return p.future();
+    });
+
+    response.onCompletion([completion_chain,this](prio::Request& req, prio::Response& res)
     {
         try
         {
         	completion_chain->filter(req,res);
-			save_session(req);
         }
         catch(const std::exception& ex)
         {
@@ -192,9 +224,15 @@ repro::Future<std::string> FrontController::include(const prio::Request& req, co
 	})
 	.otherwise(prio::reject(p));
 
-	prio::nextTick( [this,subreq]() 
+    std::shared_ptr<diy::Context> ctx = std::make_shared<diy::Context>( ctx_.get() );
+    subreq->req.attributes.set("ctx", ctx);
+
+	prio::nextTick( [this,subreq,path]() 
 	{
-		request_handler(subreq->req,subreq->res);
+		// do not run filter chains again
+		//request_handler(subreq->req,subreq->res);
+
+		dispatch(path,subreq->req,subreq->res);
 	});
 
 	return p.future();

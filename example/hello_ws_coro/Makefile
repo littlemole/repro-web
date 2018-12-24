@@ -1,3 +1,4 @@
+TS = 
 CXX = clang++
 BACKEND=libevent
 BUILDCHAIN = make
@@ -15,8 +16,8 @@ PKG_INC=$(shell pkg-config cryptoneat reprocpp --cflags)
 PKG_LIB=$(shell pkg-config jsoncpp cryptoneat libnghttp2 sqlite3 zlib libcurl --libs)
 
 # if not g++ we assume clang++
-DEFAULT_LIBS = -stdlib=libc++ -fcoroutines-ts  -lc++abi -std=c++14 
-DEFAULT_OPTS = -std=c++14 -stdlib=libc++ -fcoroutines-ts -D_RESUMABLE_FUNCTIONS_SUPPORTED 
+DEFAULT_LIBS = $(TS) -stdlib=libc++ -fcoroutines-ts  -lc++abi -std=c++14 
+DEFAULT_OPTS = $(TS) -std=c++14 -stdlib=libc++ -fcoroutines-ts -D_RESUMABLE_FUNCTIONS_SUPPORTED 
 
 ifeq ($(CXX),g++)
 DEFAULT_OPTS = -std=c++14 
@@ -104,7 +105,7 @@ build: update-dockerfile ## run the docker image and open a shell
 	CXX=$(CXX) BACKEND=$(BACKEND) BUILDCHAIN=$(BUILDCHAIN) docker-compose build
 
 up: update-dockerfile ## run the docker image and open a shell
-	CXX=$(CXX) BACKEND=$(BACKEND) BUILDCHAIN=$(BUILDCHAIN) docker-compose up -d --build
+	CXX=$(CXX) BACKEND=$(BACKEND) BUILDCHAIN=$(BUILDCHAIN) TS=$(TS) docker-compose up -d --build
 
 down: ## stop running docker image, if any
 	CXX=$(CXX) BACKEND=$(BACKEND) BUILDCHAIN=$(BUILDCHAIN) docker-compose stop

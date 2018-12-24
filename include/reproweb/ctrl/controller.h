@@ -213,9 +213,9 @@ private:
 	}
 
 	template<class C>
-	void registerCompletionFilter(FrontController& fc, const std::string& m, const std::string& p, repro::Future<> (C::*fun)(prio::Request&, prio::Response&, std::shared_ptr<FilterChain> chain), int prio)
+	void registerFilter(FrontController& fc, const std::string& m, const std::string& p, repro::Future<> (C::*fun)(prio::Request&, prio::Response&, std::shared_ptr<FilterChain> chain), int prio)
 	{
-		fc.registerFilter(m, p, [fun](prio::Request& req, prio::Response& res, std::shared_ptr<FilterChain> chain)
+		fc.registerCompletionFilter(m, p, [fun](prio::Request& req, prio::Response& res, std::shared_ptr<FilterChain> chain)
 		{
 			auto ptr = req.attributes.attr<std::shared_ptr<diy::Context>>("ctx")->resolve<C>();
 			(*ptr.*fun)(req, res, chain);
@@ -228,6 +228,55 @@ template<class F>
 completion_filter_router<F> completion_filter(const std::string& m, const std::string& p, F f, int priority = 0 )
 {
 	return completion_filter_router<F>(m,p,f,priority);
+}
+
+template<class F>
+struct flush_filter_router
+{
+	flush_filter_router(const std::string& m, const std::string& p, F f, int prio = 0 )
+		: method(m), path(p), handler(f),priority(prio)
+	{}
+
+	std::string method;
+	std::string path;
+	int priority;
+	F handler;
+
+	void ctx_register(diy::Context* ctx)
+	{
+		auto fc = ctx->resolve<FrontController>();
+		registerFilter(*fc,method,path,handler,priority);
+	}
+
+private:
+
+	template<class C>
+	void registerFilter(FrontController& fc, const std::string& m, const std::string& p, void (C::*fun)( prio::Request&,  prio::Response&, std::shared_ptr<FilterChain> chain), int prio)
+	{
+		fc.registerFlushFilter(m,p, [fun]( prio::Request& req,  prio::Response& res, std::shared_ptr<FilterChain> chain)
+		{
+			auto ptr = req.attributes.attr<std::shared_ptr<diy::Context>>("ctx")->resolve<C>();
+			(*ptr.*fun)(req,res,chain);
+		},
+		prio);
+	}
+
+	template<class C>
+	void registerCompletionFilter(FrontController& fc, const std::string& m, const std::string& p, repro::Future<> (C::*fun)(prio::Request&, prio::Response&, std::shared_ptr<FilterChain> chain), int prio)
+	{
+		fc.registerFlushFilter(m, p, [fun](prio::Request& req, prio::Response& res, std::shared_ptr<FilterChain> chain)
+		{
+			auto ptr = req.attributes.attr<std::shared_ptr<diy::Context>>("ctx")->resolve<C>();
+			(*ptr.*fun)(req, res, chain);
+		},
+		prio);
+	}
+};
+
+template<class F>
+flush_filter_router<F> flush_filter(const std::string& m, const std::string& p, F f, int priority = 0 )
+{
+	return flush_filter_router<F>(m,p,f,priority);
 }
 
 //////////////////////////////////////////////////////////////

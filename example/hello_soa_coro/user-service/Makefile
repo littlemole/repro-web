@@ -1,3 +1,4 @@
+TS =
 CXX = clang++
 BACKEND=libevent
 BUILDCHAIN = make
@@ -15,8 +16,8 @@ PKG_INC=$(shell pkg-config cryptoneat reprocpp mysqlclient --cflags)
 PKG_LIB=$(shell pkg-config jsoncpp cryptoneat libnghttp2 zlib libcurl expat --libs)
 
 # if not g++ we assume clang++
-DEFAULT_LIBS = -stdlib=libc++ -fcoroutines-ts  -lc++abi -std=c++14 
-DEFAULT_OPTS = -std=c++14 -stdlib=libc++ -fcoroutines-ts -D_RESUMABLE_FUNCTIONS_SUPPORTED 
+DEFAULT_LIBS = $(TS) -stdlib=libc++ -fcoroutines-ts  -lc++abi -std=c++14 
+DEFAULT_OPTS = $(TS) -std=c++14 -stdlib=libc++ -fcoroutines-ts -D_RESUMABLE_FUNCTIONS_SUPPORTED 
 
 ifeq ($(CXX),g++)
 DEFAULT_OPTS = -std=c++14 
