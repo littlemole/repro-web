@@ -244,6 +244,7 @@ private:
             sid = make_session_id();
         }
 
+        // move to flush
         res.cookie(prio::Cookie(sid_cookie_name_,sid));
 
 		return session_provider_->get_session(sid);
@@ -274,7 +275,7 @@ struct session_filter
 	}    
 
     filter_router<decltype(& F::before)> before;
-    completion_filter_router<decltype(& F::after)> after;
+    flush_filter_router<decltype(& F::after)> after;
 };
 
 inline std::shared_ptr<Session> req_session(prio::Request& req)
