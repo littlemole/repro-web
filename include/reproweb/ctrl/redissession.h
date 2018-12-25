@@ -1,8 +1,10 @@
 #ifndef INCLUDE_PROMISE_WEB_CONTROLLER_REDIS_SESSION_H_
 #define INCLUDE_PROMISE_WEB_CONTROLLER_REDIS_SESSION_H_
 
+#include "reproweb/serialization/json.h"
 #include "reproweb/ctrl/session.h"
 #include "reproredis/redis.h"
+#include "priocpp/api.h"
 
 namespace reproweb  
 {
@@ -23,49 +25,55 @@ public:
     {
 		auto p = repro::promise<Session>();
 
-        auto session = std::make_shared<Session>(sid,Json::Value(Json::nullValue));
+        auto session = std::make_shared<Session>(sid,Json::objectValue);
 
-		redis->cmd("GET", sid) 
-		.then([p,session](reproredis::RedisResult::Ptr reply)
+		redis_->cmd("GET", sid) 
+		.then([this,p,session](reproredis::RedisResult::Ptr reply)
 		{
-			if(reply->isError() || reply->isNill())
+			if( reply->isError() )
 			{
-				p.reject(repro::Ex("invalid session"));
-				return;
+				std::cout << "redis err " << reply->isError() << std::endl;
+				throw repro::Ex("invalid session");
 			}
 
-			std::string payload = reply->str();
-			Json::Value json = reproweb::JSON::parse(payload);
+			if( !reply->isNill() )
+			{
+				Json::Value json = reproweb::JSON::parse(reply->str());
+				fromJson(json,*session);
+			}
 
-            *session = Session(session->sid,json);
-			
-            return redis->cmd("EXPIRE", session->sid(), 60);
+            return redis_->cmd("EXPIRE", session->sid, 60);
 		})
 		.then([p,session](reproredis::RedisResult::Ptr reply)
 		{
 			p.resolve( *session );
 		})        
-		.otherwise(reject(p));
+		.otherwise([p,session](const std::exception& ex)
+		{
+			p.resolve(*session);
+		});
 
 		return p.future();
     }
 
-    virtual repro::Future<> set_session(const std::string& sid, Json::Value json)
+    virtual repro::Future<> set_session(Session session)
     {
 		auto p = repro::promise<>();
 
-		Session session(sid,json);
+		std::string json = JSON::stringify(toJson(session));
 
-		redis->cmd("SET", session.sid(), session.data() )
-		.then([p,this,session](reproredis::RedisResult::Ptr reply)
+		std::string sid = session.sid;
+
+		redis_->cmd("SET", sid, json)
+		.then([this,sid](reproredis::RedisResult::Ptr reply)
 		{
-			return redis->cmd("EXPIRE", session.sid(), 60);
+			return redis_->cmd("EXPIRE", sid, 60);
 		})
 		.then([p,session](reproredis::RedisResult::Ptr reply)
 		{
 			p.resolve();
 		})
-		.otherwise(reject(p));
+		.otherwise(prio::reject(p));
 
 		return p.future();
     }
@@ -75,12 +83,12 @@ public:
 	{
 		auto p = repro::promise<>();
 
-		redis->cmd("DEL", session->sid)
+		redis_->cmd("DEL", session.sid)
 		.then([p](reproredis::RedisResult::Ptr reply)
 		{
 			p.resolve();
 		})
-		.otherwise(reject(p));
+		.otherwise(prio::reject(p));
 
 		return p.future();
 	}

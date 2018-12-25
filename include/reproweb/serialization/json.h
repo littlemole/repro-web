@@ -127,6 +127,12 @@ inline void fromJson( const Json::Value& from, char& t)
     t = from.asInt();
 }
 
+inline void fromJson( const Json::Value& from, Json::Value& to)
+{
+    to = from;
+}
+
+
 template<class T>
 void fromJson(const Json::Value&, T& t);
 
