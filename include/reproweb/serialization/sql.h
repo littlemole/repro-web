@@ -65,7 +65,7 @@ public:
     template<class T>
     static void deserialize( const char* name, const void* from, T& to) 
     {
-        repromysql::result_async::Ptr r = *((repromysql::result_async::Ptr)from);
+        repromysql::result_async::Ptr r = *((repromysql::result_async::Ptr*)from);
 
         try {
             fromSQL( name, r, to);
