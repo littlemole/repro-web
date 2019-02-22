@@ -15,37 +15,65 @@ namespace reproweb {
 
 inline void fromSQL( const char* name, repromysql::result_async::Ptr r, std::string& t)
 {
-    t = r->field(std::string(name)).getString(); 
+    const repromysql::Retval& rv = r->field(std::string(name));
+    if( !rv.null() )
+    {
+        t = r->field(std::string(name)).getString(); 
+    }
 }
 
 inline void fromSQL( const char* name, repromysql::result_async::Ptr r, int& t)
 {
-    t = r->field(std::string(name)).getInt();
+    const repromysql::Retval& rv = r->field(std::string(name));
+    if( !rv.null() )
+    {
+        t = r->field(std::string(name)).getInt(); 
+    }
 }
 
 inline void fromSQL( const char* name, repromysql::result_async::Ptr r, double& t)
 {
-    t = r->field(std::string(name)).getDouble();
+    const repromysql::Retval& rv = r->field(std::string(name));
+    if( !rv.null() )
+    {
+        t = r->field(std::string(name)).getDouble(); 
+    }
 }
 
 inline void fromSQL( const char* name, repromysql::result_async::Ptr r, float& t)
 {
-    t = r->field(std::string(name)).getFloat();
+    const repromysql::Retval& rv = r->field(std::string(name));
+    if( !rv.null() )
+    {
+        t = r->field(std::string(name)).getFloat(); 
+    }    
 }
 
 inline void fromSQL( const char* name, repromysql::result_async::Ptr r, bool& t)
 {
-    t = r->field(std::string(name)).getInt() != 0;
+    const repromysql::Retval& rv = r->field(std::string(name));
+    if( !rv.null() )
+    {
+        t = r->field(std::string(name)).getInt() != 0; 
+    }    
 }
 
 inline void fromSQL( const char* name, repromysql::result_async::Ptr r, long long& t)
 {
-    t = r->field(std::string(name)).getLongLong();
+    const repromysql::Retval& rv = r->field(std::string(name));
+    if( !rv.null() )
+    {
+        t = r->field(std::string(name)).getLongLong(); 
+    }    
 }
 
 inline void fromSQL( const char* name, repromysql::result_async::Ptr r, char& t)
 {
-    t = r->field(std::string(name)).getInt();
+    const repromysql::Retval& rv = r->field(std::string(name));
+    if( !rv.null() )
+    {
+        t = r->field(std::string(name)).getInt(); 
+    }
 }
 
 template<class T>
