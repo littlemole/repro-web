@@ -48,6 +48,11 @@ inline void fromSQL( const char* name, repromysql::result_async::Ptr r, char& t)
     t = r->field(std::string(name)).getInt();
 }
 
+template<class T>
+void fromSQL(const char* name, repromysql::result_async::Ptr r, std::vector<T>& t)
+{
+    // do nothing
+}
 
 template<class T>
 void fromSQL(repromysql::result_async::Ptr r, T& t);
