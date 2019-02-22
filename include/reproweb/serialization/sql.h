@@ -102,9 +102,9 @@ void fromSQL(repromysql::result_async::Ptr r, std::vector<T>& v)
 	v.clear();
     while( r->fetch() )
     {
+        T t;
         const auto& m = meta_of(t);
 
-        T t;
 	    m. template deserialize<SQLSerializer>(&r,t);
         v.push_back(std::move(t));
     }
