@@ -37,6 +37,10 @@ inline void fromParams( const prio::Cookie& from, prio::Cookie& to )
 	to = from;
 }
 
+inline void fromParams( const prio::Cookie& from, int& to )
+{
+	to = std::stoul(from.value());	
+}
 
 inline void fromParams( const prio::Cookie& from, std::string& to )
 {
@@ -63,6 +67,12 @@ inline void fromParams( const prio::HeaderValues& from, prio::HeaderValues& to )
 }
 
 
+inline void fromParams( const prio::HeaderValues& from, int& to )
+{
+	to = std::stoul(from.value().main());
+}
+
+
 inline void fromParams( const prio::HeaderValues& from, prio::Cookie& to )
 {
 	// no op
@@ -82,27 +92,27 @@ public:
     template<class T>
     static void deserialize( const char* name, const void* from, T& to) 
     {
-		prio::QueryParams& qp = *( (prio::QueryParams*)from);
+				prio::QueryParams& qp = *( (prio::QueryParams*)from);
 
-		std::string val = qp.get(name);
+				std::string val = qp.get(name);
 
-		fromParams(val,to);
+				fromParams(val,to);
     }
     
     template<class T>
     static void deserialize( const char* name, const void* from, std::vector<T>& to) 
     {
-		prio::QueryParams& qp = *( (prio::QueryParams*)from);
+				prio::QueryParams& qp = *( (prio::QueryParams*)from);
 
-		to.clear();
-		std::string val = qp.get(name);
-		auto v = prio::split(val,",");
-		for ( auto& i : v)
-		{
-			T t;
-			fromParams(i,t);
-			to.push_back(std::move(t));
-		}
+				to.clear();
+				std::string val = qp.get(name);
+				auto v = prio::split(val,",");
+				for ( auto& i : v)
+				{
+					T t;
+					fromParams(i,t);
+					to.push_back(std::move(t));
+				}
     }
 };
 
