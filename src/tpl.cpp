@@ -62,7 +62,7 @@ mustache::Data mustache::fromJson(Json::Value& data)
 	}
 	if ( data.isNull())
 	{
-		return Data("");
+		return Data(Data::Type::False);
 	}
 	return Data(data.asString());
 }
