@@ -17,6 +17,38 @@ inline void fromParams(const std::string& from, int& to)
 	iss >> to;
 }
 
+inline void fromParams(const std::string& from, long& to)
+{
+	std::istringstream iss(from);
+	iss >> to;
+}
+
+inline void fromParams(const std::string& from, long long& to)
+{
+	std::istringstream iss(from);
+	iss >> to;
+}
+
+inline void fromParams(const std::string& from, float& to)
+{
+	std::istringstream iss(from);
+	iss >> to;
+}
+
+inline void fromParams(const std::string& from, double& to)
+{
+	std::istringstream iss(from);
+	iss >> to;
+}
+
+
+inline void fromParams(const std::string& from, bool& to)
+{
+	std::istringstream iss(from);
+	iss >> to;
+}
+
+
 inline void fromParams(const std::string& from, std::string& to)
 {
 	to = from;
@@ -39,7 +71,35 @@ inline void fromParams( const prio::Cookie& from, prio::Cookie& to )
 
 inline void fromParams( const prio::Cookie& from, int& to )
 {
-	to = std::stoul(from.value());	
+	to = std::stoi(from.value());	
+}
+
+inline void fromParams( const prio::Cookie& from, long& to )
+{
+	to = std::stol(from.value());	
+}
+
+inline void fromParams( const prio::Cookie& from, long long& to )
+{
+	to = std::stoll(from.value());	
+}
+
+inline void fromParams( const prio::Cookie& from, float& to )
+{
+	std::istringstream iss(from.value());
+	iss >> to;
+}
+
+inline void fromParams( const prio::Cookie& from, double& to )
+{
+	std::istringstream iss(from.value());
+	iss >> to;
+}
+
+inline void fromParams( const prio::Cookie& from, bool& to )
+{
+	std::istringstream iss(from.value());
+	iss >> to;
 }
 
 inline void fromParams( const prio::Cookie& from, std::string& to )
@@ -69,9 +129,36 @@ inline void fromParams( const prio::HeaderValues& from, prio::HeaderValues& to )
 
 inline void fromParams( const prio::HeaderValues& from, int& to )
 {
-	to = std::stoul(from.value().main());
+	to = std::stoi(from.value().main());
 }
 
+inline void fromParams( const prio::HeaderValues& from, long& to )
+{
+	to = std::stol(from.value().main());
+}
+
+inline void fromParams( const prio::HeaderValues& from, long long& to )
+{
+	to = std::stoll(from.value().main());
+}
+
+inline void fromParams( const prio::HeaderValues& from, float& to )
+{
+	std::istringstream iss(from.value().main());
+	iss >> to;
+}
+
+inline void fromParams( const prio::HeaderValues& from, double& to )
+{
+	std::istringstream iss(from.value().main());
+	iss >> to;
+}
+
+inline void fromParams( const prio::HeaderValues& from, bool& to )
+{
+	std::istringstream iss(from.value().main());
+	iss >> to;
+}
 
 inline void fromParams( const prio::HeaderValues& from, prio::Cookie& to )
 {
