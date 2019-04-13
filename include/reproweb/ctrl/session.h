@@ -99,6 +99,8 @@ private:
 template<class F = SessionFilter>
 struct session_filter
 {
+    typedef F type;
+    
     session_filter(const std::string& m, const std::string& p, int prio = 0 )
         : before(m,p,&F::before,prio), 
           after(m,p,&F::after,prio)

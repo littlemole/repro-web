@@ -98,6 +98,8 @@ class static_content
 {
 public:
 
+    typedef static_content type;
+
     static_content(const std::string& htdocs_path,const std::string& mime_file_path);
 
     ~static_content();

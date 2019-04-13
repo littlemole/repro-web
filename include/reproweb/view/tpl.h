@@ -56,6 +56,8 @@ class view_templates
 {
 public:
 
+	typedef view_templates type;
+
     view_templates(const std::string& path);
 
     void ctx_register(diy::Context* ctx);

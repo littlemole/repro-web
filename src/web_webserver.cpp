@@ -2,6 +2,10 @@
 #include "reproweb/ctrl/front_controller.h"
 #include "reproweb/ctrl/handler.h"
 #include "reproweb/json/json.h"
+#include "reproweb/view/tpl.h"
+#include "reproweb/view/i18n.h"
+#include "reproweb/ctrl/ssi.h"
+#include "reproweb/ctrl/front_controller.h"
 #include "priohttp/http_server.h"
 #include "priocpp/api.h"
 #include <signal.h>
@@ -43,8 +47,9 @@ int WebServer::listen(int port)
         
         auto fc = diy::inject<FrontController>(ctx_);
         server->bind(port)
-        .then( [fc](prio::Request& req, prio::Response& res)
+        .then( [fc,port](prio::Request& req, prio::Response& res)
         {
+            req.attributes.set("PORT",port);
         	fc->request_handler(req,res);
         })
 		.otherwise([](const std::exception& ex)
@@ -107,6 +112,150 @@ void WebServer::shutdown()
     }
 }
 
+
+WebServer& WebServer::views(const std::string& path)
+{
+    view_templates vt(path);
+
+    vt.ctx_register(&ctx_);
+
+    return *this;
+}
+
+
+WebServer& WebServer::htdocs(const std::string& path, const std::string& mime)
+{
+    static_content sc(path,mime);
+
+    sc.ctx_register(&ctx_);
+
+    return *this;
+}
+
+WebServer& WebServer::htdocs(const std::string& path)
+{
+#ifndef _WIN32
+		return htdocs(path, "/etc/mime.types");
+#else
+		return htdocs(path, "mime.types");
+#endif
+}
+
+
+WebServer& WebServer::i18n(const std::string& path,const std::vector<std::string>& locales)
+{
+    i18n_props ip(path,locales);
+
+    ip.ctx_register(&ctx_);
+
+    return *this;
+}
+
+
+void WebServer::run_config(Json::Value json)
+{
+    if( json.isMember("i18n"))
+    {
+        Json::Value localisator = json["i18n"];
+        std::string path = localisator["path"].asString();
+        Json::Value locale_array = localisator["locales"];
+
+        std::vector<std::string> locales;
+        for ( unsigned int i = 0; i < locale_array.size(); i++)
+        {
+            locales.push_back(locale_array[i].asString());
+        }
+        
+        auto i18n = std::make_shared<I18N>(path,locales);
+        ctx_.registerFactory( typeid(I18N), new diy::FactoryImpl<I18N>(i18n) );
+    }
+
+    if( json.isMember("view"))
+    {
+        std::string path = json["view"].asString();
+
+        auto tpls = std::make_shared<TplStore>();
+        tpls->load(path);
+        ctx_.registerFactory( typeid(TplStore), new diy::FactoryImpl<TplStore>(tpls) );
+    }
+
+    if( json.isMember("htdocs"))
+    {
+        std::string mime = "mime.types";
+        std::string path = json["htdocs"].asString();
+
+        if(json.isMember("mime"))
+        {
+            mime = json["mime"].asString();
+        }
+
+        auto content = std::make_shared<reproweb::StaticContentHandler>(path,mime);
+        ctx_.registerFactory( typeid(StaticContentHandler), new diy::FactoryImpl<StaticContentHandler>(content) );
+
+        content->register_static_handler(&ctx_);
+    }
+
+
+    if( json.isMember("ssi"))
+    {
+        Json::Value ssi = json["ssi"];
+
+        std::string path = ssi["htdocs"].asString();
+        std::string filter = ssi["filter"].asString();
+
+        http_handler_t handler = [path,filter](prio::Request& req, prio::Response& res)
+        {
+            res.contentType("text/html");
+
+            std::string tmpl = SSIResolver::tmpl(req,path);
+
+            reproweb::SSIResolver::resolve(req,tmpl)
+            .then( [&res](std::string s)
+            {
+                res.body(s);
+                res.ok().flush();
+            })
+            .otherwise([&res](const std::exception& ex)
+            {
+                res.error().flush();
+            });
+        };
+
+        auto fc = diy::inject<FrontController>(ctx_);
+        fc->registerStaticHandler("GET",filter,handler);
+    }		
+
+    if(json.isMember("http"))
+    {
+        Json::Value ports = json["http"]["ports"];
+        for( unsigned int i = 0; i < ports.size(); i++)
+        {
+            int port = ports[i].asInt();
+            listen(port);
+        }
+    }
+
+    if(json.isMember("https"))
+    {
+        std::string cert = json["https"]["cert"].asString();
+        bool enableHttp2 = json["https"]["http2"].asBool();
+        Json::Value ports = json["https"]["ports"];
+
+        for( unsigned int i = 0; i < ports.size(); i++)
+        {
+            Http2SslCtx* sslCtx = new Http2SslCtx();
+            sslCtx->load_cert_pem(cert);
+            if(enableHttp2)
+            {
+                sslCtx->enableHttp2();
+            }
+
+            sslContexts_.push_back(std::unique_ptr<Http2SslCtx>(sslCtx));
+            int port = ports[i].asInt();
+            listen(*sslCtx,port);
+        }
+    }
+}
 
 
 

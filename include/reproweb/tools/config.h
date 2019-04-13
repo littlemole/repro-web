@@ -2,10 +2,6 @@
 #define INCLUDE_PROMISE_WEB_CONFIG_H_
 
 #include "reproweb/json/json.h"
-#include "reproweb/view/tpl.h"
-#include "reproweb/view/i18n.h"
-#include "reproweb/ctrl/ssi.h"
-#include "reproweb/ctrl/front_controller.h"
 #include "priohttp/common.h"
 
 namespace reproweb  {
@@ -54,85 +50,6 @@ private:
 	Json::Value json_;
 };
 
-class WebAppConfig : public Config
-{
-public:
-	WebAppConfig( const std::string& path, std::shared_ptr<diy::Context> ctx)
-	  : Config(path)
-	{
-		if( json().isMember("i18n"))
-		{
-			Json::Value localisator = json()["i18n"];
-			std::string path = localisator["path"].asString();
-			Json::Value locale_array = localisator["locales"];
-	
-			std::vector<std::string> locales;
-			for ( unsigned int i = 0; i < locale_array.size(); i++)
-			{
-				locales.push_back(locale_array[i].asString());
-			}
-			
-			auto i18n = std::make_shared<I18N>(path,locales);
-			ctx->registerFactory( typeid(I18N), new diy::FactoryImpl<I18N>(i18n) );
-		}
-
-		if( json().isMember("view"))
-		{
-			std::string path = getString("view");
-	
-			auto tpls = std::make_shared<TplStore>();
-			tpls->load(path);
-			ctx->registerFactory( typeid(TplStore), new diy::FactoryImpl<TplStore>(tpls) );
-		}
-
-		if( json().isMember("htdocs"))
-		{
-			std::string mime = "mime.types";
-			std::string path = getString("htdocs");
-
-			if(json().isMember("mime"))
-			{
-				mime = getString("mime");
-			}
-	
-			auto content = std::make_shared<reproweb::StaticContentHandler>(path,mime);
-			ctx->registerFactory( typeid(StaticContentHandler), new diy::FactoryImpl<StaticContentHandler>(content) );
-
-			content->register_static_handler(ctx.get());
-		}
-
-
-		if( json().isMember("ssi"))
-		{
-			Json::Value ssi = getString("ssi");
-
-			std::string path = ssi["htdocs"].asString();
-			std::string filter = ssi["filter"].asString();
-	
-			http_handler_t handler = [path,filter](prio::Request& req, prio::Response& res)
-			{
-				res.contentType("text/html");
-
-				std::string tmpl = SSIResolver::tmpl(req,path);
-
-				reproweb::SSIResolver::resolve(req,tmpl)
-				.then( [&res](std::string s)
-				{
-					res.body(s);
-					res.ok().flush();
-				})
-				.otherwise([&res](const std::exception& ex)
-				{
-					res.error().flush();
-				});
-			};
-
-			auto fc = diy::inject<FrontController>(*ctx);
-			fc->registerStaticHandler("GET",filter,handler);
-		}		
-	}
-
-};
 
 }
 

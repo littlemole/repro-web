@@ -13,6 +13,8 @@ class router
 {
 public:
 
+	typedef F type;
+
 	router(const std::string& m, const std::string& p, F f  )
 		: method(m), path(p), handler(f)
 	{}
@@ -126,12 +128,60 @@ auto PUT(const std::string& p, F f)
 	return route("PUT",p,f);
 }
 
+
+template<class T, class ... Args >
+class routings : public routings<Args...>
+{
+public:
+	routings( T&& t, Args&& ... args)
+		: routings<Args...>(std::forward<Args&&>(args)...), 
+		  routing_(t)
+	{
+	}
+
+	void ctx_register(diy::Context* ctx)
+	{
+		routing_.ctx_register(ctx);
+		routings<Args...>::ctx_register(ctx);
+	}
+
+private:
+	T routing_;
+};
+
+
+template<class T>
+class routings<T> 
+{
+public:
+	routings( T&& t )
+		: routing_(t)
+	{}
+
+	void ctx_register(diy::Context* ctx)
+	{
+		routing_.ctx_register(ctx);
+	}
+
+private:
+	T routing_;
+};
+
+template<class ... Args >
+auto routes(Args&& ... args)
+{
+	return routings<Args...>(std::forward<Args&&>(args)...);
+}
+
 //////////////////////////////////////////////////////////////
 //////////////////////////////////////////////////////////////
 
 template<class F>
 struct filter_router
 {
+	typedef F type;
+
+
 	filter_router(const std::string& m, const std::string& p, F f, int prio = 0 )
 		: method(m), path(p), handler(f),priority(prio)
 	{}
@@ -184,6 +234,8 @@ filter_router<F> filter(const std::string& m, const std::string& p, F f, int pri
 template<class F>
 struct completion_filter_router
 {
+	typedef F type;
+
 	completion_filter_router(const std::string& m, const std::string& p, F f, int prio = 0 )
 		: method(m), path(p), handler(f),priority(prio)
 	{}
@@ -233,6 +285,8 @@ completion_filter_router<F> completion_filter(const std::string& m, const std::s
 template<class F>
 struct flush_filter_router
 {
+	typedef F type;
+
 	flush_filter_router(const std::string& m, const std::string& p, F f, int prio = 0 )
 		: method(m), path(p), handler(f),priority(prio)
 	{}
@@ -286,6 +340,9 @@ template<class F>
 class exception_handler
 {
 public:
+
+	typedef F type;
+
 
 	exception_handler(F f)
 		: fun_(f)
@@ -360,6 +417,8 @@ public:
 		);
 
 		register_dependencies<Args&&...>(std::forward<Args&&>(args)...);
+
+		register_routes(std::forward<Args&&>(args)...);
 	}
 
 private:
@@ -371,9 +430,20 @@ private:
 	template<class T, class ... Args>
 	void register_dependencies(T&& t,Args&& ... args)
 	{
-		//std::cout << "register " << typeid(t).name() << std::endl;
 		t.ctx_register(this);
 		register_dependencies<Args&&...>(std::forward<Args&&>(args)...);
+	}
+
+	template<class ... Args>
+	void register_routes()
+	{}
+
+	template<class T, class ... Args>
+	void register_routes(T&& t,Args&& ... args)
+	{
+		typedef typename std::remove_reference<T>::type::type X;
+		http_routes::register_routes< X >(this);
+		register_routes(std::forward<Args&&>(args)...);
 	}
 
 	WebApplicationContext(const WebApplicationContext& rhs) = delete;

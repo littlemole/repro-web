@@ -36,6 +36,8 @@ class ssi_content
 {
 public:
 
+	typedef ssi_content type;
+
     ssi_content(const std::string& htdocs_path,const std::string& filter);
 
     void ctx_register(diy::Context* ctx)

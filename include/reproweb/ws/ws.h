@@ -58,6 +58,8 @@ class ws_controller
 {
 public:
 
+	typedef T type;
+
 	ws_controller( const std::string& path)
 	  : path_(path)
 	{
