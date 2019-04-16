@@ -134,6 +134,76 @@ private:
 };
 
 
+
+template<class F>
+repro::Future<> forEach( std::shared_ptr<Json::Value> json, unsigned int index, F f )
+{
+	auto p = repro::promise<>();
+
+	if ( index == json->size() )
+	{
+		prio::nextTick([p]()
+		{
+			p.resolve();
+		});
+		
+		return p.future();
+	}
+
+	int step = index;
+	step++;
+
+	f((*json)[index])
+	.then([json,step,f]()
+	{
+		return forEach(json,step,f);
+	})
+	.then([p]()
+	{
+		p.resolve();
+	})
+	.otherwise(prio::reject(p));
+
+	return p.future();
+}
+
+
+template<class F>
+repro::Future<> forEach(Json::Value json, F f )
+{
+	auto container = std::make_shared<Json::Value>(json);
+	int i = 0;
+
+	return forEach( container, i, f);
+}
+
+
+inline Json::Value sort(const Json::Value& arrayIn, const std::string member)
+{
+	std::vector<Json::Value> v;
+
+	for( unsigned int i = 0; i < arrayIn.size(); i++)
+	{
+		v.push_back(arrayIn[i]);
+	}
+
+	std::sort( 
+		v.begin(), 
+		v.end(), 
+		[member]( const Json::Value& lhs, const Json::Value& rhs ) 
+		{
+			return lhs[member].asInt() < rhs[member].asInt();
+		}
+	);
+
+	Json::Value result = Json::Value(Json::arrayValue);
+	for ( auto& item : v ) 
+	{
+		result.append(item);
+	}
+	return result;
+}
+
 }
 
 #endif

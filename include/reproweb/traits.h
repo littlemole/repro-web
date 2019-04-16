@@ -116,12 +116,6 @@ namespace reproweb {
     template<class T>
     using has_valid = std::experimental::is_detected<has_valid_t, T>;
 
-    template<class T>
-    using has_http_routes_t = decltype(&T::http_routes);
-
-    template<class T>
-    using has_http_routes = std::experimental::is_detected<has_http_routes_t, T>;
-
     class call_valid
     {
     public:
@@ -137,21 +131,6 @@ namespace reproweb {
         {}
     };
 
-
-    class http_routes
-    {
-    public:
-
-        template <class T, typename std::enable_if<has_http_routes<T>::value>::type* = nullptr >
-        static void register_routes(  diy::Context* ctx) 
-        {
-            T::http_routes().ctx_register(ctx);
-        }
-
-        template <class T , typename  std::enable_if<!has_http_routes<T>::value>::type* = nullptr >
-        static void register_routes( diy::Context*) 
-        {}
-    };
 
 //////////////////////////////////////////////////////////////
 

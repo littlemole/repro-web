@@ -2,6 +2,7 @@
 #define INCLUDE_PROMISE_WEB_CONTROLLER_H_
 
 #include "reproweb/serialization/parameter.h"
+#include <diycpp/injector.h>
 
 namespace reproweb  {
 
@@ -128,50 +129,6 @@ auto PUT(const std::string& p, F f)
 	return route("PUT",p,f);
 }
 
-
-template<class T, class ... Args >
-class routings : public routings<Args...>
-{
-public:
-	routings( T&& t, Args&& ... args)
-		: routings<Args...>(std::forward<Args&&>(args)...), 
-		  routing_(t)
-	{
-	}
-
-	void ctx_register(diy::Context* ctx)
-	{
-		routing_.ctx_register(ctx);
-		routings<Args...>::ctx_register(ctx);
-	}
-
-private:
-	T routing_;
-};
-
-
-template<class T>
-class routings<T> 
-{
-public:
-	routings( T&& t )
-		: routing_(t)
-	{}
-
-	void ctx_register(diy::Context* ctx)
-	{
-		routing_.ctx_register(ctx);
-	}
-
-private:
-	T routing_;
-};
-
-template<class ... Args >
-auto routes(Args&& ... args)
-{
-	return routings<Args...>(std::forward<Args&&>(args)...);
-}
 
 //////////////////////////////////////////////////////////////
 //////////////////////////////////////////////////////////////
@@ -334,6 +291,46 @@ flush_filter_router<F> flush_filter(const std::string& m, const std::string& p, 
 }
 
 //////////////////////////////////////////////////////////////
+
+inline auto render_error(prio::Response& res)
+{
+	return [&res] (const std::exception& ex) 
+	{
+		res.error().body(ex.what()).flush();	
+	};
+}
+
+inline void redirect_url(std::ostringstream& oss)
+{
+}
+
+
+template<class T,class ... Args>
+void redirect_url(std::ostringstream& oss, T&& t, Args&& ... args)
+{
+	oss << t;
+	redirect_url(oss,std::forward<Args&&>(args)...);
+}
+
+
+template<class ... Args>
+inline auto redirect(prio::Response& res, Args ... args)
+{
+	std::ostringstream oss;
+	redirect_url(oss,std::forward<Args&&>(args)...);
+
+	std::string url = oss.str();
+
+	return [&res,url](auto ... params)
+	{
+		std::ostringstream oss;
+		oss << url;
+		redirect_url(oss,params...);
+		res.redirect(oss.str()).flush();
+	};
+}
+
+
 //////////////////////////////////////////////////////////////
 
 template<class F>
@@ -417,8 +414,6 @@ public:
 		);
 
 		register_dependencies<Args&&...>(std::forward<Args&&>(args)...);
-
-		register_routes(std::forward<Args&&>(args)...);
 	}
 
 private:
@@ -434,21 +429,10 @@ private:
 		register_dependencies<Args&&...>(std::forward<Args&&>(args)...);
 	}
 
-	template<class ... Args>
-	void register_routes()
-	{}
-
-	template<class T, class ... Args>
-	void register_routes(T&& t,Args&& ... args)
-	{
-		typedef typename std::remove_reference<T>::type::type X;
-		http_routes::register_routes< X >(this);
-		register_routes(std::forward<Args&&>(args)...);
-	}
-
 	WebApplicationContext(const WebApplicationContext& rhs) = delete;
 };
 
+typedef diy::Injector http_routes;
 
 //////////////////////////////////////////////////////////////
 //////////////////////////////////////////////////////////////
