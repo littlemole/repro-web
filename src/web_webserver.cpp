@@ -15,7 +15,9 @@ using namespace prio;
 
 namespace reproweb  {
 
-
+WebServer::WebServer()
+    : ctx_(defaultCtx())
+{}
 
 WebServer::WebServer(diy::Context& ctx)
     : ctx_(ctx)
@@ -103,6 +105,10 @@ int WebServer::listen(prio::SslCtx& ssl, int port)
     return r;
 }
 
+void WebServer::listen()
+{
+    run_config(config_);
+}
 
 void WebServer::shutdown()
 {
@@ -257,6 +263,11 @@ void WebServer::run_config(Json::Value json)
     }
 }
 
+diy::Context& WebServer::defaultCtx()
+{
+    static WebApplicationContext ctx { diy::inject_modules() };
+    return ctx;
+}
 
 
 } // end namespace csgi

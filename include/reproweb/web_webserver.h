@@ -15,7 +15,16 @@ class WebServer
 {
 public:
 
+    WebServer();
     WebServer(diy::Context& ctx);
+
+    ~WebServer();    
+    
+    int listen(int port);
+    int listen(prio::SslCtx& ssl,int port);
+    void listen();
+
+    void shutdown();
 
     template<class T>
     WebServer& configure()
@@ -25,20 +34,7 @@ public:
         return *this;
     }
 
-    ~WebServer();    
-    
-    int listen(int port);
-    int listen(prio::SslCtx& ssl,int port);
-
-    void listen()
-    {
-        run_config(config_);
-    }
-
-    void shutdown();
-
-
-    template<class F = MemorySessionProvider>
+    template<class F = SessionFilter>
     WebServer& session(const std::string& methods, const std::string& paths, int prio)
     {
         session_filter<F> sf(methods,paths,prio);
@@ -48,7 +44,7 @@ public:
         return *this;
     }
 
-    template<class F = MemorySessionProvider>
+    template<class F = SessionFilter>
     WebServer& session()
     {
         std::string methods = config_["session"]["verb"].asString();
@@ -93,6 +89,8 @@ public:
     WebServer& i18n(const std::string& path,const std::vector<std::string>& locales);
 
 private:
+
+    static diy::Context& defaultCtx();
 
     Json::Value config_;
 
