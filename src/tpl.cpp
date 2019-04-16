@@ -343,5 +343,12 @@ MustacheView::MustacheView( std::shared_ptr<TplStore> tpls )
 	)
 {}
 
+SSIMustacheView::SSIMustacheView( std::shared_ptr<TplStore> tpls )
+	: ViewMustacheDecorator( 
+		new ViewSSIDecorator(
+			new TemplateView(tpls)
+		)
+	)
+{}
 
 }

@@ -165,6 +165,14 @@ public:
 	MustacheView( std::shared_ptr<TplStore> tpls );
 };
 
+class SSIMustacheView : public ViewMustacheDecorator
+{
+public:
+
+	SSIMustacheView( std::shared_ptr<TplStore> tpls );
+};
+
+
 //////////////////////////////////////////////////////
 
 }
