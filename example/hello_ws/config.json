@@ -3,6 +3,9 @@
     "sqlite" : "./user.db",
     "cert"   : "pem/server.pem",
 
+    "view"   : "/view/",
+    "htdocs" : "/htdocs/",
+
     "i18n"   : {
         "path"    : "/locale/properties", 
         "locales" : ["en", "de"]
@@ -15,8 +18,12 @@
         "http2"  : false
     },
 
-    "view"   : "/view/",
-    "htdocs" : "/htdocs/"
+    "session" : 
+    {
+        "verb"  : "(GET)|(POST)",
+        "path"  : "^((?!(/css)|(/img)|(/js)|(/inc)).)*$",
+        "prio"  : 10
+    }    
 }
 
  

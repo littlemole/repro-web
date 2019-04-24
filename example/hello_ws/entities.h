@@ -69,35 +69,6 @@ private:
 };
 
 
-class Session
-{
-public:
-	Session()
-	{}
-
-	Session(Json::Value profile) 
-		:sid_(make_session_id()), profile_(profile)
-	{}
-
-	Session(const std::string& sid,Json::Value profile) 
-		:sid_(sid), profile_(profile)
-	{}
-
-	std::string sid() const  { return sid_; }
-	Json::Value profile() const     { return profile_; }
-
-private:
-	std::string sid_;
-	Json::Value profile_;	
-
-	static std::string make_session_id()
-	{
-		std::string sid = "repro_web_sid::";
-		sid += cryptoneat::toHex(cryptoneat::nonce(64));
-		return sid;
-	}
-};
-
 #define TO_STR_HELPER(x) #x
 #define TO_STR(x) TO_STR_HELPER(x)
 

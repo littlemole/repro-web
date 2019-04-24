@@ -15,13 +15,17 @@ public:
 		: model_(model), view_(view)
 	{}
 
-	Async index( Parameter<SessionID> params, Request& req, Response& res)
+	void index( Request& req, Response& res)
 	{
-		Json::Value viewModel = co_await model_->chat(params->sid);
+		auto session = req_session(req);
+		if(!session->authenticated)
+		{
+			throw AuthEx();
+		}
+
+		Json::Value viewModel = session->data;
 
 		view_->render_index(req,res,viewModel);
-
-		co_return;		
 	}
 
 	void show_login( Request& req, Response& res)
@@ -34,30 +38,34 @@ public:
 		view_->render_registration(req,res,"");		
 	}
 
-	Async login( Form<Login> loginForm, Response& res)
+	Async login( Form<Login> loginForm, Request& req, Response& res)
 	{
-		std::string sid = co_await model_->login(*loginForm);
+		User user = co_await model_->login(*loginForm);
 
-		view_->redirect_to_index(res,sid);
+		auto session = req_session(req);
+		session->authenticated = true;
+		session->data = toJson(user);
+
+		view_->redirect_to_index(res);
 	
 		co_return;		
 	}
 
-	Async logout( Parameter<SessionID> params, Response& res)
+	void logout( Request& req, Response& res)
 	{
-		co_await model_->logout(params->sid);
-
+		invalidate_session(req);
 		view_->redirect_to_login(res);
-
-		co_return;		
 	}
 
-	Async register_user( Form<User> userForm, Response& res)
+	Async register_user( Form<User> userForm, Request& req, Response& res)
 	{
+		User user = co_await model_->register_user(*userForm);
 
-		std::string sid = co_await model_->register_user(*userForm);
+		auto session = req_session(req);
+		session->authenticated = true;
+		session->data = toJson(user);
 
-		view_->redirect_to_index(res,sid);
+		view_->redirect_to_index(res);
 
 		co_return;		
 	}

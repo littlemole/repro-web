@@ -30,6 +30,8 @@ int main(int argc, char **argv)
 
 		ws_controller<WebSocketController> ("/ws"),
 
+		session_filter<SessionFilter>("(GET|POST)", "^((?!(/css)|(/img)|(/js)|(/inc)).)*$",10),
+
 		i18n_props("/locale/properties", {"en", "de"} ),
 
 		view_templates("/view/"),
@@ -45,21 +47,22 @@ int main(int argc, char **argv)
 		ex_handler(&Exceptions::on_registration_failed),
 		ex_handler(&Exceptions::on_std_ex),
 
-		singleton<AppConfig(FrontController)>(),
-		singleton<SessionPool(AppConfig)>(),
+		singleton<AppConfig()>(),
 		singleton<UserPool(AppConfig)>(),
 
-		singleton<SessionRepository(SessionPool)>(),
 		singleton<UserRepository(UserPool)>(),
 
-		singleton<Model(SessionRepository,UserRepository)>(),
+		singleton<Model(UserRepository)>(),
 		singleton<View(AppConfig,TplStore,I18N)>(),
 		singleton<Controller(Model,View)>(),
 
 		singleton<EventBus()>(),
-		singleton<WebSocketController(SessionRepository,EventBus)>(),
+		singleton<WebSocketController(MemorySessionProvider,EventBus)>(),
 
-		singleton<Exceptions(View)>()
+		singleton<Exceptions(View)>(),
+
+		singleton<SessionFilter(MemorySessionProvider)>()
+
 	};	
 
 	Http2SslCtx sslCtx;

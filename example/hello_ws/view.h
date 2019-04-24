@@ -46,10 +46,9 @@ public:
 		.flush();
 	}
 
-	void redirect_to_index(Response& res, const std::string& sid)
+	void redirect_to_index(Response& res)
 	{
 		res
-		.cookie(Cookie("repro_web_sid", sid))
 		.redirect("https://localhost:9876/")
 		.flush();
 	}
@@ -87,21 +86,11 @@ private:
 		std::string locale = Valid::locale(req);
 		std::string view = templates_->get(page);
 
-		//std::cout << "---------------------------------" << std::endl;
-		//std::cout << locale << ":" << view << std::endl;
- 
 		SSIResolver::resolve(req,view)
 		.then( [this,&res,value,locale](std::string txt)
 		{
-
-			//std::cout << "---------------------------------" << std::endl;
 			std::string tmpl = i18n_->render(locale,txt);
-			//std::cout << tmpl << std::endl;
- 	
-	 		//std::cout << "---------------------------------" << std::endl;
 			std::string content = mustache::render(tmpl,value);
-			//std::cout << content << std::endl;
-			//std::cout << "---------------------------------" << std::endl;
 
 			res
 			.body(content)

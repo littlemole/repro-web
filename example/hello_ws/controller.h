@@ -22,25 +22,14 @@ public:
 	{
 		std::string sid;
 
-		try
-		{
-			sid = Valid::session_id(req.headers.cookies());
-		}
-		catch(const std::exception& ex)
+		auto session = req_session(req);
+		if(!session->authenticated)
 		{
 			view_->redirect_to_login(res);
-			return;
+			return;		
 		}
 
-		model_->chat(sid)
-		.then([this,&req,&res](Json::Value viewModel)
-		{
-			view_->render_index(req,res,viewModel);
-		})
-		.otherwise([this,&res](const std::exception& ex)
-		{
-			view_->redirect_to_login(res);
-		});
+		view_->render_index(req,res,session->data);
 	}
 
 	void show_login( Request& req, Response& res)
@@ -71,9 +60,12 @@ public:
 		}		
 
 		model_->login(login,pwd)
-		.then([this,&res](std::string sid)
+		.then([this,&req,&res](User user)
 		{
-			view_->redirect_to_index(res,sid);
+			auto session = req_session(req);
+			session->data = user.toJson();
+			session->authenticated = true;
+			view_->redirect_to_index(res);
 		})
 		.otherwise([this,&req,&res](const std::exception& ex)
 		{
@@ -83,27 +75,8 @@ public:
 
 	void logout( Request& req, Response& res)
 	{
-		std::string sid;
-
-		try
-		{
-			sid = Valid::session_id(req.headers.cookies());
-		}
-		catch(const std::exception& ex)
-		{
-			view_->redirect_to_login(res);
-			return;
-		}	
-
-		model_->logout(sid)
-		.then([this,&res]()
-		{
-			view_->redirect_to_login(res);
-		})
-		.otherwise([this,&res](const std::exception& ex)
-		{
-			view_->render_error(ex,res);
-		});	
+		invalidate_session(req);
+		view_->redirect_to_login(res);
 	}
 
 	void register_user( Request& req, Response& res)
@@ -128,9 +101,13 @@ public:
 		}		
 
 		model_->register_user(username,login,pwd,avatar_url)
-		.then([this,&res](std::string sid)
+		.then([this,&req,&res](User user)
 		{
-			view_->redirect_to_index(res,sid);
+			auto session = req_session(req);
+			session->data = user.toJson();
+			session->authenticated = true;
+
+			view_->redirect_to_index(res);
 		})
 		.otherwise([this,&req,&res](const std::exception& ex)
 		{

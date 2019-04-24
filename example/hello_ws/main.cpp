@@ -36,20 +36,23 @@ int main(int argc, char **argv)
 		singleton<SessionPool(AppConfig)>(),
 		singleton<UserPool(AppConfig)>(),
 
-		singleton<SessionRepository(SessionPool)>(),
+//		singleton<SessionRepository(SessionPool)>(),
 		singleton<UserRepository(UserPool)>(),
 
-		singleton<Model(SessionRepository,UserRepository)>(),
+		singleton<Model(UserRepository)>(),
 		singleton<View(AppConfig,TplStore,I18N)>(),
 		singleton<Controller(Model,View)>(),
 
 		singleton<EventBus()>(),
-		singleton<WebSocketController(SessionRepository,EventBus)>()
-	};	
+		singleton<WebSocketController(MemorySessionProvider,EventBus)>(),
+
+		singleton<SessionFilter(MemorySessionProvider)>()
+};	
 
 
 	WebServer server(ctx);
 	server.configure<AppConfig>();
+	server.session<SessionFilter>();
 	server.listen();
      
 	theLoop().run();

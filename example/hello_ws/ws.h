@@ -15,7 +15,7 @@ public:
 
 	// c'tor
 	WebSocketController(
-		std::shared_ptr<SessionRepository> s, 
+		std::shared_ptr<MemorySessionProvider> s, 
 		std::shared_ptr<EventBus> bus
 	)
 	  : session_(s), 
@@ -55,11 +55,16 @@ public:
 			std::string msg  = json["msg"].asString();
 
 			// validate session			
-			session_->get_user_session(sid)
-			.then([this,msg](::Session session)
+			session_->get_session(sid)
+			.then([this,msg](Session session)
 			{
+				if(!session.authenticated)
+				{
+					 throw AuthEx();
+				}
+				
 				// populate result
-				Json::Value profile = session.profile();
+				Json::Value profile = session.data;
 
 				Json::Value result(Json::objectValue);
 				result["uid"]   = profile["username"];
@@ -95,7 +100,7 @@ private:
 		return ws->attributes.attr<std::string>("subscription-id");
 	}
 
-    std::shared_ptr<SessionRepository> session_;
+    std::shared_ptr<MemorySessionProvider> session_;
     std::shared_ptr<EventBus> eventBus_;
 };
 

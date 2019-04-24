@@ -7,79 +7,6 @@
 #include "model.h"
 
 
-
-class SessionRepository
-{
-public:
-
-	SessionRepository(std::shared_ptr<reproredis::RedisPool> redisPool)
-		: redis(redisPool)
-	{}
-
-	Future<::Session> get_user_session( std::string sid)
-	{
-		try
-		{
-			reproredis::RedisResult::Ptr reply = co_await redis->cmd("GET", sid);
-
-			if(reply->isError() || reply->isNill())
-			{
-				throw AuthEx("invalid session");
-			}
-
-			std::string payload = reply->str();
-			Json::Value json = reproweb::JSON::parse(payload);
-
-			reproredis::RedisResult::Ptr reply2 = co_await redis->cmd("EXPIRE", sid, 180);
-
-			co_return ::Session(sid,json);
-		}
-		catch(const std::exception& ex)
-		{
-			std::cout << "inside get_user_Session: " << ex.what() << std::endl;
-			throw AuthEx(ex.what());
-		}
-	}
-
-	Future<::Session> write_user_session(User user)
-	{
-		try
-		{
-			::Session session(toJson(user));
-
-			reproredis::RedisResult::Ptr reply = co_await redis->cmd("SET", session.sid(), session.profile());
-			reproredis::RedisResult::Ptr reply2 = co_await redis->cmd("EXPIRE", session.sid(), 180);
-
-			co_return session;
-		}
-		catch(const std::exception& ex)
-		{
-			throw AuthEx(ex.what());
-		}
-	}
-
-	Future<> remove_user_session( std::string sid)
-	{
-		try
-		{
-			reproredis::RedisResult::Ptr reply = co_await redis->cmd("DEL", sid);
-
-		}
-		catch(const std::exception& ex)
-		{
-			throw AuthEx(ex.what());
-		}			
-		co_return;
-	}
-
-private:
-
-	std::shared_ptr<reproredis::RedisPool> redis;
-};
-
-
-
-
 class UserRepository
 {
 public:
@@ -160,12 +87,6 @@ private:
 
  
 
-struct SessionPool : public reproredis::RedisPool
-{
-	SessionPool(std::shared_ptr<Config> config) 
-	  : RedisPool(config->getString("redis")) 
-	{}
-};
 
 struct UserPool : public reprosqlite::SqlitePool
 {
