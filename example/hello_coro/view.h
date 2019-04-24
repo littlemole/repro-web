@@ -55,10 +55,9 @@ public:
 		.flush();
 	}	
 
-	void redirect_to_index(Response& res, const std::string& sid)
+	void redirect_to_index(Response& res)
 	{
 		res
-		.cookie(prio::Cookie("repro_web_sid", sid))
 		.redirect("https://localhost:9876/#")
 		.flush();
 	}

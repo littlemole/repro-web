@@ -1,5 +1,6 @@
 #include "test.h"
 #include "reproweb/ctrl/controller.h"
+#include "reproweb/ctrl/redissession.h"
 #include "reproweb/web_webserver.h"
 #include <signal.h>
   
@@ -62,6 +63,8 @@ int main(int argc, char **argv)
 		POST ( "/login",		&ExampleController::login),
 		POST ( "/register",		&ExampleController::register_user),
 
+		session_filter<>("GET|POST", "^((?!(/css)|(/img)|(/js)|(/inc)).)*$", 10),
+
 		ex_handler(&Exceptions::on_auth_failed),
 		ex_handler(&Exceptions::on_login_failed),
 		ex_handler(&Exceptions::on_registration_failed),
@@ -77,13 +80,15 @@ int main(int argc, char **argv)
 		singleton<SessionPool(AppConfig)>(),
 		singleton<UserPool(AppConfig)>(),
 
-		singleton<SessionRepository(SessionPool)>(),
 		singleton<UserRepository(UserPool)>(),
 
 		singleton<View(AppConfig)>(),
-		singleton<ExampleController(View,SessionRepository,UserRepository)>(),
+		singleton<ExampleController(View,UserRepository)>(),
 
-		singleton<Exceptions(View)>()
+		singleton<Exceptions(View)>(),
+
+		singleton<RedisSessionProvider(SessionPool)>(),
+		singleton<SessionFilter(RedisSessionProvider)>()
 	};	
 
 	Http2SslCtx sslCtx;

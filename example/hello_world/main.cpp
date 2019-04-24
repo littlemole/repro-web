@@ -19,7 +19,7 @@ using namespace reproweb;
 class AppConfig : public Config
 {
 public:
-	AppConfig(std::shared_ptr<FrontController> fc)
+	AppConfig()
 	  : Config("config.json")
 	{
 		const char* redis = getenv("REDIS_HOST");
@@ -35,12 +35,6 @@ public:
 	}
 };
 
-struct SessionPool : public reproredis::RedisPool
-{
-	SessionPool(std::shared_ptr<Config> config) 
-	  : RedisPool(config->getString("redis")) 
-	{}
-};
 
 struct UserPool : public reprosqlite::SqlitePool
 {
@@ -53,38 +47,30 @@ void server()
 {
 	WebApplicationContext ctx{
 
-		GET("/",				&Controller::index),
-		GET("/logout",		&Controller::logout),
-		GET("/login",		&Controller::show_login),
+		GET("/",						&Controller::index),
+		GET("/logout",			&Controller::logout),
+		GET("/login",				&Controller::show_login),
 		GET("/register",		&Controller::show_registration),
-		POST("/login",		&Controller::login),
+		POST("/login",			&Controller::login),
 		POST("/register",		&Controller::register_user),
 
-#ifndef _WIN32
-		static_content("/htdocs/","/etc/mime.types"),
-#else
-		static_content("/htdocs/","mime.types"),
-#endif
-		singleton<AppConfig(FrontController)>(),
-		singleton<SessionPool(AppConfig)>(),
+		singleton<AppConfig()>(),
 		singleton<UserPool(AppConfig)>(),
-
-		singleton<SessionRepository(SessionPool)>(),
 		singleton<UserRepository(UserPool)>(),
 
 		singleton<View(AppConfig)>(),
-		singleton<Controller(View,SessionRepository,UserRepository)>(),
+		singleton<Controller(View,UserRepository)>(),
+
+		singleton<SessionFilter(MemorySessionProvider)>()		
 	};
 
-	Http2SslCtx sslCtx;
-	sslCtx.load_cert_pem("pem/server.pem");
-	//sslCtx.enableHttp2();
 
-	WebServer server(ctx);
-	server.listen(sslCtx, 9876);
+	WebServer webserver(ctx);
+	webserver.configure<AppConfig>();
+	webserver.session<SessionFilter>();
+	webserver.listen();
 
 	theLoop().run();
-
 }
 
 int main(int argc, char **argv)

@@ -15,21 +15,20 @@ public:
 
 	ExampleController( 
 		std::shared_ptr<View> view,
-		std::shared_ptr<SessionRepository> sessionRepo, 
 		std::shared_ptr<UserRepository> userRepo )
 		: view_(view),
-		  sessionRepository(sessionRepo), 
 		  userRepository(userRepo)
 	{}
 
-	reproweb::Async index( Request& req, Response& res)
+	void index( Request& req, Response& res)
 	{
-		const std::string session_id = get_session_id(req.headers.cookies());
+		auto session = req_session(req);
+		if(!session->authenticated)
+		{
+			throw AuthEx();
+		}
 
-		std::cout << "SID: " << session_id << std::endl;
-
-		::Session session = co_await sessionRepository->get_user_session(session_id);
-		view_->render_index(res,session.profile());
+		view_->render_index(res,session->data);
 	}
 
 	void show_login( Request& req, Response& res)
@@ -56,17 +55,16 @@ public:
 
 		if(!verified) throw repro::Ex("invalid login/password combination");
 
-		::Session session = co_await sessionRepository->write_user_session(user);
+		auto session = req_session(req);
+		session->authenticated = true;
+		session->data = user.toJson();
 
-		view_->redirect_to_index(res,session.sid());
+		view_->redirect_to_index(res);
 	}
 
-	reproweb::Async logout( Request& req, Response& res)
+	void logout( Request& req, Response& res)
 	{
-		const std::string session_id = get_session_id(req.headers.cookies());
-
-		co_await sessionRepository->remove_user_session(session_id);
-
+		invalidate_session(req);
 		view_->redirect_to_login(res);
 	}
 
@@ -82,30 +80,17 @@ public:
 
 		std::cout << "NEW USER SUCESS: " << user.username() << std::endl;
 		
-		::Session session = co_await sessionRepository->write_user_session(user);
+		auto session = req_session(req);
+		session->authenticated = true;
+		session->data = user.toJson();
 
-		view_->redirect_to_index(res,session.sid());
+		view_->redirect_to_index(res);
 	}
 
 private:
 
 	std::shared_ptr<View> view_;
-	std::shared_ptr<SessionRepository> sessionRepository;
 	std::shared_ptr<UserRepository> userRepository;
-
-	static const std::string get_session_id(const Cookies& cookies)
-	{
-		if(!cookies.exists("repro_web_sid"))
-		{
-			throw AuthEx("no session found");
-		}
-
-//		return cookies.get("repro_web_sid").value();
-		return valid(
-			cookies.get("repro_web_sid").value(), 
-			std::regex("repro_web_sid::[0-9a-f]*")
-		);
-	}
 };
 
 
