@@ -2,7 +2,6 @@
 #define _MOL_DEF_GUARD_DEFINE_REPROWEB_SERIALIZER_WEB_DEF_GUARD_
 
 
-#include <reproweb/serialization/meta.h>
 #include <reproweb/serialization/parameter.h>
 
 

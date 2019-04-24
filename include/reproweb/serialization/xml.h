@@ -2,9 +2,7 @@
 #define _MOL_DEF_GUARD_DEFINE_REPROWEB_SERIALIZER_XML_XXX_DEF_GUARD_
 
 
-#include <reproweb/traits.h>
 #include <reproweb/xml/document.h>
-#include <reproweb/serialization/meta.h>
 #include <reproweb/serialization/parameter.h>
 #include "reproweb/ctrl/front_controller.h"
 

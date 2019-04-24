@@ -2,6 +2,7 @@
 #define _MOL_DEF_GUARD_DEFINE_REPROWEB_SERIALIZER_META_DEF_GUARD_
 
 #include "reprocpp/ex.h"
+#include "reproweb/traits.h"
 #include <type_traits>
 
 
