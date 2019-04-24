@@ -9,7 +9,14 @@
     "i18n"   : {
         "path"    : "/locale/properties", 
         "locales" : ["en", "de"]
+    },
+    "https"  :
+    {
+        "cert"   : "pem/server.pem",
+        "ports"  : [ 9876 ],
+        "http2"  : false
     }
+
 }
 
  

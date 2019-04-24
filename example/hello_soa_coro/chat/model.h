@@ -15,7 +15,7 @@ public:
 
 	Future<Json::Value> chat( const std::string& sid )
 	{
-  		Session session = co_await sessionService->get_user_session(sid);
+  		::Session session = co_await sessionService->get_user_session(sid);
 		
 		co_return toJson(session.profile());
 	}
@@ -24,7 +24,7 @@ public:
 	{
 		User user = co_await userService->login_user(login);
 
-		Session session = co_await sessionService->write_user_session(user);
+		::Session session = co_await sessionService->write_user_session(user);
 
 		co_return session.sid();
 	}
@@ -38,7 +38,7 @@ public:
 	{
 		User result = co_await userService->register_user(user);
 
-		Session session = co_await sessionService->write_user_session(result);
+		::Session session = co_await sessionService->write_user_session(result);
 
 		co_return session.sid();
 	}

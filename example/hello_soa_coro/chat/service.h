@@ -90,16 +90,16 @@ public:
 		: config(conf)
 	{}
 
-	Future<Session> get_user_session( std::string sid)
+	Future<::Session> get_user_session( std::string sid)
 	{
 		User user = co_await Service::get<User,AuthEx>( config->sessionService(sid) );
 
-		co_return Session(sid,user);
+		co_return ::Session(sid,user);
 	}
 
-	Future<Session> write_user_session(User user)
+	Future<::Session> write_user_session(User user)
 	{
-		Session session = co_await Service::post<Session,AuthEx>( config->sessionService(), user );
+		::Session session = co_await Service::post<::Session,AuthEx>( config->sessionService(), user );
 
 		co_return session;	
 	}

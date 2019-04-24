@@ -16,7 +16,7 @@ public:
 		: redis(redisPool)
 	{}
 
-	Future<Session> get_user_session( std::string sid)
+	Future<::Session> get_user_session( std::string sid)
 	{
 		try
 		{
@@ -36,7 +36,7 @@ public:
 			reproredis::RedisResult::Ptr reply2 = co_await redis->cmd("EXPIRE", sid, 180);
 			std::cout << reply2->isError() << " " << reply2->str() << std::endl;
 
-			co_return Session(sid,json);
+			co_return ::Session(sid,json);
 		}
 		catch(const std::exception& ex)
 		{
@@ -44,11 +44,11 @@ public:
 		}
 	}
 
-	Future<Session> write_user_session(User user)
+	Future<::Session> write_user_session(User user)
 	{
 		try
 		{
-			Session session(user.toJson());
+			::Session session(user.toJson());
 
 			std::cout << "new sid: " << session.sid() << std::endl;
 

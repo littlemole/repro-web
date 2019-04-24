@@ -194,11 +194,11 @@ private:
 #define TO_STR_HELPER(x) #x
 #define TO_STR(x) TO_STR_HELPER(x)
 
-class AppConfig : public reproweb::WebAppConfig
+class AppConfig : public reproweb::Config
 {
 public:
-	AppConfig(std::shared_ptr<diy::Context> ctx)
-	  : WebAppConfig("config.json",ctx)
+	AppConfig()
+	  : reproweb::Config("config.json")
 	{
 		const char* user = getenv("USER_SERVICE_HOST");
 		if(user)

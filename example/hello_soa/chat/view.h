@@ -2,6 +2,7 @@
 #define _DEF_GUARD_DEFINE_REPROWEB_HELLO_WORLD_VIEW_DEFINE_
 
 #include "reproweb/tools/config.h"
+#include "reproweb/view/tpl.h"
 
 using namespace prio;
 using namespace repro;

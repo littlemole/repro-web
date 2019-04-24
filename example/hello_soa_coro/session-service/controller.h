@@ -16,14 +16,14 @@ public:
 
 	Future<Json::Value> get_session( Parameter<SessionId> params )
 	{
-		Session session = co_await sessionRepository->get_user_session(params->sid);
+		::Session session = co_await sessionRepository->get_user_session(params->sid);
 
 		co_return toJson(session.profile());
 	}
 
 	Future<Json::Value> write_session( json_t<User> user)
 	{
-		Session session = co_await sessionRepository->write_user_session(*user);
+		::Session session = co_await sessionRepository->write_user_session(*user);
 
 		co_return toJson(session);
 	}	

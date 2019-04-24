@@ -56,7 +56,7 @@ public:
 
 			// validate session			
 			session_->get_user_session(sid)
-			.then([this,msg](Session session)
+			.then([this,msg](::Session session)
 			{
 				// populate result
 				Json::Value profile = session.profile();

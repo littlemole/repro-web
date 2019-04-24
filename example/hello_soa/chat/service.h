@@ -108,29 +108,29 @@ public:
 		: config(conf)
 	{}
 
-	Future<Session> get_user_session( std::string sid)
+	Future<::Session> get_user_session( std::string sid)
 	{
-		auto p = promise<Session>();
+		auto p = promise<::Session>();
 
 		Service::get<AuthEx>( config->sessionService(sid) )
 		.then([p,sid](Json::Value json)
 		{
-			p.resolve(Session(sid,json));
+			p.resolve(::Session(sid,json));
 		})
 		.otherwise(reject(p));
 
 		return p.future();
 	}
 
-	Future<Session> write_user_session(User user)
+	Future<::Session> write_user_session(User user)
 	{
-		auto p = promise<Session>();
+		auto p = promise<::Session>();
 
 		Service::post<AuthEx>( config->sessionService(), user )
 		.then([p](Json::Value json)
 		{
 			p.resolve(
-				Session(
+				::Session(
 					json["sid"].asString(),
 					json["profile"]
 				)

@@ -28,7 +28,7 @@ public:
 
 		std::cout << "SID: " << session_id << std::endl;
 
-		Session session = co_await sessionRepository->get_user_session(session_id);
+		::Session session = co_await sessionRepository->get_user_session(session_id);
 		view_->render_index(res,session.profile());
 	}
 
@@ -56,7 +56,7 @@ public:
 
 		if(!verified) throw repro::Ex("invalid login/password combination");
 
-		Session session = co_await sessionRepository->write_user_session(user);
+		::Session session = co_await sessionRepository->write_user_session(user);
 
 		view_->redirect_to_index(res,session.sid());
 	}
@@ -82,7 +82,7 @@ public:
 
 		std::cout << "NEW USER SUCESS: " << user.username() << std::endl;
 		
-		Session session = co_await sessionRepository->write_user_session(user);
+		::Session session = co_await sessionRepository->write_user_session(user);
 
 		view_->redirect_to_index(res,session.sid());
 	}

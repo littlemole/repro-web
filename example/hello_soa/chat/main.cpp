@@ -41,7 +41,7 @@ int main(int argc, char **argv)
 		ex_handler(&Exceptions::on_register_ex),
 		ex_handler(&Exceptions::on_std_ex),
 
-		singleton<AppConfig(diy::Context)>(),
+		singleton<AppConfig()>(),
 
 		singleton<SessionService(AppConfig)>(),
 		singleton<UserService(AppConfig)>(),
@@ -56,14 +56,10 @@ int main(int argc, char **argv)
 		singleton<Exceptions(View)>()
 	};	
  
-	std::string cert = diy::inject<AppConfig>(ctx)->getString("cert");
-
-	Http2SslCtx sslCtx;
-	sslCtx.load_cert_pem(cert);
-	//sslCtx.enableHttp2();
 
 	WebServer server(ctx);
-	server.listen(sslCtx,9876);
+	server.configure<AppConfig>();
+	server.listen();
      
 	theLoop().run();
 

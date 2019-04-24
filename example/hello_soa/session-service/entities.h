@@ -72,19 +72,19 @@ private:
 	}
 };
 
-auto meta(const Session&)
+auto meta(const ::Session&)
 {
 	return metadata(
-		getter_setter("sid",&Session::sid),
-		getter_setter("profile",&Session::profile)
+		getter_setter("sid",&::Session::sid),
+		getter_setter("profile",&::Session::profile)
 	);
 }
 
-class AppConfig : public reproweb::WebAppConfig
+class AppConfig : public reproweb::Config
 {
 public:
-	AppConfig(std::shared_ptr<diy::Context> ctx)
-	  : WebAppConfig("config.json",ctx)
+	AppConfig()
+	  : reproweb::Config("config.json")
 	{
 		const char* redis = getenv("REDIS_HOST");
 		if(redis)

@@ -42,7 +42,7 @@ public:
 
 	Future<Json::Value> chat( const std::string& sid )
 	{
-		Session session = co_await sessionRepository->get_user_session(sid);
+		::Session session = co_await sessionRepository->get_user_session(sid);
 
 		co_return session.profile();
 	}
@@ -58,7 +58,7 @@ public:
 			throw LoginEx("error.msg.login.failed");
 		}
 
-		Session session = co_await sessionRepository->write_user_session(user);
+		::Session session = co_await sessionRepository->write_user_session(user);
 
 		co_return session.sid();
 	}
@@ -79,7 +79,7 @@ public:
 			user.avatar_url()
 		);
 
-		Session session = co_await sessionRepository->write_user_session(result);
+		::Session session = co_await sessionRepository->write_user_session(result);
 
 		co_return session.sid();
 	}

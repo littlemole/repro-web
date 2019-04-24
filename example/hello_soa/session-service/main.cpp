@@ -20,7 +20,7 @@ int main(int argc, char **argv)
 		ex_handler(&Exceptions::on_no_session_ex),
 		ex_handler(&Exceptions::on_std_ex),
 
-		singleton<AppConfig(diy::Context)>(),
+		singleton<AppConfig()>(),
 		singleton<SessionPool(AppConfig)>(),
 
 		singleton<SessionRepository(SessionPool)>(),

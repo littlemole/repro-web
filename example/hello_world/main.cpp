@@ -1,5 +1,6 @@
 #include "test.h"
 #include "reproweb/ctrl/controller.h"
+#include "reproweb/ctrl/session.h"
 #include "reproweb/web_webserver.h"
 #include <signal.h>
       

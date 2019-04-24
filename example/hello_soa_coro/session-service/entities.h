@@ -123,11 +123,11 @@ private:
 };
 
 
-class AppConfig : public reproweb::WebAppConfig
+class AppConfig : public reproweb::Config
 {
 public:
-	AppConfig(std::shared_ptr<diy::Context> ctx)
-	  : WebAppConfig("config.json",ctx)
+	AppConfig()
+	  : reproweb::Config("config.json")
 	{
 		const char* redis = getenv("REDIS_HOST");
 		if(redis)

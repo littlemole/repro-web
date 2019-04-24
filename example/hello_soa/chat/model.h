@@ -18,7 +18,7 @@ public:
 		auto p = promise<Json::Value>();
 
   		sessionService->get_user_session(sid)
-		.then([p](Session session)
+		.then([p](::Session session)
 		{
 			p.resolve(session.profile());
 		})
@@ -36,7 +36,7 @@ public:
 		{
 			return sessionService->write_user_session(user);
 		})
-		.then([p](Session session)
+		.then([p](::Session session)
 		{
 			p.resolve(session.sid());
 		})
@@ -59,7 +59,7 @@ public:
 		{
 			return sessionService->write_user_session(user);
 		})
-		.then([p](Session session)
+		.then([p](::Session session)
 		{
 			p.resolve(session.sid());
 		})		

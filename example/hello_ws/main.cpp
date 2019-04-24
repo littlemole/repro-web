@@ -1,6 +1,7 @@
 #include "test.h"
 #include "reproweb/ctrl/controller.h"
 #include "reproweb/view/i18n.h"
+#include "reproweb/view/tpl.h"
 #include "reproweb/web_webserver.h"
 #include <signal.h>
      
@@ -31,7 +32,7 @@ int main(int argc, char **argv)
 
 		ws_controller<WebSocketController> ("/ws"),
 
-		singleton<AppConfig(diy::Context)>(),
+		singleton<AppConfig()>(),
 		singleton<SessionPool(AppConfig)>(),
 		singleton<UserPool(AppConfig)>(),
 
@@ -46,15 +47,10 @@ int main(int argc, char **argv)
 		singleton<WebSocketController(SessionRepository,EventBus)>()
 	};	
 
-	std::string cert = diy::inject<AppConfig>(ctx)->getString("cert");
-std::cout << cert << std::endl;
-
-	Http2SslCtx sslCtx;
-	sslCtx.load_cert_pem(cert);
-	//sslCtx.enableHttp2();
 
 	WebServer server(ctx);
-	server.listen(sslCtx,9876);
+	server.configure<AppConfig>();
+	server.listen();
      
 	theLoop().run();
 

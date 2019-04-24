@@ -18,9 +18,9 @@ public:
 		: redis(redisPool)
 	{}
 
-	Future<Session> get_user_session( std::string sid)
+	Future<::Session> get_user_session( std::string sid)
 	{
-		auto p = repro::promise<Session>();
+		auto p = repro::promise<::Session>();
 
 		redis->cmd("GET", sid) 
 		.then([p,sid](reproredis::RedisResult::Ptr reply)
@@ -34,18 +34,18 @@ public:
 			std::string payload = reply->str();
 			Json::Value json = reproweb::JSON::parse(payload);
 			
-			p.resolve( Session(sid,json) );
+			p.resolve( ::Session(sid,json) );
 		})
 		.otherwise(reject(p));
 
 		return p.future();
 	}
 
-	Future<Session> write_user_session(User user)
+	Future<::Session> write_user_session(User user)
 	{
-		auto p = repro::promise<Session>();
+		auto p = repro::promise<::Session>();
 
-		Session session(user.toJson());
+		::Session session(user.toJson());
 
 		redis->cmd("SET", session.sid(), session.profile() )
 		.then([p,this,session](reproredis::RedisResult::Ptr reply)

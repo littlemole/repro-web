@@ -12,7 +12,7 @@ public:
 		: redis(redisPool)
 	{}
 
-	Future<Session> get_user_session( std::string sid)
+	Future<::Session> get_user_session( std::string sid)
 	{
 		reproredis::RedisResult::Ptr reply = co_await redis->cmd("GET", sid);
 		if(reply->isError() || reply->isNill())
@@ -27,12 +27,12 @@ public:
 		User user;
 		fromJson(payload,user);
 
-		co_return Session(sid,user);
+		co_return ::Session(sid,user);
 	}
 
-	Future<Session> write_user_session(User user)
+	Future<::Session> write_user_session(User user)
 	{
-		Session session(user);
+		::Session session(user);
 
 		Json::Value json = toJson(session.profile());
 

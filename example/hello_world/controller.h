@@ -29,7 +29,7 @@ public:
 		}
 
 		sessionRepository->get_user_session(session_id)
-		.then( [this,&res](Session session)
+		.then( [this,&res](::Session session)
 		{
 			view_->render_index(res,session.profile());
 
@@ -69,7 +69,7 @@ public:
 
 			return sessionRepository->write_user_session(user);
 		})
-		.then( [this,&res](Session session)
+		.then( [this,&res](::Session session)
 		{
 			view_->redirect_to_index(res,session.sid());
 		})
@@ -113,7 +113,7 @@ public:
 			std::cout << "NEW USER SUCESS: " << user.username() << std::endl;
 			return sessionRepository->write_user_session(user);
 		})
-		.then( [this,&res](Session session)
+		.then( [this,&res](::Session session)
 		{
 			view_->redirect_to_index(res,session.sid());
 		})
