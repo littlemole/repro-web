@@ -12,9 +12,9 @@ public:
 		: redis(redisPool)
 	{}
 
-	Future<::Session> get_user_session( std::string sid)
+	Future<Session> get_user_session( std::string sid)
 	{
-		auto p = promise<::Session>();
+		auto p = promise<Session>();
 
 		auto payload = std::make_shared<std::string>();
 
@@ -33,27 +33,27 @@ public:
 		.then([p,sid,payload](reproredis::RedisResult::Ptr reply)
 		{
 			Json::Value json = reproweb::JSON::parse(*payload);
-			p.resolve(::Session(sid,json));
+			Session session;
+			fromJson(json,session);
+			p.resolve(session);
 		})
 		.otherwise(reject(p));
 
 		return p.future();
 	}
 
-	Future<::Session> write_user_session(User user)
+	Future<Session> write_user_session(Session session)
 	{
-		auto p = promise<::Session>();
+		auto p = promise<Session>();
 
-		auto session = std::make_shared<::Session>(toJson(user));
-
-		redis->cmd("SET", session->sid(), session->profile())
+		redis->cmd("SET", session.sid, toJson(session) )
 		.then([this,session](reproredis::RedisResult::Ptr reply)
 		{
-			return redis->cmd("EXPIRE", session->sid(), 180);
+			return redis->cmd("EXPIRE", session.sid, 180);
 		})
 		.then([p,session](reproredis::RedisResult::Ptr reply)
 		{
-			p.resolve(*session);
+			p.resolve(session);
 		})
 		.otherwise(reject(p));
 

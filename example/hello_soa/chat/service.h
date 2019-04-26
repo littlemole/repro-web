@@ -108,38 +108,40 @@ public:
 		: config(conf)
 	{}
 
-	Future<::Session> get_user_session( std::string sid)
+	Future<reproweb::Session> get_user_session( std::string sid)
 	{
-		auto p = promise<::Session>();
+		auto p = promise<reproweb::Session>();
 
 		Service::get<AuthEx>( config->sessionService(sid) )
 		.then([p,sid](Json::Value json)
 		{
-			p.resolve(::Session(sid,json));
+			Session session;
+			fromJson(json,session);
+			p.resolve(session);
 		})
-		.otherwise(reject(p));
+		.otherwise([p,sid](const std::exception& ex)
+		{
+			std::cout << typeid(ex).name() << ":" << ex.what() << std::endl;
+			p.reject(ex);
+		});
 
 		return p.future();
 	}
 
-	Future<::Session> write_user_session(User user)
+	Future<> write_user_session(reproweb::Session& session)
 	{
-		auto p = promise<::Session>();
+		auto p = promise<>();
 
-		Service::post<AuthEx>( config->sessionService(), user )
+		Service::post<AuthEx>( config->sessionService(), session )
 		.then([p](Json::Value json)
 		{
-			p.resolve(
-				::Session(
-					json["sid"].asString(),
-					json["profile"]
-				)
-			);
+			p.resolve();
 		})
 		.otherwise( [p](const std::exception& ex)
 		{
 			std::cout << typeid(ex).name() << ":" << ex.what() << std::endl;
-		}); //reject(p));
+			p.reject(ex);
+		}); 
 
 		return p.future();
 	}

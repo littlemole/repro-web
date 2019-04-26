@@ -16,6 +16,35 @@ using namespace diy;
 using namespace prio;
 using namespace reproweb;
 
+class SessionServiceProvider : public  SessionProvider
+{
+public:
+
+	SessionServiceProvider(std::shared_ptr<SessionService> service)
+		: sessionService_(service)
+	{}
+
+
+    virtual repro::Future<reproweb::Session> get_session( std::string sid)
+	{
+		return sessionService_->get_user_session(sid);
+	}
+
+    virtual repro::Future<> set_session(reproweb::Session session)
+	{
+		return sessionService_->write_user_session(session);
+	} 
+
+    virtual repro::Future<> remove_user_session(reproweb::Session session)
+	{
+		return sessionService_->remove_user_session(session.sid);
+	}
+
+private:
+
+	std::shared_ptr<SessionService> sessionService_;
+};
+
 
 int main(int argc, char **argv)
 {
@@ -36,6 +65,8 @@ int main(int argc, char **argv)
 
 		ws_controller<WebSocketController> ("/ws"),
 
+		session_filter<SessionFilter>("(GET)|(POST)" , "^((?!(/css)|(/img)|(/js)|(/inc)).)*$" , 10),
+
 		ex_handler(&Exceptions::on_auth_ex),
 		ex_handler(&Exceptions::on_login_ex),
 		ex_handler(&Exceptions::on_register_ex),
@@ -43,17 +74,19 @@ int main(int argc, char **argv)
 
 		singleton<AppConfig()>(),
 
-		singleton<SessionService(AppConfig)>(),
 		singleton<UserService(AppConfig)>(),
-
-		singleton<Model(SessionService,UserService)>(),
+		singleton<Model(UserService)>(),
 		singleton<View(AppConfig,TplStore,I18N)>(),
 		singleton<Controller(Model,View)>(),
 
 		singleton<EventBus()>(),
 		singleton<WebSocketController(SessionService,EventBus)>(),
 
-		singleton<Exceptions(View)>()
+		singleton<Exceptions(View)>(),
+
+		singleton<SessionService(AppConfig)>(),
+		singleton<SessionServiceProvider(SessionService)>(),
+		singleton<SessionFilter(SessionServiceProvider)>()
 	};	
  
 

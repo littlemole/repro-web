@@ -4,6 +4,7 @@
 #include "reproweb/tools/config.h"
 #include "reproweb/json/json.h"
 #include <reproweb/serialization/json.h>
+#include <reproweb/ctrl/session.h>
 #include "valid.h"
 
 class User
@@ -41,7 +42,7 @@ private:
 	std::string avatar_url_;	
 };
 
-
+/*
 class Session
 {
 public:
@@ -79,6 +80,7 @@ auto meta(const ::Session&)
 		getter_setter("profile",&::Session::profile)
 	);
 }
+*/
 
 class AppConfig : public reproweb::Config
 {

@@ -21,17 +21,14 @@ public:
 
 	void index( Request& req, Response& res)
 	{
-		std::string sid = Valid::session_id(req.headers.cookies());
-
-		model_->chat(sid)
-		.then([this,&req,&res](Json::Value viewModel)
-		{
-			view_->render_index(req,res,viewModel);
-		})
-		.otherwise([this,&res](const std::exception& ex)
+		auto session = req_session(req);
+		if(!session->authenticated)
 		{
 			view_->redirect_to_login(res);
-		});
+			return;
+		}
+
+		view_->render_index(req,res,session->data);
 	}
 
 	void show_login( Request& req, Response& res)
@@ -50,12 +47,21 @@ public:
 		std::string pwd   = Valid::passwd<LoginEx>(params);
 
 		model_->login(login,pwd)
-		.then([this,&res](std::string sid)
+		.then([this,&req,&res](User user)
 		{
-			view_->redirect_to_index(res,sid);
+			auto session = req_session(req);
+			session->authenticated = true;
+
+			auto json = toJson(user);
+			Json::Value rmvd;
+			json.removeMember("pwd",&rmvd);
+			session->data = json;
+
+			view_->redirect_to_index(res);
 		})
 		.otherwise([this,&req,&res](const std::exception& ex)
 		{
+			invalidate_session(req);
 			std::cout << "login: " << ex.what() << std::endl;
 			view_->render_login(req,res,ex.what());
 		});
@@ -63,17 +69,8 @@ public:
 
 	void logout( Request& req, Response& res)
 	{
-		std::string sid = Valid::session_id(req.headers.cookies());
-
-		model_->logout(sid)
-		.then([this,&res]()
-		{
-			view_->redirect_to_login(res);
-		})
-		.otherwise([this,&res](const std::exception& ex)
-		{
-			view_->render_error(ex,res);
-		});	
+		invalidate_session(req);
+		view_->redirect_to_login(res);
 	}
 
 	void register_user( FormParams params, Request& req, Response& res)
@@ -86,9 +83,13 @@ public:
 		User user(username,login,pwd,avatar_url);
 
 		model_->register_user(user)
-		.then([this,&res](std::string sid)
+		.then([this,&req,&res](User user)
 		{
-			view_->redirect_to_index(res,sid);
+			auto session = req_session(req);
+			session->authenticated = true;
+			session->data = toJson(user);
+
+			view_->redirect_to_index(res);
 		})
 		.otherwise([this,&req,&res](const std::exception& ex)
 		{

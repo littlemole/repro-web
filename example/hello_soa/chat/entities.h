@@ -57,7 +57,7 @@ private:
 };
 
 
-
+/*
 class Session
 {
 public:
@@ -86,6 +86,8 @@ private:
 		return sid;
 	}
 };
+
+*/
 
 #define TO_STR_HELPER(x) #x
 #define TO_STR(x) TO_STR_HELPER(x)

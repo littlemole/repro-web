@@ -22,21 +22,30 @@ public:
 		auto p = promise<Json::Value>();
 
 		sessionRepository->get_user_session(sid)
-		.then([p](::Session session)
+		.then([p](Session session)
 		{
-			p.resolve(session.profile());
+			p.resolve(toJson(session));
 		})
-		.otherwise(reject(p));
+		.otherwise([this,p](const std::exception& ex)
+		{
+			Session session;
+			sessionRepository->write_user_session(session)
+			.then([p](Session session)
+			{
+				p.resolve(toJson(session));
+			})
+			.otherwise(reject(p));
+		});
 
 		return p.future();
 	}
 
-	Future<Json::Value> write_session( json_t<User> user, Request& req, Response& res)
+	Future<Json::Value> write_session( json_t<Session> session, Request& req, Response& res)
 	{
 		auto p = promise<Json::Value>();
 
-		sessionRepository->write_user_session(user.value)
-		.then([p](::Session session)
+		sessionRepository->write_user_session(*session)
+		.then([p](Session session)
 		{
 			p.resolve(toJson(session));
 		})

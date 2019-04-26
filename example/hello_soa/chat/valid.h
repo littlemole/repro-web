@@ -13,22 +13,6 @@ class Valid
 {
 public:
 
-	static const std::string session_id(const Cookies& cookies)
-	{
-		static std::regex r("repro_web_sid::[0-9a-f]*");
-
-		if(!cookies.exists("repro_web_sid"))
-		{
-			throw AuthEx("no session found");
-		}
-
-		return valid<AuthEx>( 
-			cookies.get("repro_web_sid").value(), 
-			r,
-			"invalid session id."
-		);
-	}
-
 	static const std::string username( QueryParams& params)
 	{
 		static std::regex r("[^<>]*");
