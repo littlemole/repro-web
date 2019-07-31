@@ -1,11 +1,7 @@
 #ifndef _MOL_DEF_GUARD_DEFINE_MOD_HTTP_RESPONSE_JSON_DEF_GUARD_
 #define _MOL_DEF_GUARD_DEFINE_MOD_HTTP_RESPONSE_JSON_DEF_GUARD_
 
-#ifndef _WIN32
 #include <json/json.h>
-#else
-#include <json/json.h>
-#endif
 #include "reprocpp/ex.h"
 
 #include <functional>
