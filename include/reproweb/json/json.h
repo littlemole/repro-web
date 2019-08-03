@@ -1,6 +1,9 @@
 #ifndef _MOL_DEF_GUARD_DEFINE_MOD_HTTP_RESPONSE_JSON_DEF_GUARD_
 #define _MOL_DEF_GUARD_DEFINE_MOD_HTTP_RESPONSE_JSON_DEF_GUARD_
 
+//! \file json.h
+//! \defgroup json
+
 #ifndef _WIN32
 #include <json/json.h>
 #else
@@ -8,10 +11,6 @@
 #endif
 #include "reprocpp/ex.h"
 
-#include <functional>
-#include <set>
-#include <priocpp/api.h>
-#include <cryptoneat/cryptoneat.h>
 #include <priohttp/queryparams.h>
 #include <priohttp/arg.h>
 #include <priohttp/request.h>
@@ -27,6 +26,8 @@ typedef repro::Ex JsonParseEx;
 
 //////////////////////////////////////////////////////////////
 
+//! parse string containing JSON 
+//! \ingroup json
 inline Json::Value parse(const std::string& txt)
 {
 	Json::Value json;
@@ -44,6 +45,9 @@ inline Json::Value parse(const std::string& txt)
 
 //////////////////////////////////////////////////////////////
 
+//! serialize JSON structure into plaintext
+//! \ingroup json
+
 inline const std::string stringify(Json::Value value)
 {
 	Json::StreamWriterBuilder wbuilder;
@@ -51,6 +55,8 @@ inline const std::string stringify(Json::Value value)
 
 }
 
+//! flatten a JSON structure removing whitespace and newlines
+//! \ingroup json
 inline const std::string flatten(Json::Value value)
 {
 	Json::StreamWriterBuilder wbuilder;
@@ -70,15 +76,19 @@ inline const std::string flatten(Json::Value value)
 //////////////////////////////////////////////////////////////
 //////////////////////////////////////////////////////////////
 
+//! EventBus subscription
+//! \ingroup json
 
 struct subscription
 {
+	 //! construct subscription with given callback handler
 	 subscription( std::function<void(Json::Value)> f) : fun(f) {}
 
+	 //! the sunscription callback
 	 std::function<void(Json::Value)> fun;
 };
 
-
+//! \private
 inline bool operator<(const subscription& lhs, const subscription& rhs)
 {
 	 if ( &lhs == &rhs)
@@ -89,44 +99,24 @@ inline bool operator<(const subscription& lhs, const subscription& rhs)
 	 return &lhs.fun < &rhs.fun;
 }
 
+//! JSON asyncrhonous EventBus
+//! \ingroup json
+
 class EventBus
 {
 public:
 
+	//! subscribe a callback to a topic, return subscrption id
+	std::string subscribe( const std::string& topic, std::function<void(Json::Value)> observer);
 
-	std::string subscribe( const std::string& topic, std::function<void(Json::Value)> observer)
-	{
-		std::string id = cryptoneat::nonce(32);
-		prio::nextTick( [this,id,topic,observer] ()
-		{
-			subscriptions_[topic].insert(std::make_pair(id, subscription(observer)));
-		});
-		return id;
-	}
+	//! unsubscribe with subscription id
+	void unsubscribe( const std::string& topic,  const std::string& id);
 
-	void unsubscribe( const std::string& topic,  const std::string& id)
-	{
-		prio::nextTick( [this,topic,id] ()
-		{
-			subscriptions_[topic].erase(id);
-		});
-	}
+	//! raise an Event to a topic using Eventbus passing JSON as payload
+	void notify(const std::string& topic, Json::Value value);
 
-	void notify(const std::string& topic, Json::Value value)
-	{
-		for( auto fun : subscriptions_[topic])
-		{
-			prio::nextTick( [fun,value]()
-			{
-				fun.second.fun(value);
-			});
-		}
-	}
-
-	void clear()
-	{
-		subscriptions_.clear();
-	}
+	//! clear all subscriptions
+	void clear();
 
 private:
 
@@ -134,7 +124,7 @@ private:
 };
 
 
-
+//! \private
 template<class F>
 repro::Future<> forEach( std::shared_ptr<Json::Value> json, unsigned int index, F f )
 {
@@ -167,6 +157,8 @@ repro::Future<> forEach( std::shared_ptr<Json::Value> json, unsigned int index, 
 	return p.future();
 }
 
+//! call a callback returning Future<> for each element of JSON Array
+//! \ingroup json
 
 template<class F>
 repro::Future<> forEach(Json::Value json, F f )
@@ -177,7 +169,8 @@ repro::Future<> forEach(Json::Value json, F f )
 	return forEach( container, i, f);
 }
 
-
+//! sort JSON Array by sorting all Objects given a specific member value (numeric)
+//! \ingroup json
 inline Json::Value sort(const Json::Value& arrayIn, const std::string member)
 {
 	std::vector<Json::Value> v;

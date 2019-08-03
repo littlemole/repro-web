@@ -1,8 +1,13 @@
 #ifndef INCLUDE_PROMISE_WEB_CONTROLLER_H_
 #define INCLUDE_PROMISE_WEB_CONTROLLER_H_
 
+//! \file controller.h
+//! \defgroup controller
+
 #include "reproweb/serialization/parameter.h"
 #include <diycpp/injector.h>
+#include <diycpp/ctx.h>
+
 
 namespace reproweb  {
 
@@ -98,31 +103,44 @@ private:
 
 };
 
+//! register HTTP route
+//! \ingroup controller
+//!
+//! \param m - the HTTP method ie GET,POST etc
+//! \param p - the HTTP request url path, ie /myapp/index.html
+//! \param fun - the HTTP controller callback
 template<class F>
 router<F> route(const std::string& m, const std::string& p, F fun )
 {
 	return router<F>(m,p,fun);
 }
 
-
+//! register a GET HTTP route
+//! \ingroup controller
 template<class F>
 auto GET(const std::string& p, F f)
 {
 	return route("GET",p,f);
 }
 
+//! register a POST HTTP route
+//! \ingroup controller
 template<class F>
 auto POST(const std::string& p, F f)
 {
 	return route("POST",p,f);
 }
 
+//! register a DELETE HTTP route
+//! \ingroup controller
 template<class F>
 auto DEL(const std::string& p, F f)
 {
 	return route("DELETE",p,f);
 }
 
+//! register a PUT HTTP route
+//! \ingroup controller
 template<class F>
 auto PUT(const std::string& p, F f)
 {
@@ -179,6 +197,14 @@ private:
 	}
 };
 
+//! register a HTTP filter
+//! \ingroup controller
+//!
+//! \param m - HTTP method to filter (ie GET,POST)
+//! \param p - HTTP path to be filtered. this is a regex
+//! \param f - HTTP filter callback to call
+//! \param priority - priority of filter relative to other filters
+//! the callback will be called once request is complete but before the controller callback
 template<class F>
 filter_router<F> filter(const std::string& m, const std::string& p, F f, int priority = 0 )
 {
@@ -233,6 +259,15 @@ private:
 	}
 };
 
+//! register a HTTP completion filter
+//! \ingroup controller
+//!
+//! \param m - HTTP method to filter (ie GET,POST)
+//! \param p - HTTP path to be filtered. this is a regex
+//! \param f - HTTP filter callback to call
+//! \param priority - priority of filter relative to other filters
+//! the callback will be called once response is completely send
+//! you cannot modify the response any more
 template<class F>
 completion_filter_router<F> completion_filter(const std::string& m, const std::string& p, F f, int priority = 0 )
 {
@@ -284,6 +319,16 @@ private:
 	}
 };
 
+//! register a HTTP flush filter
+//! \ingroup controller
+//!
+//! \param m - HTTP method to filter (ie GET,POST)
+//! \param p - HTTP path to be filtered. this is a regex
+//! \param f - HTTP filter callback to call
+//! \param priority - priority of filter relative to other filters
+//! the callback will be called once response has been build when flush() is called
+//! the response can still be modified
+
 template<class F>
 flush_filter_router<F> flush_filter(const std::string& m, const std::string& p, F f, int priority = 0 )
 {
@@ -292,6 +337,8 @@ flush_filter_router<F> flush_filter(const std::string& m, const std::string& p, 
 
 //////////////////////////////////////////////////////////////
 
+//! returns a lambda [](const std::exception& ex){...} that will return a HTTP error code when called
+//! \ingroup controller
 inline auto render_error(prio::Response& res)
 {
 	return [&res] (const std::exception& ex) 
@@ -300,11 +347,13 @@ inline auto render_error(prio::Response& res)
 	};
 }
 
+//! \private
+// terminator for below recursive function
 inline void redirect_url(std::ostringstream& oss)
 {
 }
 
-
+//! \private redirect url recursively
 template<class T,class ... Args>
 void redirect_url(std::ostringstream& oss, T&& t, Args&& ... args)
 {
@@ -312,7 +361,8 @@ void redirect_url(std::ostringstream& oss, T&& t, Args&& ... args)
 	redirect_url(oss,std::forward<Args&&>(args)...);
 }
 
-
+//! redirect url constructed  from args containing path fragments
+//! \ingroup controller
 template<class ... Args>
 inline auto redirect(prio::Response& res, Args ... args)
 {
@@ -377,6 +427,8 @@ private:
 	}
 };
 
+//! specify global exception handler class
+//! \ingroup controller
 template<class F>
 exception_handler<F> ex_handler(F fun)
 {
@@ -384,7 +436,10 @@ exception_handler<F> ex_handler(F fun)
 }
 
 //////////////////////////////////////////////////////////////
+//! WebApplicationContext
 //////////////////////////////////////////////////////////////
+
+//! \ingroup webserver
 
 class WebApplicationContext : public diy::Context
 {

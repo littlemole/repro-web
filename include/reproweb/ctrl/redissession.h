@@ -6,14 +6,19 @@
 #include "reproredis/redis.h"
 #include "priocpp/api.h"
 
+//! \file redissession.h
+//! \defgroup session
+
 namespace reproweb  
 {
 
-
+//! Redis backed HTTP session
+//! \ingroup session
 class RedisSessionProvider : public SessionProvider
 {
 public:
 
+	//! construct RedisSessionProvider with given Redis connection pool
     RedisSessionProvider( std::shared_ptr<reproredis::RedisPool> r)
         : redis_(r)
     {}

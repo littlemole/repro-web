@@ -1,6 +1,9 @@
 #ifndef _MOL_DEF_GUARD_DEFINE_MOD_HTTP_WS_DEF_GUARD_
 #define _MOL_DEF_GUARD_DEFINE_MOD_HTTP_WS_DEF_GUARD_
 
+//! \file websocket.h
+//! \defgroup ws
+
 #include <map>
 #include <set>
 
@@ -15,7 +18,8 @@ namespace prio    {
 
 namespace reproweb    {
 
-
+//! WebSocket COnnection
+//! \ingroup ws
 class WsConnection : public std::enable_shared_from_this<WsConnection>
 {
 public:
@@ -26,6 +30,7 @@ public:
 
 	typedef std::shared_ptr<WsConnection> Ptr;
 
+	//! \private
 	static Ptr create()
 	{
 		Ptr ptr = Ptr(new WsConnection());
@@ -33,6 +38,7 @@ public:
 		return ptr;
 	}
 
+	//! \private
 	static Ptr create(prio::SslCtx& ctx)
 	{
 		Ptr ptr = Ptr(new WsConnection(ctx));
@@ -40,11 +46,15 @@ public:
 		return ptr;
 	}
 
+	//! \private
     std::string handshake(prio::Request& r);
+	//! \private
     repro::Future<Ptr> connect(std::string urlStr);
 
+	//! send some text over the websocket
     bool send( int opcode, const std::string& s );
 
+	//! attach websocket onMsg handler
     template<class T>
     WsConnection* onMsg( T t )
     {
@@ -52,6 +62,7 @@ public:
         return this;
     }
 
+	//! attach websocket onClose handler
     template<class T>
     WsConnection* onClose( T t )
     {
@@ -59,7 +70,7 @@ public:
         return this;
     }
 
-
+	//! attach websocket onConnect handler
     template<class T>
     WsConnection* onConnect( T t )
     {
@@ -67,15 +78,20 @@ public:
         return this;
     }
 
+	//! \private
     void run()
     {
     	onConnect_(shared_from_this());
 		send_msg();
     }
 
+	//! close the websocket
     void close();
+
+	//! \private
 	void dispose();
 
+	//! \private
 	prio::Connection::Ptr connection();
 
 private:
@@ -128,6 +144,7 @@ private:
 
 //////////////////////////////////////////////////////////////////
 
+//! \private
 class WebsocketWriter : public std::enable_shared_from_this<WebsocketWriter>
 {
 public:

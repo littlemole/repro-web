@@ -12,6 +12,42 @@ using namespace cryptoneat;
 namespace reproweb  {
 
 
+
+std::string EventBus::subscribe( const std::string& topic, std::function<void(Json::Value)> observer)
+{
+    std::string id = cryptoneat::nonce(32);
+    prio::nextTick( [this,id,topic,observer] ()
+    {
+        subscriptions_[topic].insert(std::make_pair(id, subscription(observer)));
+    });
+    return id;
+}
+
+void EventBus::unsubscribe( const std::string& topic,  const std::string& id)
+{
+    prio::nextTick( [this,topic,id] ()
+    {
+        subscriptions_[topic].erase(id);
+    });
+}
+
+void EventBus::notify(const std::string& topic, Json::Value value)
+{
+    for( auto fun : subscriptions_[topic])
+    {
+        prio::nextTick( [fun,value]()
+        {
+            fun.second.fun(value);
+        });
+    }
+}
+
+void EventBus::clear()
+{
+    subscriptions_.clear();
+}
+
+
 JWT::JWT()
 {}
 
