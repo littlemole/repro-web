@@ -4,8 +4,6 @@
 #include <repromysql/mysql-bindings.h>
 #include <repromysql/mysql-async.h>
 #include <reproweb/serialization/meta.h>
-//#include <reproweb/serialization/parameter.h>
-//#include "reproweb/ctrl/front_controller.h"
 
 namespace reproweb {
 

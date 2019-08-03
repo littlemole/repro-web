@@ -4,11 +4,7 @@
 //! \file json.h
 //! \defgroup json
 
-#ifndef _WIN32
 #include <json/json.h>
-#else
-#include <json/json.h>
-#endif
 #include "reprocpp/ex.h"
 
 #include <priohttp/queryparams.h>

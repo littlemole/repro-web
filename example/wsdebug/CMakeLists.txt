@@ -4,7 +4,7 @@ cmake_policy(SET CMP0054 NEW)
 project(reproweb_hello_coro)
 include(CTest)
 
-set(CMAKE_CXX_STANDARD 14)
+set(CMAKE_CXX_STANDARD 17)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
 set(CMAKE_CXX_EXTENSIONS OFF)
 
@@ -25,7 +25,7 @@ set(FLAGS "")
 
 if ("${CMAKE_CXX_COMPILER_ID}" STREQUAL "Clang")
     set(STDLIB "c++abi")
-    set(LINKERFLAGS "-stdlib=libc++ -fcoroutines-ts  -std=c++14")
+    set(LINKERFLAGS "-stdlib=libc++ -fcoroutines-ts  -std=c++17")
     set(FLAGS "-stdlib=libc++ -fcoroutines-ts -D_RESUMABLE_FUNCTIONS_SUPPORTED")
 endif()
 
