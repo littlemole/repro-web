@@ -146,7 +146,7 @@ void view_templates::ctx_register(diy::Context* ctx)
 {
 	auto tpls = std::make_shared<TplStore>();
 	tpls->load(path_);
-	ctx->registerFactory( typeid(TplStore), new diy::FactoryImpl<TplStore>(tpls) );
+	ctx->register_static<TplStore>(tpls);
 }
 
 //////////////////////////////////////////////////////

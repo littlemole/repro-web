@@ -173,7 +173,7 @@ void WebServer::run_config(Json::Value json)
         }
         
         auto i18n = std::make_shared<I18N>(path,locales);
-        ctx_.registerFactory( typeid(I18N), new diy::FactoryImpl<I18N>(i18n) );
+        ctx_.register_static<I18N>( i18n );
     }
 
     if( json.isMember("view"))
@@ -182,7 +182,7 @@ void WebServer::run_config(Json::Value json)
 
         auto tpls = std::make_shared<TplStore>();
         tpls->load(path);
-        ctx_.registerFactory( typeid(TplStore), new diy::FactoryImpl<TplStore>(tpls) );
+        ctx_.register_static<TplStore>( tpls );
     }
 
     if( json.isMember("htdocs"))
@@ -196,7 +196,7 @@ void WebServer::run_config(Json::Value json)
         }
 
         auto content = std::make_shared<reproweb::StaticContentHandler>(path,mime);
-        ctx_.registerFactory( typeid(StaticContentHandler), new diy::FactoryImpl<StaticContentHandler>(content) );
+        ctx_.register_static<StaticContentHandler>( content );
 
         content->register_static_handler(&ctx_);
     }

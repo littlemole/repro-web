@@ -396,8 +396,8 @@ static_content::static_content(const std::string& htdocs_path,const std::string&
 void static_content::ctx_register(diy::Context* ctx)
 {
 	auto content = std::make_shared<StaticContentHandler>(htdocs_,mime_);
-	ctx->registerFactory( typeid(StaticContentHandler), new diy::FactoryImpl<StaticContentHandler>(content) );
-
+	ctx->register_static<StaticContentHandler>(content);
+	
 	content->register_static_handler(ctx);
 }
 

@@ -455,18 +455,11 @@ public:
 			[](diy::Context* c) {}
 		);
 
-		registerFactory(
-			std::type_index(typeid(diy::Context)), 
-			new diy::FactoryImpl<diy::Context>(ctx)
-		);
+		register_static<WebApplicationContext,Context>(ctx);
 
 		// register a FrontController
-		registerFactory(
-			std::type_index(typeid(FrontController)), 
-			new diy::FactoryImpl<FrontController>(
-				diy::constructor<FrontController(diy::Context)>()
-			) 
-		);
+		auto fc = std::make_shared<FrontController>(ctx);
+		register_static<FrontController()>(fc);
 
 		register_dependencies<Args&&...>(std::forward<Args&&>(args)...);
 	}

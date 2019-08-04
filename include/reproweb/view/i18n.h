@@ -51,7 +51,7 @@ public:
     void ctx_register(diy::Context* ctx)
 	{
 		auto i18n = std::make_shared<I18N>(path_,locales_);
-		ctx->registerFactory( typeid(I18N), new diy::FactoryImpl<I18N>(i18n) );
+		ctx->register_static<I18N>(i18n);
 	}
 
 private:
