@@ -4,49 +4,14 @@
 #include <functional>
 #include <set>
 #include <type_traits>
-#include <experimental/type_traits>
 
-/* 
-#ifndef _WIN32
-#include <experimental/type_traits>
-#endif
-
-#include <functional>
-#include <set>
-#include <type_traits>
 
 #ifndef _WIN32
-#ifndef __clang__
-namespace std {
-
-	template< class... >
-	using void_t = void;
-
-}
-#endif
+#include <experimental/type_traits>
 #endif
 
-#ifdef __clang__
-#endif
 
 #ifdef _WIN32
-#define MOL_FAKE_SEVENTEEN 1
-#endif
-
-#ifdef __GNUC__
-#ifndef __clang__
-#if __GNUC__ < 6
-#define MOL_FAKE_SEVENTEEN 1
-#endif
-#endif
-#endif
-
-
-
-#undef MOL_FAKE_SEVENTEEN
-
-#ifdef MOL_FAKE_SEVENTEEN
-
 
 namespace std {
 namespace experimental {
@@ -70,42 +35,26 @@ namespace detail {
 
 } // namespace detail
 
+struct nonesuch
+{
+	nonesuch() = delete;
+	~nonesuch() = delete;
+	nonesuch(nonesuch const&) = delete;
+	void operator=(nonesuch const&) = delete;
+};
 
-#ifndef __clang__
-#ifdef __GNUC__
-#if __GNUC__ < 6
-#define MOL_FAKE_NONESUCH 1
-#endif
-#endif    
-#endif    
+template <template<class...> class Op, class... Args>
+using is_detected = typename detail::detector<nonesuch, void, Op, Args...>::value_t;
 
-#ifdef _WIN32
-#define MOL_FAKE_NONESUCH 1
-#endif
+template <template<class...> class Op, class... Args>
+using detected_t = typename detail::detector<nonesuch, void, Op, Args...>::type;
 
-#ifdef MOL_FAKE_NONESUCH
-    struct nonesuch
-    {
-        nonesuch() = delete;
-        ~nonesuch() = delete;
-        nonesuch(nonesuch const&) = delete;
-        void operator=(nonesuch const&) = delete;
-    };
-#endif
-
-	template <template<class...> class Op, class... Args>
-	using is_detected = typename detail::detector<nonesuch, void, Op, Args...>::value_t;
-
-	template <template<class...> class Op, class... Args>
-	using detected_t = typename detail::detector<nonesuch, void, Op, Args...>::type;
-
-	template <class Default, template<class...> class Op, class... Args>
-	using detected_or = detail::detector<Default, void, Op, Args...>;
+template <class Default, template<class...> class Op, class... Args>
+using detected_or = detail::detector<Default, void, Op, Args...>;
 
 }}
 
 #endif
-*/
 
 namespace diy {
 
