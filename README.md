@@ -10,6 +10,10 @@ this is a private academic study on how future c++ apis for the web could look l
 for production usage relying on production-ready stacks, have a look at [Lukas Bergdoll](https://github.com/CppCon/CppCon2017/tree/master/Demos/Using%20IncludeOS%20to%20Write%20Fast%20and%20Secure%20Web%20Applications)
 
 
+# doxygen documentation
+
+[doxydocs](https://littlemole.github.io/repro-web/index.html)
+
 # motivation
 study to explore modern c++' fitness for modern, server side web development.
 
