@@ -124,7 +124,7 @@ index.tpl:
 ```
 compile with
 ```bash
-g++ main.cpp -std=c++14 $(pkg-config --libs --cflags reproweb jsoncpp libnghttp2  openssl zlib libevent_pthreads)
+g++ main.cpp -std=c++17 $(pkg-config --libs --cflags reproweb jsoncpp libnghttp2  openssl zlib libevent_pthreads)
 ``` 
 see examples/readme/ for code.
 
@@ -214,7 +214,7 @@ int main(int argc, char** argv)
 
 compile with
 ```bash
-g++ main.cpp -std=c++14 $(pkg-config --libs --cflags reproweb reprocurl jsoncpp libnghttp2  openssl zlib libevent_pthreads libcurl)
+g++ main.cpp -std=c++17 $(pkg-config --libs --cflags reproweb reprocurl jsoncpp libnghttp2  openssl zlib libevent_pthreads libcurl)
 ``` 
 
 full source in examples/mvc/main.cpp

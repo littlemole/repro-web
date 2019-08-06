@@ -1,0 +1,10 @@
+<map id="reproweb::AbstractView" name="reproweb::AbstractView">
+<area shape="rect" id="node2" href="$classreproweb_1_1TemplateView.html" title="reproweb::TemplateView" alt="" coords="245,5,411,32"/>
+<area shape="rect" id="node3" href="$classreproweb_1_1ViewI18nDecorator.html" title="reproweb::ViewI18nDecorator" alt="" coords="231,56,425,83"/>
+<area shape="rect" id="node4" href="$classreproweb_1_1ViewMustacheDecorator.html" title="reproweb::ViewMustacheDecorator" alt="" coords="215,107,441,133"/>
+<area shape="rect" id="node9" href="$classreproweb_1_1ViewSSIDecorator.html" title="reproweb::ViewSSIDecorator" alt="" coords="233,157,423,184"/>
+<area shape="rect" id="node5" href="$classreproweb_1_1I18nMustacheView.html" title="reproweb::I18nMustacheView" alt="" coords="500,31,695,57"/>
+<area shape="rect" id="node6" href="$classreproweb_1_1I18nSSIMustacheView.html" title="reproweb::I18nSSIMustacheView" alt="" coords="489,81,705,108"/>
+<area shape="rect" id="node7" href="$classreproweb_1_1MustacheView.html" title="reproweb::MustacheView" alt="" coords="513,132,682,159"/>
+<area shape="rect" id="node8" href="$classreproweb_1_1SSIMustacheView.html" title="reproweb::SSIMustacheView" alt="" coords="502,183,693,209"/>
+</map>

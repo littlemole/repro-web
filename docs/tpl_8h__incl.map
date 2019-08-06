@@ -1,0 +1,19 @@
+<map id="include/reproweb/view/tpl.h" name="include/reproweb/view/tpl.h">
+<area shape="rect" id="node2" href="$json_2json_8h_source.html" title="reproweb/json/json.h" alt="" coords="403,266,546,293"/>
+<area shape="rect" id="node16" href="$i18n_8h.html" title="reproweb/view/i18n.h" alt="" coords="738,177,883,203"/>
+<area shape="rect" id="node19" href="/home/mike/workspace/diy/diy.tag$ctx_8h.html" title="diycpp/ctx.h" alt="" coords="848,266,941,293"/>
+<area shape="rect" id="node20" href="$ssi_8h.html" title="reproweb/ctrl/ssi.h" alt="" coords="959,95,1089,121"/>
+<area shape="rect" id="node26" href="$mustache_8hpp_source.html" title="reproweb/view/mustache.hpp" alt="" coords="1281,266,1473,293"/>
+<area shape="rect" id="node4" href="/home/mike/workspace/prio-http/prio-http.tag$queryparams_8h.html" title="priohttp/queryparams.h" alt="" coords="5,647,160,673"/>
+<area shape="rect" id="node5" href="/home/mike/workspace/prio-http/prio-http.tag$arg_8h.html" title="priohttp/arg.h" alt="" coords="337,647,436,673"/>
+<area shape="rect" id="node6" href="/home/mike/workspace/prio-http/prio-http.tag$request_8h.html" title="priohttp/request.h" alt="" coords="277,497,400,524"/>
+<area shape="rect" id="node11" href="$traits_8h_source.html" title="reproweb/traits.h" alt="" coords="463,348,582,375"/>
+<area shape="rect" id="node7" href="/home/mike/workspace/prio-http/prio-http.tag$path_8h.html" title="priohttp/path.h" alt="" coords="121,572,226,599"/>
+<area shape="rect" id="node8" href="/home/mike/workspace/prio-http/prio-http.tag$header_8h.html" title="priohttp/header.h" alt="" coords="669,572,787,599"/>
+<area shape="rect" id="node10" href="/home/mike/workspace/prio-http/prio-http.tag$attr_8h.html" title="priohttp/attr.h" alt="" coords="251,572,349,599"/>
+<area shape="rect" id="node9" href="/home/mike/workspace/prio-http/prio-http.tag$cookie_8h.html" title="priohttp/cookie.h" alt="" coords="669,647,787,673"/>
+<area shape="rect" id="node21" href="$front__controller_8h.html" title="reproweb/ctrl/front\l_controller.h" alt="" coords="961,169,1087,211"/>
+<area shape="rect" id="node22" href="$handler__info_8h_source.html" title="reproweb/ctrl/handler\l_info.h" alt="" coords="966,259,1109,300"/>
+<area shape="rect" id="node24" href="$handler_8h.html" title="reproweb/ctrl/handler.h" alt="" coords="1017,348,1172,375"/>
+<area shape="rect" id="node25" href="/home/mike/workspace/prio-http/prio-http.tag$response_8h.html" title="priohttp/response.h" alt="" coords="867,423,1000,449"/>
+</map>

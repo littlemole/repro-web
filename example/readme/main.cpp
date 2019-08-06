@@ -1,6 +1,7 @@
 #include "reproweb/ctrl/controller.h"
 #include "reproweb/web_webserver.h"
 #include "reproweb/view/tpl.h"
+#include "diycpp/ctx.h"
 
 using namespace prio;
 using namespace reproweb;
