@@ -1,12 +1,12 @@
-login.page.title=Guten Tag Coro Websockets
+login.page.title=Guten Tag Soa Websockets
 
 login.header.headline=repro-web
 login.header.headline.desc=modernes reactives c++ für das web.
 
-login.title.headline=Hallo Coroutine Websockets
-login.title.desc=Hallo welt websocket Beispier mit Coroutinen für modernes reactives C++ für das Web.
+login.title.headline=Hallo Soa Websockets
+login.title.desc=Hallo soa websocket Beispier für modernes reactives C++ für das Web.
 
-login.main.headline=Hallo Coroutinen WebSockets Beispiel
+login.main.headline=Hallo SOA WebSockets Beispiel
 login.main.greeting=Willkomen zurück, {{ username }}!
 
 login.main.logout=Ausloggen kannst Du Dich

@@ -1,8 +1,8 @@
 # index
-index.title.headline=hello coroutine websockets
-index.title.desc=hello world websocket example with coroutines for modern reactive c++ for the web.
+index.title.headline=hello soa websockets
+index.title.desc=hello world soa example for modern reactive c++ for the web.
 
-index.main.headline=Hello Coroutines WebSockets Example
+index.main.headline=Hello SOA WebSockets Example
 index.main.greeting=Hello dear {{ username }}
 index.main.logout=you can logout 
 index.main.logout.link=here
@@ -11,23 +11,23 @@ index.main.chat=Websocket chat: type a message
 index.main.chat.send=Send
 
 # login
-login.title.headline=hello coroutine websockets login
-login.title.desc=hello world websocket login example with coroutines for modern reactive c++ for the web.
+login.title.headline=hello soa websockets login
+login.title.desc=hello world soa login example for modern reactive c++ for the web.
 
-login.main.headline=Hello Coroutines WebSockets Login Example
+login.main.headline=Hello SOA WebSockets Login Example
 login.main.desc=please specify login and password. if you do not have a login yet you can register 
 login.main.desc.link=here
 
 #register
-register.title.headline=hello coroutine websockets registration
-register.title.desc=hello world registration websocket example with coroutines for modern reactive c++ for the web.
+register.title.headline=hello soa websockets registration
+register.title.desc=hello soa registration websocket example for modern reactive c++ for the web.
 
 register.main.headline=Hello Coroutines WebSockets Registration Example
 register.main.desc=new user registration
 register.main.fields=please fill out all fields.
 
 #generic
-generic.page.title=Hello Coro Websockets
+generic.page.title=Hello SOA Websockets
 
 generic.header.headline=repro-web
 generic.header.headline.desc=modern reactive c++ for the web.
@@ -35,7 +35,7 @@ generic.header.headline.home=home
 generic.header.headline.examples=examples
 generic.header.headline.this.example=this example
 
-generic.menu.title=Hello WSCORO Menu
+generic.menu.title=Hello SOA Menu
 generic.menu.home=home
 generic.menu.login=login
 generic.menu.register=register
