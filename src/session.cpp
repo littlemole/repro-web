@@ -141,10 +141,16 @@ void SessionFilter::before( prio::Request& req, prio::Response& res, std::shared
 
         chain->next(req,res);
     })
-    .otherwise([&res,chain]( const std::exception& ex)
+    .otherwise([this,&req,&res,chain]( const std::exception& ex)
     {
         std::cout << "before ex: " << ex.what() << std::endl;
-        res.error().body(ex.what()).flush();
+        //res.error().body(ex.what()).flush();
+
+        std::string sid = make_session_id();
+
+        Session session(sid,Json::objectValue);
+        req.attributes.set("_session_", std::make_shared<Session>(session) );   
+        chain->next(req,res);        
     });
 }
 

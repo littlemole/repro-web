@@ -21,7 +21,7 @@ ADD . /usr/local/src/reproweb-example
 
 ENV USER_SERVICE_HOST=user
 ENV SESSION_SERVICE_HOST=session
-
+ENV REDIS_HOST=redis
 
 #RUN cd /usr/local/src/reproweb-example && (if [ "$BUILDCHAIN" != "cmake" ] ; then make -e; else (mkdir -p build && cd build && cmake .. && make) fi)
 

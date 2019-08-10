@@ -16,6 +16,8 @@ using namespace diy;
 using namespace prio;
 using namespace reproweb;
 
+
+
 class SessionServiceProvider : public  SessionProvider
 {
 public:
@@ -79,8 +81,9 @@ int main(int argc, char **argv)
 		singleton<View(AppConfig,TplStore,I18N)>(),
 		singleton<Controller(Model,View)>(),
 
-		singleton<EventBus()>(),
-		singleton<WebSocketController(SessionService,EventBus)>(),
+		singleton<Redis(AppConfig)>(),
+		singleton<RedisBus(Redis)>(),
+		singleton<WebSocketController(SessionService,RedisBus)>(),
 
 		singleton<Exceptions(View)>(),
 
