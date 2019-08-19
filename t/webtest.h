@@ -17,6 +17,11 @@ public:
 		std::cout << "~TestController" << std::endl;
 	}
 
+	static std::string http_root()
+	{
+		return "/root";
+	}
+
 	void postMultipart( prio::MultiParts mp,  prio::Request& req,  prio::Response& res)
 	{
 		for( auto& p : mp.parts)
@@ -86,6 +91,10 @@ public:
 
         std::regex e ("\\.\\.");
         std::string path = std::regex_replace(req.path.path(),e,"");
+
+        std::regex e2 ("/root");
+        path = std::regex_replace(path,e2,"");
+
         std::string fp = path_ +  path;		
 
 		std::string tmpl = prio::slurp(fp);

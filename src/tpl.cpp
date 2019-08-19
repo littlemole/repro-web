@@ -1,6 +1,6 @@
 #include "reproweb/view/tpl.h"
 #include "priohttp/common.h"
-
+#include <regex>
 
 namespace reproweb  {
 

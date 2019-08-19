@@ -73,11 +73,11 @@ TEST_F(BasicSSITest, ResolveSSI)
 	std::string ssisrc = 
 	"<html><head></head><body>"
 	"<table><tr><td>"
-	"<!--#include virtual='/path/a' -->"
+	"<!--#include virtual='/root/path/a' -->"
 	"</td></tr><tr><td>"
-	"<!--#include virtual='/path/a' -->"
+	"<!--#include virtual='/root/path/a' -->"
 	"</td></tr><tr><td>"
-	"<!--#include virtual='/path/a' -->"
+	"<!--#include virtual='/root/path/a' -->"
 	"</td></tr><tr><td>"
 	"</td></tr></table>"
 	"</body></html>";
@@ -146,7 +146,7 @@ TEST_F(BasicSSITest, handleSSI)
 		nextTick()
 		.then( [&result,&server]()
 		{
-			HttpClient::url("http://localhost:8765/index.shtml")
+			HttpClient::url("http://localhost:8765/root/index.shtml")
 			->fetch()
 			.then([&result,&server](prio::Response& res)
 			{
@@ -237,7 +237,7 @@ TEST_F(BasicSSITest, SimpleInclude)
 			Request req;
 			req.path.method("GET");
 
-			return fc->include(req,"/path/a");
+			return fc->include(req,"/root/path/a");
 		})
 		.then( [&result,&server](std::string s)
 		{

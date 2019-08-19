@@ -103,7 +103,7 @@ public:
 	static Async invoke( prio::Request& req,  prio::Response& res, F fun, VArgs&& ... vargs)
 	{
 		C& c = prepare_controller<C>(req);
-		return (c.*fun)(std::forward<VArgs&&>(vargs)...);
+		return (c.*fun)(std::forward<VArgs>(vargs)...);
 	}
 };
 
@@ -117,7 +117,7 @@ public:
 	template<class F, class ... VArgs>
 	static Async invoke(prio::Request& req,  prio::Response& res, F fun, VArgs&& ... vargs)
 	{
-		return HandlerInvokerAsync<void(C,Args...)>::invoke(req,res,fun, std::forward<VArgs&&>(vargs)..., HandlerParam<T>::get(req,res));
+		return HandlerInvokerAsync<void(C,Args...)>::invoke(req,res,fun, std::forward<VArgs>(vargs)..., HandlerParam<T>::get(req,res));
 	}
 };
 
@@ -134,7 +134,7 @@ public:
 	static void invoke( prio::Request& req,  prio::Response& res, F fun, VArgs&& ... vargs)
 	{
 		C& c = prepare_controller<C>(req);
-		(c.*fun)(std::forward<VArgs&&>(vargs)...);
+		(c.*fun)(std::forward<VArgs>(vargs)...);
 	}
 };
 
@@ -149,7 +149,7 @@ public:
 	static repro::Future<R> invoke( prio::Request& req,  prio::Response& res, F fun, VArgs&& ... vargs)
 	{
 		C& c = prepare_controller<C>(req);
-		return (c.*fun)(std::forward<VArgs&&>(vargs)...);
+		return (c.*fun)(std::forward<VArgs>(vargs)...);
 	}
 };
 
@@ -163,7 +163,7 @@ public:
 	template<class F, class ... VArgs>
 	static void invoke(prio::Request& req,  prio::Response& res, F fun, VArgs&& ... vargs)
 	{
-		HandlerInvoker<void(C,Args...)>::invoke(req,res,fun, std::forward<VArgs&&>(vargs)..., HandlerParam<T>::get(req,res));
+		HandlerInvoker<void(C,Args...)>::invoke(req,res,fun, std::forward<VArgs>(vargs)..., HandlerParam<T>::get(req,res));
 	}
 };
 
@@ -177,7 +177,7 @@ public:
 	template<class F, class ... VArgs>
 	static repro::Future<R> invoke(prio::Request& req,  prio::Response& res, F fun, VArgs&& ... vargs)
 	{
-		return HandlerInvoker<R(C,Args...)>::invoke(req,res,fun, std::forward<VArgs&&>(vargs)..., HandlerParam<T>::get(req,res));
+		return HandlerInvoker<R(C,Args...)>::invoke(req,res,fun, std::forward<VArgs>(vargs)..., HandlerParam<T>::get(req,res));
 	}
 };
 

@@ -6,7 +6,6 @@
 
 #include "reproweb/ctrl/handler.h"
 #include "priohttp/common.h"
-#include "priohttp/response.h"
 #include "reprocpp/ex.h"
 
  

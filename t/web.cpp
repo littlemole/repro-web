@@ -53,7 +53,7 @@ TEST_F(BasicWebTest, SimpleDI)
 		nextTick()
 		.then( [&result,&server]()
 		{
-			HttpClient::url("http://localhost:8765/path/a")
+			HttpClient::url("http://localhost:8765/root/path/a")
 			->fetch()
 			.then([&result,&server](prio::Response& res)
 			{
@@ -120,7 +120,7 @@ repro::Future<> coroutine_example(reproweb::WebServer& server, std::string& resu
 	{
 		co_await nextTick();
 
-		auto post = reprocurl::async_curl()->url("http://127.0.0.1:8765/path/b")->method("POST")->data("dummy");
+		auto post = reprocurl::async_curl()->url("http://127.0.0.1:8765/root/path/b")->method("POST")->data("dummy");
 
 		reprocurl::CurlEasy::Ptr curl = co_await post->perform();
 
@@ -162,7 +162,7 @@ TEST_F(BasicWebTest, SimpleRest)
 		nextTick()
 		.then( [&result,&server]()
 		{
-			HttpClient::url("http://localhost:8765/path/a")
+			HttpClient::url("http://localhost:8765/root/path/a")
 			->fetch()
 			.then([&result,&server](prio::Response& res)
 			{
@@ -223,7 +223,7 @@ TEST_F(BasicWebTest, SimpleMultipart)
 		nextTick()
 		.then( [&result,&server]()
 		{
-			HttpClient::url("http://localhost:8765/path/a")
+			HttpClient::url("http://localhost:8765/root/path/a")
 			->content_type("multipart/form-data;boundary=\"---------------------------9051914041544843365972754266\"")
 			->POST(multipart)
 			.then([&result,&server](prio::Response& res)
@@ -266,7 +266,7 @@ TEST_F(BasicWebTest, SimpleRestParams)
 		nextTick()
 		.then( [&result,&server]()
 		{
-			HttpClient::url("http://localhost:8765/path/a?filter=123456789")
+			HttpClient::url("http://localhost:8765/root/path/a?filter=123456789")
 			->header("Cookie", prio::Cookie("sid","987654321").path("/").domain("localhost").secure().maxAge(100).str())
 			->header("Accept-Language", "de-DE")
 			->fetch()
@@ -310,7 +310,7 @@ TEST_F(BasicWebTest, SimpleRestQueryParams)
 		nextTick()
 		.then( [&result,&server]()
 		{
-			HttpClient::url("http://localhost:8765/path/a?param=test")
+			HttpClient::url("http://localhost:8765/root/path/a?param=test")
 			->GET()
 			.then([&result,&server](prio::Response& res)
 			{
@@ -353,7 +353,7 @@ TEST_F(BasicWebTest, SimpleRestPost)
 		nextTick()
 		.then( [&result,&server]()
 		{
-			HttpClient::url("http://localhost:8765/path/a")
+			HttpClient::url("http://localhost:8765/root/path/a")
 			->POST("{\"user\":{\"login\" : \"littlemole\",\"pwd\" : \"secret\",\"tags\" : [\"one\",\"two\",\"three\"],\"username\" : \"mike\"\n}}")
 			.then([&result,&server](prio::Response& res)
 			{
@@ -394,7 +394,7 @@ TEST_F(BasicWebTest, SimpleRestPost_invalid)
 		nextTick()
 		.then( [&result,&server]()
 		{
-			HttpClient::url("http://localhost:8765/path/a")
+			HttpClient::url("http://localhost:8765/root/path/a")
 			->POST("{\"user\":{\"login\" : \"<littlemole>\",\"pwd\" : \"secret\",\"tags\" : [\"one\",\"two\",\"three\"],\"username\" : \"mike\"\n}}")
 			.then([&result,&server](prio::Response& res)
 			{
@@ -435,7 +435,7 @@ TEST_F(BasicWebTest, SimpleRestPostJson)
 		nextTick()
 		.then( [&result,&server]()
 		{
-			HttpClient::url("http://localhost:8765/path/a")
+			HttpClient::url("http://localhost:8765/root/path/a")
 			->POST("{\"login\" : \"littlemole\",\"pwd\" : \"secret\",\"tags\" : [\"one\",\"two\",\"three\"],\"username\" : \"mike\"\n}")
 			.then([&result,&server](prio::Response& res)
 			{
@@ -480,7 +480,7 @@ TEST_F(BasicWebTest, SimpleRestCoro)
 		nextTick()
 		.then( [&result,&server]()
 		{
-			HttpClient::url("http://localhost:8765/path/a")
+			HttpClient::url("http://localhost:8765/root/path/a")
 			->fetch()
 			.then([&result,&server](prio::Response& res)
 			{
@@ -521,7 +521,7 @@ TEST_F(BasicWebTest, SimpleRestPostCoro)
 		nextTick()
 		.then( [&result,&server]()
 		{
-			HttpClient::url("http://localhost:8765/path/a")
+			HttpClient::url("http://localhost:8765/root/path/a")
 			->POST("{\"login\":\"littlemole\",\"pwd\":\"secret\",\"tags\":[\"one\",\"two\",\"three\"],\"username\":\"mike\"}")
 			.then([&result,&server](prio::Response& res)
 			{
@@ -562,7 +562,7 @@ TEST_F(BasicWebTest, SimpleRestPostJsonCoro)
 		nextTick()
 		.then( [&result,&server]()
 		{
-			HttpClient::url("http://localhost:8765/path/a")
+			HttpClient::url("http://localhost:8765/root/path/a")
 			->POST("{\"login\" : \"littlemole\",\"pwd\" : \"secret\",\"tags\" : [\"one\",\"two\",\"three\"],\"username\" : \"mike\"\n}")
 			.then([&result,&server](prio::Response& res)
 			{

@@ -97,43 +97,7 @@ std::string I18N::render(std::string locale, const std::string& txt)
     return result.str();
 }
 
-/*
-std::string I18N::render(std::string locale, const std::string& txt)
-{
-    locale = find_locale(locale);
 
-    std::map<std::string,std::string>& props = map_[locale];
-    static std::regex r("<!--#i18n\\s+key\\s*=\\s*[\"']([^'\"]*)[\"']\\s*-->");
-    std::smatch match;
-
-    std::string::const_iterator start = txt.begin();
-    std::string::const_iterator end   = txt.end();    
-
-    std::ostringstream result;
-    
-    while (std::regex_search (start,end,match,r)) 
-    {
-        if ( match.size() > 1 )
-        {
-            result.write(&*start,match[0].first-start);
-
-            std::string key = match[1];
-            if( props.count(key)==0 && map_[""].count(key)==0 )
-            {
-                result << key;
-            }
-            else
-            {
-                std::string value = get_key(locale,key);
-                result.write(value.c_str(),value.size());
-            }
-        }
-        start = match[0].second;			
-    }
-    result.write(&*start,end-start);
-    return result.str();
-}
-*/
 
 const std::string& I18N::get_key(std::string locale, const std::string& k)
 {

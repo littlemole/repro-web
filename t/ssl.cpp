@@ -59,7 +59,7 @@ TEST_F(BasicSSLTest, SimpleSSL) {
 		nextTick()
 		.then( [&result,&client_ctx,&server]()
 		{
-			HttpClient::url(client_ctx,"https://localhost:8765/path/a")
+			HttpClient::url(client_ctx,"https://localhost:8765/root/path/a")
 			->fetch()
 			.then([&result,&server](prio::Response& res)
 			{

@@ -75,6 +75,12 @@ namespace reproweb {
     template<class T>
     using has_valid = std::experimental::is_detected<has_valid_t, T>;
 
+    template<class T>
+    using has_http_root_t = decltype(T::http_root());
+
+    template<class T>
+    using has_http_root = std::experimental::is_detected<has_http_root_t, T>;
+
     class call_valid
     {
     public:
@@ -89,6 +95,29 @@ namespace reproweb {
         static void invoke( T& t) 
         {}
     };
+
+    class call_http_root
+    {
+    public:
+
+        template <class T, typename std::enable_if<has_http_root<T>::value>::type* = nullptr >
+        static std::string invoke() 
+        {
+            return T::http_root();
+        }
+
+        template <class T , typename  std::enable_if<!has_http_root<T>::value>::type* = nullptr >
+        static std::string invoke() 
+        {
+            return "";
+        }
+    };    
+
+    template<class T>
+    std::string http_root()
+    {
+        return call_http_root::invoke<T>();
+    }
 
 
 //////////////////////////////////////////////////////////////

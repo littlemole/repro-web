@@ -358,26 +358,26 @@ public:
 template<class T, class M, class ... Args>
 auto metadata( const char* name, M T::*m, Args&& ... args)
 {
-    return MetaData<T(const char* , M T::*, typename std::decay<Args>::type ...)>( name, m, std::forward<Args&&>(args)...);
+    return MetaData<T(const char* , M T::*, typename std::decay<Args>::type ...)>( name, m, std::forward<Args>(args)...);
 }
 
 template<class T, class M, class ... Args>
 auto metadata( Member<T,M>&& member, Args&& ... args)
 {
-    return MetaData<T( Member<T,M>, typename std::decay<Args>::type ...)>( member, std::forward<Args&&>(args)...);
+    return MetaData<T( Member<T,M>, typename std::decay<Args>::type ...)>( member, std::forward<Args>(args)...);
 }
 
 
 template<class T, class M, class ... Args>
 auto metadata( GetterSetter<T,M>&& getterSetter, Args&& ... args)
 {
-    return MetaData<T( GetterSetter<T,M>, typename std::decay<Args>::type ...)>( getterSetter, std::forward<Args&&>(args)...);
+    return MetaData<T( GetterSetter<T,M>, typename std::decay<Args>::type ...)>( getterSetter, std::forward<Args>(args)...);
 }
 
 template<class T, class M, class ... Args>
 auto metadata( GetterSetterConst<T,M>&& getterSetter, Args&& ... args)
 {
-    return MetaData<T( GetterSetterConst<T,M>, typename std::decay<Args>::type ...)>( getterSetter, std::forward<Args&&>(args)...);
+    return MetaData<T( GetterSetterConst<T,M>, typename std::decay<Args>::type ...)>( getterSetter, std::forward<Args>(args)...);
 }
 
 ///////////////////////////////////////////////////////////////////////////////////////////

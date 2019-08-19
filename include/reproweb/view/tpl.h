@@ -4,12 +4,11 @@
 //! \file tpl.h
 //! \defgroup view
 
+#include "priocpp/api.h"
 #include "reproweb/json/json.h"
 #include "reproweb/view/i18n.h"
 #include "reproweb/ctrl/ssi.h"
 #include "reproweb/view/mustache.hpp"
-#include <diycpp/ctx.h>
-#include <regex>
 
 namespace reproweb  {
 

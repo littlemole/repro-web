@@ -5,11 +5,9 @@
 //! \defgroup json
 
 #include <json/json.h>
-#include "reprocpp/ex.h"
-
-#include <priohttp/queryparams.h>
-#include <priohttp/arg.h>
-#include <priohttp/request.h>
+#include <reprocpp/ex.h>
+#include <priocpp/api.h>
+#include <reprocpp/promise.h>
 #include <reproweb/traits.h>
 
 namespace reproweb  {

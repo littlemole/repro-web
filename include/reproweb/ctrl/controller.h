@@ -25,6 +25,7 @@ public:
 		: method(m), path(p), handler(f)
 	{}
 
+
 	std::string method;
 	std::string path;
 	F handler;
@@ -38,9 +39,20 @@ public:
 private:
 
 	template<class C>
+	std::string http_path(std::string p)
+	{
+		std::ostringstream oss;
+		oss << http_root<C>() << p;
+		return oss.str();
+	}
+
+
+	template<class C>
 	void registerController(FrontController& fc, const std::string& m, const std::string& p, void (C::*fun)(prio::Request&, prio::Response&))
 	{
-		fc.registerHandler(m,p, [fun,&fc]( prio::Request& req,  prio::Response& res)
+		std::string path = http_path<C>(p);
+
+		fc.registerHandler(m,path, [fun,&fc]( prio::Request& req,  prio::Response& res)
 		{
 			try 
 			{	
@@ -59,7 +71,9 @@ private:
 	template<class C,class ... Args>
 	void registerController(FrontController& fc, const std::string& m, const std::string& p, void (C::*fun)(Args...) )
 	{
-		fc.registerHandler(m,p, [&fc,fun]( prio::Request& req,  prio::Response& res)
+		std::string path = http_path<C>(p);
+
+		fc.registerHandler(m,path, [&fc,fun]( prio::Request& req,  prio::Response& res)
 		{			
 			invoke_handler<C,Args...>(fc,req,res,fun);
 		});
@@ -70,7 +84,9 @@ private:
 	template<class C, class ... Args>
 	void registerController(FrontController& fc, const std::string& m, const std::string& p, Async(C::*fun)(Args...))
 	{
-		fc.registerHandler(m, p, [fun,&fc](prio::Request& req, prio::Response& res)
+		std::string path = http_path<C>(p);
+
+		fc.registerHandler(m, path, [fun,&fc](prio::Request& req, prio::Response& res)
 		{
 			invoke_coro_handler<C,Args...>(fc,req,res,fun)
 			.then([](){})
@@ -81,7 +97,9 @@ private:
 	template<class T, class C, class ... Args>
 	void registerController(FrontController& fc, const std::string& m, const std::string& p, repro::Future<T> (C::*fun)(Args ...))
 	{
-		fc.registerHandler(m, p, [fun,&fc](prio::Request& req, prio::Response& res)
+		std::string path = http_path<C>(p);
+
+		fc.registerHandler(m, path, [fun,&fc](prio::Request& req, prio::Response& res)
 		{
 			invoke_coro_handler/*<T,C,Args...>*/(fc,req,res,fun)
 			.then([](){})
@@ -94,7 +112,9 @@ private:
 	template<class T, class C, class ...Args>
 	void registerController(FrontController& fc, const std::string& m, const std::string& p, repro::Future<T> (C::*fun)(Args...))
 	{
-		fc.registerHandler(m,p, [&fc,fun]( prio::Request& req,  prio::Response& res)
+		std::string path = http_path<C>(p);
+
+		fc.registerHandler(m,path, [&fc,fun]( prio::Request& req,  prio::Response& res)
 		{
 			invoke_handler/*<T,C,Args...>*/(fc,req,res,fun);
 		});
@@ -102,6 +122,7 @@ private:
 #endif
 
 };
+
 
 //! register HTTP route
 //! \ingroup controller
@@ -114,6 +135,9 @@ router<F> route(const std::string& m, const std::string& p, F fun )
 {
 	return router<F>(m,p,fun);
 }
+
+
+
 
 //! register a GET HTTP route
 //! \ingroup controller
@@ -358,7 +382,7 @@ template<class T,class ... Args>
 void redirect_url(std::ostringstream& oss, T&& t, Args&& ... args)
 {
 	oss << t;
-	redirect_url(oss,std::forward<Args&&>(args)...);
+	redirect_url(oss,std::forward<Args>(args)...);
 }
 
 //! redirect url constructed  from args containing path fragments
@@ -367,7 +391,7 @@ template<class ... Args>
 inline auto redirect(prio::Response& res, Args ... args)
 {
 	std::ostringstream oss;
-	redirect_url(oss,std::forward<Args&&>(args)...);
+	redirect_url(oss,std::forward<Args>(args)...);
 
 	std::string url = oss.str();
 
@@ -461,7 +485,7 @@ public:
 		auto fc = std::make_shared<FrontController>(ctx);
 		register_static<FrontController()>(fc);
 
-		register_dependencies<Args&&...>(std::forward<Args&&>(args)...);
+		register_dependencies<Args&&...>(std::forward<Args>(args)...);
 	}
 
 private:
@@ -474,7 +498,7 @@ private:
 	void register_dependencies(T&& t,Args&& ... args)
 	{
 		t.ctx_register(this);
-		register_dependencies<Args&&...>(std::forward<Args&&>(args)...);
+		register_dependencies<Args&&...>(std::forward<Args>(args)...);
 	}
 
 	WebApplicationContext(const WebApplicationContext& rhs) = delete;
