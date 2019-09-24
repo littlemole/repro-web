@@ -1,5 +1,4 @@
-TS = 
-CXX = clang++
+CXX = g++
 BACKEND=libevent
 BUILDCHAIN = make
 
@@ -16,11 +15,11 @@ PKG_INC=$(shell pkg-config cryptoneat reprocpp --cflags)
 PKG_LIB=$(shell pkg-config jsoncpp cryptoneat libnghttp2 sqlite3 zlib libcurl --libs)
 
 # if not g++ we assume clang++
-DEFAULT_LIBS = $(TS) -stdlib=libc++ -fcoroutines-ts  -lc++abi -std=c++17
-DEFAULT_OPTS = $(TS) -std=c++17 -stdlib=libc++ -fcoroutines-ts -D_RESUMABLE_FUNCTIONS_SUPPORTED 
+DEFAULT_LIBS = -stdlib=libc++ -fcoroutines-ts  -lc++abi -std=c++17
+DEFAULT_OPTS = -std=c++17 -stdlib=libc++ -fcoroutines-ts -D_RESUMABLE_FUNCTIONS_SUPPORTED 
 
 ifeq ($(CXX),g++)
-DEFAULT_OPTS = -std=c++17
+DEFAULT_OPTS = -std=c++17 $(PG)
 DEFAULT_LIBS = 
 endif
 
@@ -34,12 +33,12 @@ ifeq ($(BACKEND),boost_asio)
 endif
 
 #final cpp options
-OPTIONS = -fpic -Wno-write-strings -pthread -D_REENTRANT $(DEFAULT_OPTS) $(PKG_INC) -DVERSION=$(CONTAINER)
+OPTIONS = -g -fpic -Wno-write-strings -pthread -D_REENTRANT $(DEFAULT_OPTS) $(PKG_INC) -DVERSION=$(CONTAINER)
 CPPFLAGS = -Wall -I../include $(DEBUG) $(OPTIONS) $(PROMISE_IMPL)
 
 # target
-DEBUG_LIB = -lreprowebd -lpriohttpd  -lreprocurld -lreproredisd -lreprosqlited -lpriocppd
-LIB = -lreproweb -lpriohttp  -lreprocurl -lreproredis -lreprosqlite -lpriocpp
+LIB = $(PG) -lreprowebd -lpriohttpd  -lreprocurld -lreproredisd -lreprosqlited -lpriocppd
+DEBUG_LIB = $(PG) -lreproweb -lpriohttp  -lreprocurl -lreproredis -lreprosqlite -lpriocpp
 
 BIN_SRC   = .
 BIN_BUILD = ./build
@@ -105,7 +104,7 @@ build: update-dockerfile ## run the docker image and open a shell
 	CXX=$(CXX) BACKEND=$(BACKEND) BUILDCHAIN=$(BUILDCHAIN) docker-compose build
 
 up: update-dockerfile ## run the docker image and open a shell
-	CXX=$(CXX) BACKEND=$(BACKEND) BUILDCHAIN=$(BUILDCHAIN) TS=$(TS) docker-compose up -d --build
+	CXX=$(CXX) BACKEND=$(BACKEND) BUILDCHAIN=$(BUILDCHAIN) docker-compose up -d --build
 
 down: ## stop running docker image, if any
 	CXX=$(CXX) BACKEND=$(BACKEND) BUILDCHAIN=$(BUILDCHAIN) docker-compose stop

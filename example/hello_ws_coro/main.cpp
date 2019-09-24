@@ -3,7 +3,8 @@
 #include "reproweb/view/i18n.h"
 #include "reproweb/web_webserver.h"
 #include <signal.h>
-  
+
+#include "metrics.h"
 #include "model.h"
 #include "view.h"
 #include "repo.h"
@@ -13,6 +14,7 @@
 using namespace diy;  
 using namespace prio;
 using namespace reproweb;
+
 
 
 int main(int argc, char **argv)
@@ -54,23 +56,31 @@ int main(int argc, char **argv)
 
 		singleton<Model(UserRepository)>(),
 		singleton<View(AppConfig,TplStore,I18N)>(),
-		singleton<Controller(Model,View)>(),
+		singleton<Controller(Prometheus::Collector,Model,View)>(),
 
 		singleton<EventBus()>(),
 		singleton<WebSocketController(MemorySessionProvider,EventBus)>(),
 
 		singleton<Exceptions(View)>(),
 
-		singleton<SessionFilter(MemorySessionProvider)>()
+		singleton<SessionFilter(MemorySessionProvider)>(),
 
+		singleton<Prometheus::Collector()>(),
+		singleton<Prometheus::Controller(Prometheus::Collector)>(),
+
+		GET( "/metrics", &Prometheus::Controller::metrics)
 	};	
 
 	Http2SslCtx sslCtx;
 	sslCtx.load_cert_pem("pem/server.pem");
-	//sslCtx.enableHttp2();
+
+	sslCtx.enableHttp2();
 
 	WebServer server(ctx);
 	server.listen(sslCtx,9876);
+
+	WebServer prometheus(ctx);
+	prometheus.listen(9001);
      
 	theLoop().run();
 

@@ -13,9 +13,6 @@ Metric::Metric(const std::string& k)
 	: key(k)
 {}
 
-std::string key;
-std::vector<int> values;
-
 size_t Metric::count()
 {
 	return values.size();

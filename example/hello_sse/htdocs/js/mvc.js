@@ -7,35 +7,43 @@ var Controller = {
 
   'init' : function() {
   
-  	Model.sid = Cookies.get('repro_web_sid');
-  	
-  	if(Model.sid)
-  	{
-  		Controller.start_ws();
-  	}
+  	Controller.start_sse();
   },
   
-  'start_ws' : function() {
+  'start_sse' : function() {
   
-  	Model.ws = new WebSocket('wss://' + location.host + '/ws');
-  	Model.ws.onclose = function() {};
-  	Model.ws.onmessage = Controller.onMsg;
+	Model.sse = new EventSource("/sse");
+  	Model.sse.onclose = function() {};
+  	Model.sse.onmessage = Controller.onMsg;
   },
   
   'onMsg' : function(e) {
-  
-//  	alert(JSON.stringify(e.data));
+
+	console.log(e);
   	View.render_msg(JSON.parse(e.data));
   },
   
-  'send_msg' : function(post) {
+  'send_msg' : async function(post) {
   
   	var msg = {
-  		'msg' : post,
-  		'sid' : Model.sid
-  	};
+  		'msg' : post
+	};
+	  
+	try {
+		const response = await fetch('https://' + location.host + "/msg", {
+			method: 'POST', 
+			body: JSON.stringify(msg), 
+			headers: {
+				'Content-Type': 'application/json'
+			},
+			credentials: 'same-origin'
+		});
+		const json = await response.json();
+		console.log('Success:', JSON.stringify(json));
+	} catch (error) {
+		console.error('Error:', error);
+	}
   	
-  	Model.ws.send(JSON.stringify(msg));
   },
   
   'onSubmit' : function(el) {
