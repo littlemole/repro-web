@@ -3,10 +3,9 @@
 
 
 #include "reproweb/tools/config.h"
-#include "reproweb/json/json.h"
+#include "reproweb/tools/validation.h"
 #include "reproweb/serialization/json.h"
 #include "reproweb/serialization/web.h"
-#include "reproweb/tools/validation.h"
 
 using namespace reproweb;
 using namespace repro;

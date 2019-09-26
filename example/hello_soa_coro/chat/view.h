@@ -1,9 +1,9 @@
 #ifndef _DEF_GUARD_DEFINE_REPROWEB_HELLO_WORLD_VIEW_DEFINE_
 #define _DEF_GUARD_DEFINE_REPROWEB_HELLO_WORLD_VIEW_DEFINE_
 
-#include "reproweb/tools/config.h"
 #include "reproweb/ctrl/ssi.h"
-#include "entities.h"
+#include "reproweb/view/i18n.h"
+#include "reproweb/view/tpl.h"
 
 
 class View : public I18nSSIMustacheView
@@ -45,22 +45,19 @@ public:
 		return render_content(req,"register",value);
 	}	
 
-	void redirect_to_index(Response& res, const std::string& sid)
+	void redirect_to_index(Request& req, Response& res, const std::string& sid)
 	{
-		redirect(
-			res.cookie(Cookie("repro_web_sid", sid)),
-			"https://localhost:9876/"
-		);
+		redirect( req, res.cookie(Cookie("repro_web_sid", sid)), "/" );
 	}
 
-	void redirect_to_login(Response& res)
+	void redirect_to_login(Request& req, Response& res)
 	{
-		redirect(res,"https://localhost:9876/login");
+		redirect(req, res,"/login");
 	}	
 
-	void redirect_to_registration(Response& res)
+	void redirect_to_registration(Request& req, Response& res)
 	{
-		redirect(res,"https://localhost:9876/register");
+		redirect(req, res,"/register");
 	}	
 
 private:

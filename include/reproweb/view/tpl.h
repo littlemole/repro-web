@@ -113,8 +113,11 @@ public:
 	//! render given page with JSON data and return template as string
 	virtual repro::Future<std::string> render_content(prio::Request& req, const std::string& page, Json::Value value) = 0;
 
-	//! generate HTTP redirect response
+	//! generate absolute HTTP redirect response
 	void redirect(prio::Response& res, const std::string& url);
+	//! generate relative HTTP redirect response
+	void redirect(prio::Request& req, prio::Response& res, const std::string& url);
+	
 	//! flush content
 	void flush_content(prio::Response& res,const std::string& content);
 	//! render error

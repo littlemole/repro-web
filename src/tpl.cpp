@@ -172,6 +172,11 @@ void AbstractView::redirect(prio::Response& res, const std::string& url)
 	res.redirect(url).flush();
 }
 
+void AbstractView::redirect(prio::Request& req, prio::Response& res, const std::string& url)
+{
+	res.redirect(req,url).flush();
+}
+
 repro::Future<> AbstractView::render(prio::Request& req, prio::Response& res, const std::string& page, Json::Value value)
 {
 	auto p = repro::promise<>();

@@ -1,7 +1,4 @@
 #include "test.h"
-#include "reproweb/ctrl/controller.h"
-#include "reproweb/view/i18n.h"
-#include "reproweb/view/tpl.h"
 #include "reproweb/web_webserver.h"
   
 #include "model.h"

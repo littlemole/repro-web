@@ -4,7 +4,6 @@
 #include "model.h"
 #include "view.h"
 
-#include "cryptoneat/cryptoneat.h"
 #include "reproweb/ctrl/controller.h"
 
 using namespace reproweb;
@@ -34,29 +33,29 @@ public:
 		co_return co_await view_->render_registration(req,"");
 	}
 
-	Async login( Form<Login> credentials, Response& res)
+	Async login( Request& req, Response& res, Form<Login> credentials)
 	{
 		std::string sid = co_await model_->login(*credentials);
 
-		view_->redirect_to_index(res,sid);
+		view_->redirect_to_index(req,res,sid);
 
 		co_return;
 	}
 
-	Async logout( Parameter<SessionCookie> params, Response& res)
+	Async logout( Request& req, Response& res, Parameter<SessionCookie> params)
 	{
 		co_await model_->logout(params->sid);
 
-		view_->redirect_to_login(res);
+		view_->redirect_to_login(req,res);
 
 		co_return;
 	}
 
-	Async register_user( Form<User> user, Response& res)
+	Async register_user( Request& req, Response& res, Form<User> user)
 	{
 		std::string sid = co_await model_->register_user(*user);
 
-		view_->redirect_to_index(res,sid);
+		view_->redirect_to_index(req,res,sid);
 
 		co_return;
 	}

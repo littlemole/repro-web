@@ -1,7 +1,6 @@
 #ifndef _DEF_GUARD_DEFINE_REPROWEB_HELLO_WORLD_MODEL_DEFINE_
 #define _DEF_GUARD_DEFINE_REPROWEB_HELLO_WORLD_MODEL_DEFINE_
 
-#include "entities.h"
 #include "service.h"
 
 class Model 
