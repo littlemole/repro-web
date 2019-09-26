@@ -6,7 +6,6 @@
 #include "repo.h"
 #include "valid.h"
 
-#include "cryptoneat/cryptoneat.h"
 
 using namespace reproweb;
 

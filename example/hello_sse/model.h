@@ -4,6 +4,9 @@
 #include "entities.h"
 #include "repo.h"
 
+#include "cryptoneat/cryptoneat.h"
+
+
 class Model 
 {
 public:
@@ -53,9 +56,17 @@ public:
 		return p.future();		
 	}
 
-	void sendMsg(Json::Value msg)
+	void sendMsg(Json::Value profile, Json::Value msg)
 	{
-		eventBus->notify("chat-topic",msg);
+		// populate result
+
+		Json::Value json(Json::objectValue);
+		json["uid"]   = profile["username"];
+		json["login"] = profile["login"];
+		json["img"]   = profile["avatar_url"];
+		json["msg"]   = msg["msg"].asString();
+
+		eventBus->notify("chat-topic",json);
 	}
 
 private:

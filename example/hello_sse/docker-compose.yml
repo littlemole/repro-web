@@ -10,6 +10,4 @@ services:
         BUILDCHAIN: ${BUILDCHAIN}
     ports:
      - "9876:9876"
-  redis:
-    image: "redis:alpine"
     

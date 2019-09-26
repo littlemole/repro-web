@@ -1,9 +1,7 @@
 #ifndef _DEF_GUARD_DEFINE_REPROWEB_HELLO_WORLD_REPO_DEFINE_
 #define _DEF_GUARD_DEFINE_REPROWEB_HELLO_WORLD_REPO_DEFINE_
 
-#include "reproredis/redis.h"
 #include "reprosqlite/sqlite.h"
-#include "model.h"
 
 using namespace prio;
 using namespace repro;
@@ -91,14 +89,7 @@ private:
 	std::shared_ptr<reprosqlite::SqlitePool> sqlite;
 };
 
- 
 
-struct SessionPool : public reproredis::RedisPool
-{
-	SessionPool(std::shared_ptr<Config> config) 
-	  : RedisPool(config->getString("redis")) 
-	{}
-};
 
 struct UserPool : public reprosqlite::SqlitePool
 {

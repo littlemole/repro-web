@@ -1,16 +1,27 @@
 var Model = {
 
-  'sid'  : ''
+  'sse'  : {}
+};
+
+
+var View = {
+
+	'render_msg' : function(msg) {
+	
+		var html = $('#chatLog').html() + "<div style='background-color:#DEDEDE;padding:3px'>"
+			+ "<div style='display:table;padding:3px;position:relative;left:30px;top:-40px;background-color:#cdcdcd;'>"
+			+ "<img src='" + msg.img + "' style='width:48px;height:auto;margin:3px;'>"
+			+ "<b>" + msg.login + "</b></div>" + msg.msg + "</div><br><br>";
+
+			$('#chatLog').html(html);
+		
+		$("#chatLog").scrollTop($("#chatLog")[0].scrollHeight);
+	}
 };
 
 var Controller = {
 
   'init' : function() {
-  
-  	Controller.start_sse();
-  },
-  
-  'start_sse' : function() {
   
 	Model.sse = new EventSource("/sse");
   	Model.sse.onclose = function() {};
@@ -19,7 +30,7 @@ var Controller = {
   
   'onMsg' : function(e) {
 
-	console.log(e);
+	//console.log(e);
   	View.render_msg(JSON.parse(e.data));
   },
   
@@ -39,7 +50,7 @@ var Controller = {
 			credentials: 'same-origin'
 		});
 		const json = await response.json();
-		console.log('Success:', JSON.stringify(json));
+		//console.log('Success:', JSON.stringify(json));
 	} catch (error) {
 		console.error('Error:', error);
 	}
@@ -55,23 +66,10 @@ var Controller = {
   }
 };
 
-var View = {
-
-	'render_msg' : function(msg) {
-	
-		var html = $('#chatLog').html() + "<div style='background-color:#DEDEDE;padding:3px'>"
-			+ "<div style='display:table;padding:3px;position:relative;left:30px;top:-40px;background-color:#cdcdcd;'>"
-			+ "<img src='" + msg.img + "' style='width:48px;height:auto;margin:3px;'>"
-			+ "<b>" + msg.login + "</b></div>" + msg.msg + "</div><br><br>";
-		$('#chatLog').html(html);
-		
-		$("#chatLog").scrollTop($("#chatLog")[0].scrollHeight);
-	}
-};
 
 
-(function($) 
-{
+(function($)  {
+
 	Controller.init();
-
+	
 })(jQuery);

@@ -5,7 +5,6 @@
 #include "model.h"
 #include "repo.h"
 #include "reproweb/ws/sse.h"
-#include "reproweb/json/json.h"
 #include "priocpp/timeout.h"
 
 using namespace reproweb;

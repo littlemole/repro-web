@@ -33,10 +33,8 @@ int main(int argc, char **argv)
 		ws_controller<WebSocketController> ("/ws"),
 
 		singleton<AppConfig()>(),
-		singleton<SessionPool(AppConfig)>(),
 		singleton<UserPool(AppConfig)>(),
 
-//		singleton<SessionRepository(SessionPool)>(),
 		singleton<UserRepository(UserPool)>(),
 
 		singleton<Model(UserRepository)>(),

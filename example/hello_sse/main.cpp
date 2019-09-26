@@ -34,10 +34,8 @@ int main(int argc, char **argv)
 		sse_controller<SSEController> ("/sse"),
 
 		singleton<AppConfig()>(),
-		singleton<SessionPool(AppConfig)>(),
 		singleton<UserPool(AppConfig)>(),
 
-//		singleton<SessionRepository(SessionPool)>(),
 		singleton<UserRepository(UserPool)>(),
 
 		singleton<Model(UserRepository,EventBus)>(),

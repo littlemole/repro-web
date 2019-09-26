@@ -1,15 +1,15 @@
-login.page.title=Guten Tag Websockets
+login.page.title=Guten Tag sse
 
 login.header.headline=repro-web
 login.header.headline.desc=modernes reactives c++ für das web.
 
-login.title.headline=Hallo Websockets
-login.title.desc=Hallo welt websocket Beispier für modernes reactives C++ für das Web.
+login.title.headline=Hallo sse
+login.title.desc=Hallo welt sse Beispier für modernes reactives C++ für das Web.
 
-login.main.headline=Hallo WebSockets Beispiel
+login.main.headline=Hallo sse Beispiel
 login.main.greeting=Willkomen zurück, {{ username }}!
 
 login.main.logout=Ausloggen kannst Du Dich
 login.main.logout.link=hier
-login.main.chat=Websocket chat: Schreibe eine Botschaft:
+login.main.chat=sse chat: Schreibe eine Botschaft:
 

@@ -6,7 +6,6 @@
 #include "repo.h"
 #include "valid.h"
 
-#include "cryptoneat/cryptoneat.h"
 
 using namespace reproweb;
 
@@ -23,7 +22,7 @@ public:
 		auto session = req_session(req);
 		if(!session->authenticated)
 		{
-			view_->redirect_to_login(res);
+			view_->redirect_to_login(req,res);
 			return;		
 		}
 
@@ -63,7 +62,7 @@ public:
 			auto session = req_session(req);
 			session->data = user.toJson();
 			session->authenticated = true;
-			view_->redirect_to_index(res);
+			view_->redirect_to_index(req,res);
 		})
 		.otherwise([this,&req,&res](const std::exception& ex)
 		{
@@ -74,7 +73,7 @@ public:
 	void logout( Request& req, Response& res)
 	{
 		invalidate_session(req);
-		view_->redirect_to_login(res);
+		view_->redirect_to_login(req,res);
 	}
 
 	void register_user( Request& req, Response& res)
@@ -105,7 +104,7 @@ public:
 			session->data = user.toJson();
 			session->authenticated = true;
 
-			view_->redirect_to_index(res);
+			view_->redirect_to_index(req,res);
 		})
 		.otherwise([this,&req,&res](const std::exception& ex)
 		{
@@ -118,18 +117,9 @@ public:
 		auto session = req_session(req);
 		if(session->authenticated)
 		{
-			auto json = JSON::parse(req.body());
+			auto msg = JSON::parse(req.body());
 
-			// populate result
-			Json::Value profile = session->data;
-
-			Json::Value result(Json::objectValue);
-			result["uid"]   = profile["username"];
-			result["login"] = profile["login"];
-			result["img"]   = profile["avatar_url"];
-			result["msg"]   = json["msg"].asString();
-
-			model_->sendMsg(result);
+			model_->sendMsg(session->data,msg);
 		}
 	}
 

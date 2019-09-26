@@ -4,6 +4,8 @@
 #include "entities.h"
 #include "repo.h"
 
+#include "cryptoneat/cryptoneat.h"
+
 class Model 
 {
 public:
