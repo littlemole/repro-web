@@ -2,7 +2,6 @@
 #define _DEF_GUARD_DEFINE_REPROWEB_HELLO_WORLD_CONTROLLER_DEFINE_
 
 #include "repo.h"
-#include "cryptoneat/cryptoneat.h"
 
 using namespace reproweb;
 

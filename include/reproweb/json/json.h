@@ -10,6 +10,8 @@
 #include <reprocpp/promise.h>
 #include <reproweb/traits.h>
 
+#include <algorithm>
+
 namespace reproweb  {
 
 namespace JSON {

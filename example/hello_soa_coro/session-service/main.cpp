@@ -18,23 +18,17 @@ int main(int argc, char **argv)
 		POST ( "/session",			&Controller::write_session),
 
 		ex_handler(&Exceptions::on_std_ex),
+		ex_handler(&Exceptions::on_no_session_ex),
 
 		singleton<AppConfig()>(),
 		singleton<SessionPool(AppConfig)>(),
-
 		singleton<SessionRepository(SessionPool)>(),
-
 		singleton<Controller(SessionRepository)>()
 	};	
 
-	std::string cert = inject<AppConfig>(ctx)->getString("cert");
-
-	Http2SslCtx sslCtx;
-	sslCtx.load_cert_pem(cert);
-	sslCtx.enableHttp2();
-
 	WebServer server(ctx);
-	server.listen(sslCtx,9878);
+	server.configure<AppConfig>();
+	server.listen();	
      
 	theLoop().run();
 

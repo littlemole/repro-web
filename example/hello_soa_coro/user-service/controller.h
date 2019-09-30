@@ -24,25 +24,17 @@ public:
 
 	async_t<User> login_user( entity<Login> login )
 	{
-		try 
+		User user = co_await userRepository->get_user(login->login());
+
+		cryptoneat::Password pass;
+		bool verified = pass.verify(login->hash(), user.hash() );
+
+		if(!verified) 
 		{
-			User user = co_await userRepository->get_user(login->login());
-
-			cryptoneat::Password pass;
-			bool verified = pass.verify(login->hash(), user.hash() );
-
-			if(!verified) 
-			{
-				throw LoginEx("error.msg.login.failed");
-			}
-
-			co_return scrub(user);
+			throw LoginEx("error.msg.login.failed");
 		}
-		catch(const std::exception& ex)
-		{
-			std::cout << ex.what() << std::endl;
-			throw;
-		}
+
+		co_return scrub(user);
 	}
 
 	async_t<User> register_user( entity<User> user )
@@ -71,50 +63,15 @@ public:
 	Exceptions()
 	{}
 
-	void on_user_not_found_ex(const UserNotFoundEx& ex,Request& req, Response& res)
+	void on_http_ex(const HttpEx& ex,Request& req, Response& res)
 	{
-		render_error(ex,res.not_found());
-	}		
-
-	void on_bad_request_ex(const BadRequestEx& ex,Request& req, Response& res)
-	{
-		render_error(ex,res.bad_request());
-	}	
-
-	void on_login_ex(const LoginEx& ex,Request& req, Response& res)
-	{
-		render_error(ex,res.forbidden());
-	}	
-
-	void on_login_already_taken_ex(const LoginAlreadyTakenEx& ex,Request& req, Response& res)
-	{
-		render_error(ex,res.forbidden());
-	}	
-
-	void on_register_ex(const RegistrationEx& ex,Request& req, Response& res)
-	{
-		render_error(ex,res.bad_request());
+		ex.render_error(res);
 	}	
 
 	void on_std_ex(const std::exception& ex,Request& req, Response& res)
 	{
-		render_error(ex,res.error());
-	}
-
-private:
-
-	template<class E>
-	void render_error(const E& ex, Response& res)
-	{
-		Json::Value json = exToJson(ex);
-
-		std::cout << JSON::stringify(json) << std::endl;
-
-		res
-		.body(JSON::flatten(json))
-		.contentType("application/json")
-		.error()
-		.flush();
+		ServerEx se(ex.what());
+		se.render_error(res);
 	}
 };
 

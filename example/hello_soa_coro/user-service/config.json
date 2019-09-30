@@ -1,7 +1,13 @@
 {
     "mysql"  : "mysql://userservice:serviceuser@mysql/userservice",
-    "sqlite" : "./user.db",
-    "cert"   : "pem/server.pem"
+    "cert"   : "pem/server.pem",
+
+    "https"  :
+    {
+        "cert"   : "pem/server.pem",
+        "ports"  : [ 9878 ],
+        "http2"  : true
+    }    
 }
 
  

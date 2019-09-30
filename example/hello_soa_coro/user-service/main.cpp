@@ -24,11 +24,7 @@ int main(int argc, char **argv)
 		POST ( "/register",			&Controller::register_user),
 		POST ( "/login",			&Controller::login_user),
 
-		ex_handler(&Exceptions::on_user_not_found_ex),
-		ex_handler(&Exceptions::on_login_ex),
-		ex_handler(&Exceptions::on_login_already_taken_ex),
-		ex_handler(&Exceptions::on_bad_request_ex),
-		ex_handler(&Exceptions::on_register_ex),
+		ex_handler(&Exceptions::on_http_ex),
 		ex_handler(&Exceptions::on_std_ex),
 
 		singleton<UserPool(AppConfig)>(),

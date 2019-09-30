@@ -11,13 +11,83 @@ using namespace reproweb;
 using namespace repro;
 using namespace prio;
 
+class HttpEx : public repro::Ex				
+{											
+public:										
+	HttpEx(const char* s) 
+		: status_(s) 
+	{}									
+	
+	HttpEx(const char* s,const std::string& m) 				
+		: repro::Ex(m),status_(s) 
+	{}	
 
-MAKE_REPRO_EX(BadRequestEx)
-MAKE_REPRO_EX(UserNotFoundEx)
-MAKE_REPRO_EX(LoginEx)
-MAKE_REPRO_EX(LoginAlreadyTakenEx)
-MAKE_REPRO_EX(RegistrationEx)
+	virtual void render_error(Response& res) const		
+	{										
+		Json::Value json = exToJson(*this);	
+		res									
+		.body(JSON::flatten(json))			
+		.status(status_)						
+		.contentType("application/json")	
+		.flush();							
+	}	
+	virtual std::exception_ptr make_exception_ptr() const
+	{
+		return std::make_exception_ptr(*this);
+	}
 
+protected:
+	const char* status_;										
+};
+
+template<class E>
+class HttpTplEx : public HttpEx				
+{											
+public:										
+	HttpTplEx(const char* s) 
+		: HttpEx(s) 
+	{}									
+	
+	HttpTplEx(const char* s,const std::string& m) 				
+		: HttpEx(s,m) 
+	{}	
+
+	virtual void render_error(Response& res) const		
+	{			
+		E* e = (E*) this;					
+
+		Json::Value json = exToJson(*e);	
+		res									
+		.body(JSON::flatten(json))			
+		.status(status_)						
+		.contentType("application/json")	
+		.flush();							
+	}	
+
+	virtual std::exception_ptr make_exception_ptr() const
+	{
+		E* e = (E*) this;
+
+		return std::make_exception_ptr(*e);
+	}
+};
+
+#define MAKE_REPRO_HTTP_EX(ex,code) 		\
+class ex : public HttpTplEx<ex>				\
+{											\
+public:										\
+	ex() : HttpTplEx<ex>(code) {}			\
+	ex(const std::string& s) 				\
+	: HttpTplEx<ex>(code,s) {}				\
+};
+
+MAKE_REPRO_HTTP_EX(BadRequestEx,"HTTP/1.1 400")
+MAKE_REPRO_HTTP_EX(UserNotFoundEx,"HTTP/1.1 404")
+MAKE_REPRO_HTTP_EX(LoginEx,"HTTP/1.1 401")
+MAKE_REPRO_HTTP_EX(LoginAlreadyTakenEx,"HTTP/1.1 400")
+MAKE_REPRO_HTTP_EX(RegistrationEx,"HTTP/1.1 400")
+
+MAKE_REPRO_HTTP_EX(ServerEx,"HTTP/1.1 500")
 
 
 class Valid 
