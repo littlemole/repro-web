@@ -18,14 +18,7 @@ using namespace prio;
 using namespace repro;
 using namespace cryptoneat;
 
-namespace prio {
-	LITTLE_MOLE_DECLARE_DEBUG_REF_CNT(ws_connections);
-	LITTLE_MOLE_DECLARE_DEBUG_REF_CNT(ws_writers);
-}
 namespace reproweb   {
-
-
-
 
 
 ////////////////////////////////////////////////////////////////////////////
@@ -47,8 +40,6 @@ WsConnection::WsConnection()
 	  ctx_(nullptr),
 	  pending_(false)
 {
-	LITTLE_MOLE_ADDREF_DEBUG_REF_CNT(ws_connections);
-
 	onConnect_ = [](Ptr){};
 	onClose_ = [](Ptr){};
 	onMsg_ = [](Ptr,const std::string&){};
@@ -66,8 +57,6 @@ WsConnection::WsConnection( prio::SslCtx& ctx)
 	  ctx_(&ctx),
 	  pending_(false)
 {
-	LITTLE_MOLE_ADDREF_DEBUG_REF_CNT(ws_connections);
-
 	onConnect_ = [](Ptr){};
 	onClose_ = [](Ptr){};
 	onMsg_ = [](Ptr,const std::string&){};
@@ -76,7 +65,6 @@ WsConnection::WsConnection( prio::SslCtx& ctx)
 
 WsConnection::~WsConnection()
 {
-	 LITTLE_MOLE_RELEASE_DEBUG_REF_CNT(ws_connections);
 }
 
 
@@ -507,12 +495,10 @@ WebsocketWriter::WebsocketWriter(int op, WsConnection::Ptr f, bool isClient)
 		}
 	}
 
-	LITTLE_MOLE_ADDREF_DEBUG_REF_CNT(ws_writers);
 }
 
 WebsocketWriter::~WebsocketWriter()
 {
-	LITTLE_MOLE_RELEASE_DEBUG_REF_CNT(ws_writers);
 }
 
 std::string WebsocketWriter::mask( const std::string& buf )
