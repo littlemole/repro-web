@@ -37,8 +37,8 @@ OPTIONS = -g -fpic -Wno-write-strings -pthread -D_REENTRANT $(DEFAULT_OPTS) $(PK
 CPPFLAGS = -Wall -I../include $(DEBUG) $(OPTIONS) $(PROMISE_IMPL)
 
 # target
-LIB = -lreprowebd -lpriohttpd  -lreprocurld -lreproredisd -lreprosqlited -lpriocppd
-DEBUG_LIB = -lreproweb -lpriohttp  -lreprocurl -lreproredis -lreprosqlite -lpriocpp
+DEBUG_LIB = -lreprowebd -lpriohttpd  -lreprocurld -lreproredisd -lreprosqlited -lpriocppd
+LIB = -lreproweb -lpriohttp  -lreprocurl -lreproredis -lreprosqlite -lpriocpp
 
 BIN_SRC   = .
 BIN_BUILD = ./build
@@ -61,7 +61,7 @@ all:
 	make clean_obj
 	make -e $(BIN_BUILD)/hello_world_debug.bin
 	make clean_obj
-	make -e $(BIN_BUILD)/hello_world.bin
+	make -e release
 
 #################################################
 # rules to compile .o files from .cpp source
@@ -95,7 +95,7 @@ clean: clean_obj
 	-find -name "*~" -exec rm {} \;
 	-rm -rf build
 
-release : all
+release : $(BIN_BUILD)/hello_world.bin
 
 update-dockerfile: clean
 	/bin/sed -i "s/FROM .*/FROM ${BASE_IMAGE}/" Dockerfile

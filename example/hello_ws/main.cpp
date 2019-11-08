@@ -45,7 +45,7 @@ int main(int argc, char **argv)
 		singleton<WebSocketController(MemorySessionProvider,EventBus)>(),
 
 		singleton<SessionFilter(MemorySessionProvider)>()
-};	
+	};	
 
 
 	WebServer server(ctx);

@@ -62,7 +62,7 @@ all:
 	make clean_obj
 	make -e $(BIN_BUILD)/hello_world_debug.bin
 	make clean_obj
-	make -e $(BIN_BUILD)/hello_world.bin
+	make -e release
 
 #################################################
 # rules to compile .o files from .cpp source
@@ -96,7 +96,7 @@ clean: clean_obj
 	-find -name "*~" -exec rm {} \;
 	-rm -rf build
 
-release : all
+release : $(BIN_BUILD)/hello_world.bin
 
 update-dockerfile: clean
 	/bin/sed -i "s/FROM .*/FROM ${BASE_IMAGE}/" Dockerfile

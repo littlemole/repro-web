@@ -86,11 +86,22 @@ private:
 		std::string locale = Valid::locale(req);
 		std::string view = templates_->get(page);
 
+		std::cout << "LOCALE: " << locale << std::endl;
+		std::cout << "PAGE: " << view << std::endl;
+		std::cout << "VIEW: " << page << std::endl;
+
 		SSIResolver::resolve(req,view)
 		.then( [this,&res,value,locale](std::string txt)
 		{
+			std::cout << "SSI: " << txt << std::endl;
+
 			std::string tmpl = i18n_->render(locale,txt);
+
+			std::cout << "TEMPLATE: " << tmpl << std::endl;
+
 			std::string content = mustache::render(tmpl,value);
+
+			std::cout << "CONTENT: " << content << std::endl;
 
 			res
 			.body(content)
