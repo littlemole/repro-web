@@ -76,119 +76,31 @@ struct Parameter
 template<class T,class E = void>
 class HandlerParam;
 
-
-				
-//////////////////////////////////////////////////////////////
 //////////////////////////////////////////////////////////////
 
-template<class T>
-class HandlerInvoker;
-
-//////////////////////////////////////////////////////////////
-
-#ifdef _RESUMABLE_FUNCTIONS_SUPPORTED
-
-template<class T>
-class HandlerInvokerAsync;
-
-
-//////////////////////////////////////////////////////////////
 
 template<class C>
-class HandlerInvokerAsync<void(C)>
+void invoke_handler(FrontController& fc, prio::Request& req,  prio::Response& res, void (C::*fun)(prio::Request&, prio::Response&) )
 {
-public:
-
-	template<class F, class ... VArgs>
-	static Async invoke( prio::Request& req,  prio::Response& res, F fun, VArgs&& ... vargs)
-	{
+	try 
+	{	
 		C& c = prepare_controller<C>(req);
-		return (c.*fun)(std::forward<VArgs>(vargs)...);
+		(c.*fun)(req,res);
 	}
-};
-
-//////////////////////////////////////////////////////////////
-
-template<class C, class T, class ... Args>
-class HandlerInvokerAsync<void(C,T,Args...)>
-{
-public:
-
-	template<class F, class ... VArgs>
-	static Async invoke(prio::Request& req,  prio::Response& res, F fun, VArgs&& ... vargs)
+	catch(std::exception& ex)
 	{
-		return HandlerInvokerAsync<void(C,Args...)>::invoke(req,res,fun, std::forward<VArgs>(vargs)..., HandlerParam<T>::get(req,res));
+		fc.handle_exception(ex, req, res);
 	}
-};
+}
 
-#endif
-
-//////////////////////////////////////////////////////////////
-
-template<class C>
-class HandlerInvoker<void(C)>
-{
-public:
-
-	template<class F, class ... VArgs>
-	static void invoke( prio::Request& req,  prio::Response& res, F fun, VArgs&& ... vargs)
-	{
-		C& c = prepare_controller<C>(req);
-		(c.*fun)(std::forward<VArgs>(vargs)...);
-	}
-};
-
-//////////////////////////////////////////////////////////////
-
-template<class R,class C>
-class HandlerInvoker<R(C)>
-{
-public:
-
-	template<class F, class ... VArgs>
-	static repro::Future<R> invoke( prio::Request& req,  prio::Response& res, F fun, VArgs&& ... vargs)
-	{
-		C& c = prepare_controller<C>(req);
-		return (c.*fun)(std::forward<VArgs>(vargs)...);
-	}
-};
-
-//////////////////////////////////////////////////////////////
-
-template<class C, class T, class ... Args>
-class HandlerInvoker<void(C,T,Args...)>
-{
-public:
-
-	template<class F, class ... VArgs>
-	static void invoke(prio::Request& req,  prio::Response& res, F fun, VArgs&& ... vargs)
-	{
-		HandlerInvoker<void(C,Args...)>::invoke(req,res,fun, std::forward<VArgs>(vargs)..., HandlerParam<T>::get(req,res));
-	}
-};
-
-//////////////////////////////////////////////////////////////
-
-template<class R, class C, class T, class ... Args>
-class HandlerInvoker<R(C,T,Args...)>
-{
-public:
-
-	template<class F, class ... VArgs>
-	static repro::Future<R> invoke(prio::Request& req,  prio::Response& res, F fun, VArgs&& ... vargs)
-	{
-		return HandlerInvoker<R(C,Args...)>::invoke(req,res,fun, std::forward<VArgs>(vargs)..., HandlerParam<T>::get(req,res));
-	}
-};
-
-//////////////////////////////////////////////////////////////
 
 template<class C, class ... Args>
 void invoke_handler(FrontController& fc, prio::Request& req,  prio::Response& res, void (C::*fun)(Args...) )
 {
 	try
-	{
-		HandlerInvoker<void(C,Args...)>::invoke(req,res,fun);		
+	{		
+		C& c = prepare_controller<C>(req);
+		(c.*fun)(HandlerParam<Args>::get(req,res)...);		
 	}
 	catch(std::exception& ex)
 	{
@@ -198,14 +110,47 @@ void invoke_handler(FrontController& fc, prio::Request& req,  prio::Response& re
 
 //////////////////////////////////////////////////////////////
 
-#ifdef _RESUMABLE_FUNCTIONS_SUPPORTED
+#ifndef _RESUMABLE_FUNCTIONS_SUPPORTED
 
 template<class C, class ... Args>
-Async invoke_coro_handler(FrontController& fc, prio::Request& req,  prio::Response& res, Async (C::*fun)(Args...) )
+Async invoke_handler(FrontController& fc, prio::Request& req,  prio::Response& res, Async (C::*fun)(Args...) )
+{
+	auto p = repro::promise();
+	try
+	{
+		C& c = prepare_controller<C>(req);
+		(c.*fun)(HandlerParam<Args>::get(req,res)...)
+		.then([p]()
+		{
+			p.resolve();
+		})
+		.otherwise([p,&fc,&req,&res](const std::exception& ex)
+		{
+			fc.handle_exception(ex, req, res);
+			p.resolve();
+		});
+	}
+	catch(std::exception& ex)
+	{
+		fc.handle_exception(ex, req, res);
+		prio::nextTick([p]()
+		{
+			p.resolve();
+		});
+	}
+
+	return p.future();
+}
+
+#else
+
+template<class C, class ... Args>
+Async invoke_handler(FrontController& fc, prio::Request& req,  prio::Response& res, Async (C::*fun)(Args...) )
 {
 	try
 	{
-		co_await HandlerInvokerAsync<void(C,Args...)>::invoke(req,res,fun);		
+		C& c = prepare_controller<C>(req);
+		co_await (c.*fun)(HandlerParam<Args>::get(req,res)...);
 	}
 	catch(std::exception& ex)
 	{
@@ -221,41 +166,54 @@ Async invoke_coro_handler(FrontController& fc, prio::Request& req,  prio::Respon
 //////////////////////////////////////////////////////////////
 
 
-template<class C, class ... Args>
-void invoke_handler(FrontController& fc, prio::Request& req,  prio::Response& res, repro::Future<std::string> (C::*fun)(Args...) )
+#ifndef _RESUMABLE_FUNCTIONS_SUPPORTED
+
+template<class C, class ... Args> 
+Async invoke_handler(FrontController& fc, prio::Request& req,  prio::Response& res, repro::Future<std::string> (C::*fun)(Args...) )
 {
+	auto p = repro::promise();
 	try
 	{
-		HandlerInvoker<std::string(C,Args...)>::invoke(req,res,fun)
-		.then([&res](std::string r)
+		C& c = prepare_controller<C>(req);
+		(c.*fun)(HandlerParam<Args>::get(req,res)...)		
+		.then([p,&res](std::string r)
 		{
 			if(res.headers.content_type().empty())
 			{
 				res.contentType("text/html");
 			}
 			res.body(r).ok().flush();
+			p.resolve();
 		})
-		.otherwise([&fc,&req,&res](const std::exception& ex)
+		.otherwise([p,&fc,&req,&res](const std::exception& ex)
 		{
 			fc.handle_exception(ex, req, res);
+			p.resolve();
 		});		
 	}
 	catch(std::exception& ex)
 	{
 		fc.handle_exception(ex, req, res);
+		prio::nextTick([p]()
+		{
+			p.resolve();
+		});		
 	}
+
+	return p.future();
 }
+
+#else
 
 //////////////////////////////////////////////////////////////
 
-#ifdef _RESUMABLE_FUNCTIONS_SUPPORTED
-
 template<class C, class ... Args>
-Async invoke_coro_handler(FrontController& fc, prio::Request& req,  prio::Response& res, repro::Future<std::string> (C::*fun)(Args...) )
+Async invoke_handler(FrontController& fc, prio::Request& req,  prio::Response& res, repro::Future<std::string> (C::*fun)(Args...) )
 {
 	try
 	{
-		std::string r = co_await HandlerInvoker<std::string(C,Args...)>::invoke(req,res,fun);
+		C& c = prepare_controller<C>(req);
+		std::string r = co_await (c.*fun)(HandlerParam<Args>::get(req,res)...);		
 
 		if(res.headers.content_type().empty())
 		{

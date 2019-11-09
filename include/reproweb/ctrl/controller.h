@@ -46,28 +46,6 @@ private:
 		return oss.str();
 	}
 
-
-	template<class C>
-	void registerController(FrontController& fc, const std::string& m, const std::string& p, void (C::*fun)(prio::Request&, prio::Response&))
-	{
-		std::string path = http_path<C>(p);
-
-		fc.registerHandler(m,path, [fun,&fc]( prio::Request& req,  prio::Response& res)
-		{
-			try 
-			{	
-				C& c = prepare_controller<C>(req);
-
-				(c.*fun)(req,res);
-			}
-			catch(std::exception& ex)
-			{
-				fc.handle_exception(ex, req, res);
-			}
-		});
-	}
-
-
 	template<class C,class ... Args>
 	void registerController(FrontController& fc, const std::string& m, const std::string& p, void (C::*fun)(Args...) )
 	{
@@ -75,51 +53,22 @@ private:
 
 		fc.registerHandler(m,path, [&fc,fun]( prio::Request& req,  prio::Response& res)
 		{			
-			invoke_handler<C,Args...>(fc,req,res,fun);
+			invoke_handler(fc,req,res,fun);
 		});
 	}
 
-#ifdef _RESUMABLE_FUNCTIONS_SUPPORTED
-
-	template<class C, class ... Args>
-	void registerController(FrontController& fc, const std::string& m, const std::string& p, Async(C::*fun)(Args...))
+	template<class C, class R, class ... Args>
+	void registerController(FrontController& fc, const std::string& m, const std::string& p, R(C::*fun)(Args...))
 	{
 		std::string path = http_path<C>(p);
 
 		fc.registerHandler(m, path, [fun,&fc](prio::Request& req, prio::Response& res)
 		{
-			invoke_coro_handler<C,Args...>(fc,req,res,fun)
+			invoke_handler(fc,req,res,fun)
 			.then([](){})
 			.otherwise([](const std::exception& ex){ std::cout << ex.what() << std::endl;});
 		});
 	}
-
-	template<class T, class C, class ... Args>
-	void registerController(FrontController& fc, const std::string& m, const std::string& p, repro::Future<T> (C::*fun)(Args ...))
-	{
-		std::string path = http_path<C>(p);
-
-		fc.registerHandler(m, path, [fun,&fc](prio::Request& req, prio::Response& res)
-		{
-			invoke_coro_handler/*<T,C,Args...>*/(fc,req,res,fun)
-			.then([](){})
-			.otherwise([](const std::exception& ex){ std::cout << ex.what() << std::endl;});
-		});
-	}
-	
-#else
-
-	template<class T, class C, class ...Args>
-	void registerController(FrontController& fc, const std::string& m, const std::string& p, repro::Future<T> (C::*fun)(Args...))
-	{
-		std::string path = http_path<C>(p);
-
-		fc.registerHandler(m,path, [&fc,fun]( prio::Request& req,  prio::Response& res)
-		{
-			invoke_handler/*<T,C,Args...>*/(fc,req,res,fun);
-		});
-	}
-#endif
 
 };
 

@@ -122,11 +122,11 @@ namespace reproweb {
 
 //////////////////////////////////////////////////////////////
 
-#ifdef _RESUMABLE_FUNCTIONS_SUPPORTED
+//#ifdef _RESUMABLE_FUNCTIONS_SUPPORTED
 
 typedef ::repro::Future<> Async;
 
-#endif
+//#endif
 
 }
 

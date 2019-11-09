@@ -407,39 +407,49 @@ void output_xml(prio::Response& res, xml_t<T>& t)
 
 //////////////////////////////////////////////////////////////
 
+#ifndef _RESUMABLE_FUNCTIONS_SUPPORTED
 
 template<class R,class C, class ... Args>
-void invoke_handler(FrontController& fc, prio::Request& req,  prio::Response& res, repro::Future<xml_t<R>> (C::*fun)(Args...) )
+Async invoke_handler(FrontController& fc, prio::Request& req,  prio::Response& res, repro::Future<xml_t<R>> (C::*fun)(Args...) )
 {
+	auto p = repro::promise();
+
 	try
 	{
-		HandlerInvoker<xml_t<R>(C,Args...)>::invoke(req,res,fun)
-		.then([&res](xml_t<R> r)
+		C& c = prepare_controller<C>(req);
+		(c.*fun)(HandlerParam<Args>::get(req,res)...)			
+		.then([p,&res](xml_t<R> r)
 		{
 			output_xml(res,r);
+			p.resolve();
 		})
-		.otherwise([&fc,&req,&res](const std::exception& ex)
+		.otherwise([p,&fc,&req,&res](const std::exception& ex)
 		{
 			fc.handle_exception(ex, req, res);
+			p.resolve();
 		});		
 	}
 	catch(std::exception& ex)
 	{
 		fc.handle_exception(ex, req, res);
+		prio::nextTick([p]()
+		{
+			p.resolve();
+		});
 	}
+
+	return p.future();
 }
 
-//////////////////////////////////////////////////////////////
-
-#ifdef _RESUMABLE_FUNCTIONS_SUPPORTED
+#else
 
 template<class R,class C, class ... Args>
-Async invoke_coro_handler(FrontController& fc, prio::Request& req,  prio::Response& res, repro::Future<xml_t<R>> (C::*fun)(Args...) )
+Async invoke_handler(FrontController& fc, prio::Request& req,  prio::Response& res, repro::Future<xml_t<R>> (C::*fun)(Args...) )
 {
 	try
 	{
-		xml_t<R> r = co_await HandlerInvoker<xml_t<R>(C,Args...)>::invoke(req,res,fun);
-
+		C& c = prepare_controller<C>(req);
+		xml_t<R> r = (c.*fun)(HandlerParam<Args>::get(req,res)...);	
 		output_xml(res,r);
 	}
 	catch(std::exception& ex)
@@ -450,7 +460,7 @@ Async invoke_coro_handler(FrontController& fc, prio::Request& req,  prio::Respon
 	co_await prio::nextTick();
 	co_return;
 }
- 
+
 #endif
 
 }

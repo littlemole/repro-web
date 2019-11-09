@@ -96,40 +96,49 @@ void output_conneq(prio::Request& req,  prio::Response& res,T& t)
 
 //////////////////////////////////////////////////////////////
 
+#ifndef _RESUMABLE_FUNCTIONS_SUPPORTED
+
 template<class R,class C, class ... Args>
-void invoke_handler(FrontController& fc, prio::Request& req,  prio::Response& res, repro::Future<entity<R>> (C::*fun)(Args...) )
+Async invoke_handler(FrontController& fc, prio::Request& req,  prio::Response& res, repro::Future<entity<R>> (C::*fun)(Args...) )
 {
+	auto p = repro::promise();
+
 	try
 	{
-		HandlerInvoker<entity<R>(C,Args...)>::invoke(req,res,fun)
-		.then([&req,&res](entity<R> r)
+		C& c = prepare_controller<C>(req);
+		(c.*fun)(HandlerParam<Args>::get(req,res)...)			
+		.then([p,&req,&res](entity<R> r)
 		{
 			output_conneq(req,res,r.value);
+			p.resolve();
 		})
-		.otherwise([&fc,&req,&res](const std::exception& ex)
+		.otherwise([p,&fc,&req,&res](const std::exception& ex)
 		{
 			fc.handle_exception(ex, req, res);
+			p.resolve();
 		});		
 	}
 	catch(std::exception& ex)
 	{
 		fc.handle_exception(ex, req, res);
+		prio::nextTick([p]()
+		{
+			p.resolve();
+		});
 	}
+
+	return p.future();
 }
 
-
-//////////////////////////////////////////////////////////////
-
-#ifdef _RESUMABLE_FUNCTIONS_SUPPORTED
-
+#else
 
 template<class R,class C, class ... Args>
-Async invoke_coro_handler(FrontController& fc, prio::Request& req,  prio::Response& res, repro::Future<entity<R>> (C::*fun)(Args...) )
+Async invoke_handler(FrontController& fc, prio::Request& req,  prio::Response& res, repro::Future<entity<R>> (C::*fun)(Args...) )
 {
 	try
 	{
-		entity<R> r = co_await HandlerInvoker<entity<R>(C,Args...)>::invoke(req,res,fun);
-
+		C& c = prepare_controller<C>(req);
+		entity<R> r = co_await (c.*fun)(HandlerParam<Args>::get(req,res)...);		
 		output_conneq(req,res,r.value);
 	}
 	catch(std::exception& ex)
@@ -141,7 +150,9 @@ Async invoke_coro_handler(FrontController& fc, prio::Request& req,  prio::Respon
 	co_return;
 }
 
+
 #endif
+
 
 
 ///////////////////////////////////////////////////////////////////////////////////////////

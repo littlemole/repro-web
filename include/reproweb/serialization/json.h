@@ -315,59 +315,49 @@ void output_json(prio::Response& res, json_t<T>& t)
 
 //////////////////////////////////////////////////////////////
 
+#ifndef _RESUMABLE_FUNCTIONS_SUPPORTED
+
 template<class R,class C, class ... Args>
-void invoke_handler(FrontController& fc, prio::Request& req,  prio::Response& res, repro::Future<json_t<R>> (C::*fun)(Args...) )
+Async invoke_handler(FrontController& fc, prio::Request& req,  prio::Response& res, repro::Future<json_t<R>> (C::*fun)(Args...) )
 {
+	auto p = repro::promise();
+
 	try
 	{
-		HandlerInvoker<json_t<R>(C,Args...)>::invoke(req,res,fun)
-		.then([&res](json_t<R> r)
+		C& c = prepare_controller<C>(req);
+		(c.*fun)(HandlerParam<Args>::get(req,res)...)			
+		.then([p,&res](json_t<R> r)
 		{
 			output_json(res,r);
+			p.resolve();
 		})
-		.otherwise([&fc,&req,&res](const std::exception& ex)
+		.otherwise([p,&fc,&req,&res](const std::exception& ex)
 		{
 			fc.handle_exception(ex, req, res);
+			p.resolve();
 		});		
 	}
 	catch(std::exception& ex)
 	{
 		fc.handle_exception(ex, req, res);
+		prio::nextTick([p]()
+		{
+			p.resolve();
+		});
 	}
+
+	return p.future();
 }
 
+#else
 
-template<class C, class ... Args>
-void invoke_handler(FrontController& fc, prio::Request& req,  prio::Response& res, repro::Future<Json::Value> (C::*fun)(Args...) )
+template<class R,class C, class ... Args>
+Async invoke_handler(FrontController& fc, prio::Request& req,  prio::Response& res, repro::Future<json_t<R>> (C::*fun)(Args...) )
 {
 	try
 	{
-		HandlerInvoker<Json::Value(C,Args...)>::invoke(req,res,fun)
-		.then([&res](Json::Value r)
-		{
-			output_json(res,r);
-		})
-		.otherwise([&fc,&req,&res](const std::exception& ex)
-		{
-			fc.handle_exception(ex, req, res);
-		});		
-	}
-	catch(std::exception& ex)
-	{
-		fc.handle_exception(ex, req, res);
-	}
-}
-//////////////////////////////////////////////////////////////
-
-#ifdef _RESUMABLE_FUNCTIONS_SUPPORTED
-
-template<class C, class ... Args>
-Async invoke_coro_handler(FrontController& fc, prio::Request& req,  prio::Response& res, repro::Future<Json::Value> (C::*fun)(Args...) )
-{
-	try
-	{
-		Json::Value r = co_await HandlerInvoker<Json::Value(C,Args...)>::invoke(req,res,fun);
-
+		C& c = prepare_controller<C>(req);
+		json_t<R> r = co_await (c.*fun)(HandlerParam<Args>::get(req,res)...);		
 		output_json(res,r);
 	}
 	catch(std::exception& ex)
@@ -379,25 +369,64 @@ Async invoke_coro_handler(FrontController& fc, prio::Request& req,  prio::Respon
 	co_return;
 }
 
-template<class R,class C, class ... Args>
-Async invoke_coro_handler(FrontController& fc, prio::Request& req,  prio::Response& res, repro::Future<json_t<R>> (C::*fun)(Args...) )
-{
-	try
-	{
-		json_t<R> r = co_await HandlerInvoker<json_t<R>(C,Args...)>::invoke(req,res,fun);
-
-		output_json(res,r);
-	}
-	catch(std::exception& ex)
-	{
-		fc.handle_exception(ex, req, res);
-	}
-
-	co_await prio::nextTick();
-	co_return;
-}
 #endif
 
+
+#ifndef _RESUMABLE_FUNCTIONS_SUPPORTED
+
+template<class C, class ... Args>
+Async invoke_handler(FrontController& fc, prio::Request& req,  prio::Response& res, repro::Future<Json::Value> (C::*fun)(Args...) )
+{
+	auto p = repro::promise();
+
+	try
+	{
+		C& c = prepare_controller<C>(req);
+		(c.*fun)(HandlerParam<Args>::get(req,res)...)			
+		.then([p,&res](Json::Value r)
+		{
+			output_json(res,r);
+			p.resolve();
+		})
+		.otherwise([p,&fc,&req,&res](const std::exception& ex)
+		{
+			fc.handle_exception(ex, req, res);
+			p.resolve();
+		});		
+	}
+	catch(std::exception& ex)
+	{
+		fc.handle_exception(ex, req, res);
+		prio::nextTick([p]()
+		{
+			p.resolve();
+		});
+	}
+
+	return p.future();
+}
+
+#else
+
+template<class C, class ... Args>
+Async invoke_handler(FrontController& fc, prio::Request& req,  prio::Response& res, repro::Future<Json::Value> (C::*fun)(Args...) )
+{
+	try
+	{
+		C& c = prepare_controller<C>(req);
+		Json::Value r = co_await (c.*fun)(HandlerParam<Args>::get(req,res)...);	
+		output_json(res,r);		
+	}
+	catch(std::exception& ex)
+	{
+		fc.handle_exception(ex, req, res);
+	}
+
+	co_await prio::nextTick();
+	co_return;
+}
+
+#endif
 
 ///////////////////////////////////////////////////////////////////////////////////////////
 
