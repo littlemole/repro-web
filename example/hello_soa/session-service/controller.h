@@ -54,28 +54,22 @@ public:
 		return p.future();	
 	}	
 
-	void remove_session( Request& req, Response& res)
+	Async remove_session( Request& req, Response& res)
 	{
-		std::string sid;
-		try
-		{
-			sid = Valid::session_id(req.path.args().get("sid"));
-		}
-		catch(const std::exception& ex)
-		{
-			res.bad_request().flush();
-			return;
-		}
+		auto p = promise();
+
+		std::string sid = Valid::session_id(req.path.args().get("sid"));
 
 		sessionRepository->remove_user_session(sid)
-		.then([&res]()
+		.then([p,&res]()
 		{
 			res.ok().flush();
+			p.resolve();
 		})
-		.otherwise([&res](const std::exception& ex)
-		{
-			res.not_found().flush();
-		});
+		.otherwise(reject(p));
+
+		return p.future();	
+
 	}
 
 private:

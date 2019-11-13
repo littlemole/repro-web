@@ -110,25 +110,25 @@ public:
 		oss3 << getString("user-service") << "/login";
 		loginService_ = oss3.str();		
 	}
-
+/*
 	std::string sessionService(const std::string& sid)
 	{
 		std::ostringstream oss;
 		oss << getString("session-service") << "/session/" << sid;
 		return oss.str();
 	}
-
-	std::string sessionService()
+*/
+	std::string sessionEndpoint()
 	{
 		return sessionService_;
 	}		
 
-	std::string registrationService()
+	std::string registrationEndpoint()
 	{
 		return registrationService_;
 	}	
 
-	std::string loginService()
+	std::string loginEndpoint()
 	{
 		return loginService_;
 	}		

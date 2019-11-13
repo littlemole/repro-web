@@ -1,104 +1,14 @@
 #ifndef _DEF_GUARD_DEFINE_REPROWEB_HELLO_WORLD_REPO_DEFINE_
 #define _DEF_GUARD_DEFINE_REPROWEB_HELLO_WORLD_REPO_DEFINE_
 
-#include "reprocurl/api.h"
+#include "reproweb/ctrl/session.h"
+#include "reproweb/json/service.h"
 #include "entities.h"
 
 using namespace prio;
 using namespace repro;
 using namespace reproweb;
 
-class Service 
-{
-public:
-
-	template<class E>
-	static Future<Json::Value> get(const std::string& serviceUrl)
-	{
-		reprocurl::request req( serviceUrl );
-
-		return invoke<E>(req);
-	}
-
-	template<class E>
-	static Future<> remove(const std::string& serviceUrl)
-	{
-		reprocurl::request req( serviceUrl );
-		req.method("DELETE");
-
-		auto p = promise<>();
-				
-		req.insecure().verbose();
-
-		reprocurl::fetch(req)
-		.then([p](reprocurl::response res)
-		{
-			std::cout << res.status() << ":" << res.content() << std::endl;
-
-			if(res.status() != 200)
-			{
-				Json::Value json = reproweb::JSON::parse(res.content());
-				throw E(json["error"]["msg"].asString());
-			}
-
-			p.resolve();
-		})
-		.otherwise(reject(p));
-
-		return p.future();	
-	}	
-
-	template<class E, class T>
-	static Future<Json::Value> post(const std::string& serviceUrl, T& t)
-	{
-		reprocurl::request req( serviceUrl );
-
-		std::cout << serviceUrl << ":" << std::endl;
-		std::cout << JSON::flatten(toJson(t))  << std::endl;
-
-		req.data( JSON::flatten(toJson(t))).method("POST");
-
-		return invoke<E>(req);
-	}
-
-	template<class E, class T>
-	static Future<Json::Value> put(const std::string& serviceUrl, T& t)
-	{
-		reprocurl::request req( serviceUrl );
-
-		req.data( JSON::flatten(toJson(t))).method("PUT");
-
-		return invoke<E>(req);
-	}
-
-private:
-
-	template<class E>
-	static Future<Json::Value> invoke(reprocurl::request& req)
-	{
-		auto p = promise<Json::Value>();
-				
-		req.insecure().verbose();
-
-		reprocurl::fetch(req)
-		.then([p](reprocurl::response res)
-		{
-			std::cout << res.status() << ":" << res.content() << std::endl;
-
-			Json::Value json = reproweb::JSON::parse(res.content());
-
-			if(res.status() != 200)
-			{
-				throw E(json["error"]["msg"].asString());
-			}
-
-			p.resolve(json);
-		})
-		.otherwise(reject(p));
-
-		return p.future();			
-	}
-};
 
 class SessionService
 {
@@ -112,7 +22,9 @@ public:
 	{
 		auto p = promise<reproweb::Session>();
 
-		Service::get<AuthEx>( config->sessionService(sid) )
+		reproweb::JSON::Rest::url( config->sessionEndpoint(), sid )  
+		.insecure()
+		.get()
 		.then([p,sid](Json::Value json)
 		{
 			Session session;
@@ -122,7 +34,7 @@ public:
 		.otherwise([p,sid](const std::exception& ex)
 		{
 			std::cout << typeid(ex).name() << ":" << ex.what() << std::endl;
-			p.reject(ex);
+			p.reject(AuthEx(ex.what()));
 		});
 
 		return p.future();
@@ -132,7 +44,9 @@ public:
 	{
 		auto p = promise<>();
 
-		Service::post<AuthEx>( config->sessionService(), session )
+		reproweb::JSON::Rest::url( config->sessionEndpoint() )
+		.insecure()
+		.post( session )
 		.then([p](Json::Value json)
 		{
 			p.resolve();
@@ -140,7 +54,7 @@ public:
 		.otherwise( [p](const std::exception& ex)
 		{
 			std::cout << typeid(ex).name() << ":" << ex.what() << std::endl;
-			p.reject(ex);
+			p.reject(AuthEx(ex.what()));
 		}); 
 
 		return p.future();
@@ -148,7 +62,22 @@ public:
 
 	Future<> remove_user_session( std::string sid)
 	{
-		return Service::remove<AuthEx>( config->sessionService(sid) );
+		auto p = promise<>();
+
+		reproweb::JSON::Rest::url( config->sessionEndpoint(), sid )
+		.insecure()
+		.remove( )
+		.then([p]()
+		{
+			p.resolve();
+		})
+		.otherwise( [p](const std::exception& ex)
+		{
+			std::cout << typeid(ex).name() << ":" << ex.what() << std::endl;
+			p.resolve();
+		}); 
+
+		return p.future();
 	}
 
 private:
@@ -169,7 +98,9 @@ public:
 	{
 		auto p = promise<User>();
 
-		Service::post<RegistrationEx>( config->registrationService(), user )
+		reproweb::JSON::Rest::url( config->registrationEndpoint())
+		.insecure()
+		.post( user )
 		.then([p](Json::Value json)
 		{
 			User user;
@@ -177,7 +108,11 @@ public:
 
 			p.resolve(user);
 		})
-		.otherwise(reject(p));
+		.otherwise( [p](const std::exception& ex)
+		{
+			std::cout << typeid(ex).name() << ":" << ex.what() << std::endl;
+			p.reject(RegistrationEx(ex.what()));
+		}); 
 
 		return p.future();
 	}
@@ -190,7 +125,9 @@ public:
 		json["login"] = login;
 		json["pwd"] = pwd;
 
-		Service::post<LoginEx>( config->loginService(), json )
+		reproweb::JSON::Rest::url( config->loginEndpoint())
+		.insecure()
+		.post(json)
 		.then([p](Json::Value json)		
 		{
 			User user;
@@ -201,8 +138,8 @@ public:
 		.otherwise( [p](const std::exception& ex)
 		{
 			std::cout << typeid(ex).name() << ":" << ex.what() << std::endl;
-			p.reject(ex);
-		}); //reject(p));
+			p.reject(LoginEx(ex.what()));
+		}); 
 
 		return p.future();
 	}
