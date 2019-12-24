@@ -231,17 +231,17 @@ repro::Future<repromysql::result_async::Ptr> objQuery( std::shared_ptr<repromysq
 {
     named_args_statement prepared_sql(sql);
 
-    std::string prepared_sql = name_args_statement.sql;
-    std::vector<std::string> named_args = name_args_statement.named_args;
+    std::string psql = prepared_sql.sql;
+    std::vector<std::string> named_args = prepared_sql.named_args;
 
-    return mysql->prepare(prepared_sql)
+    return mysql->prepare(psql)
     .then([named_args,from](repromysql::statement_async::Ptr st)
     {
-        const auto& m = meta_of(t);
+        const auto& m = meta_of(from);
 
         for( unsigned int i = 0; i < named_args.size(); i++)
         {
-            m.value(from,names_args[i].c_str(), [st,i]( auto v)
+            m.value(from,named_args[i].c_str(), [st,i]( auto v)
             {
                 bondage(st,i,v);
             });
@@ -256,17 +256,17 @@ repro::Future<repromysql::mysql_async::Ptr> persist( std::shared_ptr<repromysql:
 {
     named_args_statement prepared_sql(sql);
 
-    std::string prepared_sql = name_args_statement.sql;
-    std::vector<std::string> named_args = name_args_statement.named_args;
+    std::string psql = prepared_sql.sql;
+    std::vector<std::string> named_args = prepared_sql.named_args;
 
-    return mysql->prepare(prepared_sql)
+    return mysql->prepare(psql)
     .then([named_args,from](repromysql::statement_async::Ptr st)
     {
-        const auto& m = meta_of(t);
+        const auto& m = meta_of(from);
 
         for( unsigned int i = 0; i < named_args.size(); i++)
         {
-            m.value(from,names_args[i].c_str(), [st,i]( auto v)
+            m.value(from,named_args[i].c_str(), [st,i]( auto v)
             {
                 bondage(st,i,v);
             });
