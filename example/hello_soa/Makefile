@@ -21,4 +21,7 @@ down: ## stop running docker image, if any
 clean-logs:
 	sh -c "truncate -s 0 /var/lib/docker/containers/*/*-json.log"
 	
-.PHONY: build up down update-dockerfile
+cacert :
+	cd ca && bin/make_pki
+
+.PHONY: build up down update-dockerfile cacert

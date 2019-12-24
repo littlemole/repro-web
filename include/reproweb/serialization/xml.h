@@ -136,11 +136,7 @@ public:
 			xmlTo->setAttribute(name+1,from);
 			return;
 		}
-/*
-		xml::ElementPtr el = xmlTo->ownerDocument()->createElement(name);
-		xmlTo->appendChild(el);
-		toXml(from,el);
-*/
+
 		toXml(name,from,xmlTo);
     }
 
@@ -156,11 +152,7 @@ public:
 			xmlTo->setAttribute(name+1,oss.str());
 			return;
 		}
-/*
-		xml::ElementPtr el = xmlTo->ownerDocument()->createElement(name);
-		xmlTo->appendChild(el);
-		toXml(from,el);
-*/
+
 		toXml(name,from,xmlTo);
     }
 
@@ -169,11 +161,6 @@ public:
     {
 		xml::ElementPtr xmlTo = *((xml::ElementPtr*) to);
 
-/*
-		xml::ElementPtr el = xmlTo->ownerDocument()->createElement(name);
-		xmlTo->appendChild(el);
-		toXml(from,el);
-*/
 		toXml(name,from,xmlTo);		
     }
 
@@ -185,11 +172,6 @@ public:
 
 		for( auto& f : from)
 		{
-/*			
-			xml::ElementPtr el = xmlTo->ownerDocument()->createElement(name);
-			xmlTo->appendChild(el);
-			toXml(f,el);
-*/
 			toXml(name,f,xmlTo);				
 		}
     }
@@ -288,19 +270,7 @@ void toXml( const T& from, xml::ElementPtr to, typename std::enable_if<std::is_c
 {
 	const auto& m = meta_of(from);
 
-	if(m.entity)
-	{
-		toXml( m.entity, from, to);
-		/*
-		xml::ElementPtr el = to->ownerDocument()->createElement(m.entity);
-		to->appendChild(el);		
-	    m. template serialize<XmlSerializer>(from,&el);
-		*/
-	}
-	else
-	{
-	    m. template serialize<XmlSerializer>(from,&to);
-	}
+	toXml( m.entity, from, to);
 }
 
 

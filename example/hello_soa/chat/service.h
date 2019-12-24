@@ -23,8 +23,9 @@ public:
 		auto p = promise<reproweb::Session>();
 
 		reproweb::JSON::Rest::url( config->sessionEndpoint(), sid )  
-		.insecure()
-		.get()
+		//.insecure()
+		.get() 
+		.fetch<Json::Value>() 
 		.then([p,sid](Json::Value json)
 		{
 			Session session;
@@ -45,8 +46,9 @@ public:
 		auto p = promise<>();
 
 		reproweb::JSON::Rest::url( config->sessionEndpoint() )
-		.insecure()
+		//.insecure()
 		.post( session )
+		.fetch<Json::Value>()
 		.then([p](Json::Value json)
 		{
 			p.resolve();
@@ -65,8 +67,9 @@ public:
 		auto p = promise<>();
 
 		reproweb::JSON::Rest::url( config->sessionEndpoint(), sid )
-		.insecure()
+		//.insecure()
 		.remove( )
+		.call()
 		.then([p]()
 		{
 			p.resolve();
@@ -99,8 +102,9 @@ public:
 		auto p = promise<User>();
 
 		reproweb::JSON::Rest::url( config->registrationEndpoint())
-		.insecure()
+		//.insecure()
 		.post( user )
+		.fetch<Json::Value>()
 		.then([p](Json::Value json)
 		{
 			User user;
@@ -126,8 +130,9 @@ public:
 		json["pwd"] = pwd;
 
 		reproweb::JSON::Rest::url( config->loginEndpoint())
-		.insecure()
+		//.insecure()
 		.post(json)
+		.fetch<Json::Value>()
 		.then([p](Json::Value json)		
 		{
 			User user;

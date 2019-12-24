@@ -161,8 +161,8 @@ TEST_F(BasicTest, JWT)
 
 	reproweb::JWT verifier(token);
 	bool verified = verifier.verify(secret);
-
-	EXPECT_EQ(true,verified);
+ 
+	EXPECT_EQ(true,verified);  
 
 	EXPECT_STREQ("some payload", verifier.claim()["data"].asString().c_str());
 }
@@ -268,6 +268,118 @@ TEST_F(BasicTest, Invocable)
 	{
 		reproweb::call_valid::invoke(logger);
 	}
+
+}
+
+
+ 
+TEST_F(BasicTest, NamedArgs) 
+{
+	User user{ "mike", "littlemole", "secret" };
+
+	std::string sql = "SELECT username,login,pwd FROM User WHERE login = :login AND pwd = :pwd";
+
+	std::ostringstream oss;
+	bool inside_quote = false;
+
+	std::vector<std::string> named_args;
+
+	char last = 0;
+	size_t pos = 0;
+	while( pos < sql.size() )
+	{
+		char c = sql[pos];
+		if ( c == '\'' && last != '\\')
+		{
+			if(inside_quote) 
+				inside_quote = false;
+			else
+				inside_quote = true;
+		} 
+
+		if(!inside_quote)
+		{
+			if ( c == ':' )
+			{
+				size_t p = sql.find_first_of(" \t\r\n",pos);
+				if( p != std::string::npos)
+				{
+					std::string named_arg = sql.substr(pos+1,p-pos-1);
+					named_args.push_back(named_arg);
+					oss << "? ";
+					pos += p-pos;
+					last = ' ';
+					continue;
+				} 
+				else
+				{
+					std::string named_arg = sql.substr(pos+1);
+					named_args.push_back(named_arg);
+					oss << "? ";
+					pos += named_arg.size()+1;
+					last = ' ';
+					continue;
+				}
+			}
+			else
+			{
+				oss << c;
+			}
+		}
+		else
+		{
+			oss << c;
+		}
+		pos++;
+		last = c;
+	} 
+
+	std::cout << oss.str() << std::endl;
+
+	for ( auto& na : named_args)
+	{
+		std::cout << na << std::endl;
+	}
+}
+
+template<class T>
+void assignor(std::string& s, T t)
+{
+	s = t;
+}
+
+template<class T>
+void assignor(std::string& s, std::vector<T>& v)
+{
+}
+
+TEST_F(BasicTest, MetaValue) 
+{
+
+	User user{ "mike", "littlemole", "secret" };
+	const auto& m = meta_of(user);
+
+	std::string test;
+	m.value(user,"username", [&test](auto n)
+	{
+		assignor(test,n);
+	});
+
+	EXPECT_STREQ("mike",test.c_str());
+
+	m.value(user,"login", [&test](auto n)
+	{
+		assignor(test,n);
+	});
+
+	EXPECT_STREQ("littlemole",test.c_str());
+
+	m.value(user,"pwd", [&test](auto n)
+	{
+		assignor(test,n);
+	});
+
+	EXPECT_STREQ("secret",test.c_str());
 
 }
 

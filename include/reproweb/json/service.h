@@ -21,21 +21,8 @@ public:
 	Json::Value json;
 };
 
-
 struct Rest
 {
-	Rest& insecure()
-	{
-		req_.insecure();
-		return *this;
-	}
-
-	Rest& verbose()
-	{
-		req_.verbose();
-		return *this;
-	}
-
 	static Rest url(const std::string& serviceUrl)
 	{
 		Rest r;
@@ -57,19 +44,96 @@ struct Rest
 		return url(oss.str(),args ...);
 	}
 
-
-	repro::Future<Json::Value> get()
+	Rest& insecure()
 	{
-		return invoke(req_);
+		req_.insecure();
+		return *this;
 	}
 
-	repro::Future<> remove()
+	Rest& verbose()
+	{
+		req_.verbose();
+		return *this;
+	}
+
+	Rest& method(const std::string& m)
+	{
+		req_.method(m);
+		return *this;
+	}	
+
+	Rest& get()
+	{
+		req_.method("GET");
+		return *this;
+	}
+	
+	Rest& remove()
 	{
 		req_.method("DELETE");
 
+		return *this;	
+	}	
+
+	template<class T>
+	Rest& post(T& t)
+	{
+		req_.data( JSON::flatten(toJson(t))).method("POST");
+
+		return *this;	
+	}
+
+	template<class T>
+	Rest& put(T& t)
+	{
+		req_.data( JSON::flatten(toJson(t))).method("PUT");
+
+		return *this;	
+	}
+
+
+	template<class O>
+	repro::Future<O> fetch()
+	{
+		return fetch<O>(req_);
+	}
+
+	repro::Future<> call()
+	{
+		return call(req_);
+	}
+
+
+private:
+
+	reprocurl::request req_;
+
+	template<class O>
+	static repro::Future<O> fetch(reprocurl::request& req)
+	{
+		auto p = repro::promise<O>();
+				
+		reprocurl::fetch(req)
+		.then([p](reprocurl::response res)
+		{
+			std::cout << res.status() << ":" << res.content() << std::endl;
+
+			Json::Value json = parse(res);
+			O o;
+			fromJson(json,o);
+
+			p.resolve(o);
+		})
+		.otherwise(prio::reject(p));
+
+		return p.future();			
+	}
+
+	static repro::Future<> call(reprocurl::request& req)
+	{
 		auto p = repro::promise<>();
 				
-		reprocurl::fetch(req_)
+		reprocurl::fetch(req)
 		.then([p](reprocurl::response res)
 		{
 			std::cout << res.status() << ":" << res.content() << std::endl;
@@ -80,47 +144,8 @@ struct Rest
 		})
 		.otherwise(prio::reject(p));
 
-		return p.future();	
-	}	
-
-	template<class T>
-	repro::Future<Json::Value> post(T& t)
-	{
-		req_.data( JSON::flatten(toJson(t))).method("POST");
-
-		return invoke(req_);
-	}
-
-	template<class T>
-	repro::Future<Json::Value> put(T& t)
-	{
-		req_.data( JSON::flatten(toJson(t))).method("PUT");
-
-		return invoke(req_);
-	}
-
-
-private:
-
-	reprocurl::request req_;
-
-	static repro::Future<Json::Value> invoke(reprocurl::request& req)
-	{
-		auto p = repro::promise<Json::Value>();
-				
-		reprocurl::fetch(req)
-		.then([p](reprocurl::response res)
-		{
-			std::cout << res.status() << ":" << res.content() << std::endl;
-
-			Json::Value json = parse(res);
-
-			p.resolve(json);
-		})
-		.otherwise(prio::reject(p));
-
 		return p.future();			
-	}
+	}	
 
 	static Json::Value parse(reprocurl::response& res)
 	{

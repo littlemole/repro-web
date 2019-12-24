@@ -47,24 +47,24 @@ public:
 		.flush();
 	}
 
-	void redirect_to_index(Response& res)
+	void redirect_to_index(Request& req, Response& res)
 	{
 		res
-		.redirect("https://localhost:9876/")
+		.redirect(req,"/")
 		.flush();
 	}
 
-	void redirect_to_login(Response& res)
+	void redirect_to_login(Request& req, Response& res)
 	{
 		res
-		.redirect("https://localhost:9876/login")
+		.redirect(req,"/login")
 		.flush();
 	}	
 
-	void redirect_to_registration(Response& res)
+	void redirect_to_registration(Request& req, Response& res)
 	{
 		res
-		.redirect("https://localhost:9876/register")
+		.redirect(req, "/register")
 		.flush();
 	}	
 

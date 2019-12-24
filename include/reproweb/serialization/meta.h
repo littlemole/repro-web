@@ -99,7 +99,7 @@ GetterSetter<T,M> getter_setter( const char* n, M (T::*g)() )
 template<class T, class M>
 GetterSetterConst<T,M> getter_setter( const char* n, void (T::*s)(M) )
 {
-    return GetterSetterConst<T,M>(n,s);
+    return GetterSetter<T,M>(n,s);
 }
 
 template<class T, class M>
@@ -146,6 +146,12 @@ public:
         entity = n;
 		return *this;
     }    
+
+    template<class F>
+    void value(T& t,const char* name, F f) const
+    {
+        throw repro::Ex("meta never found");
+    }
 };
 
 ///////////////////////////////////////////////////////////////////////////////////////////
@@ -182,6 +188,32 @@ public:
         entity = n;
 		return *this;
     }
+
+    auto find(const char* n)
+    {
+        if( strcmp(n,name) == 0)
+        {
+            return *this;
+        }
+    }
+
+    template<class F>
+    void value(T& t,const char* n, F f,typename std::enable_if<std::is_invocable<F,decltype(t.*member)>::value>::type* = nullptr) const
+    {
+        if(strcmp(n,name)==0)
+        {
+            f(t.*member);
+            return;
+        }
+        throw repro::Ex("meta not found 1");
+    }
+
+    template<class F>
+    void value(T& t,const char* n, F f,typename std::enable_if<!std::is_invocable<F,decltype(t.*member)>::value>::type* = nullptr) const
+    {
+        throw repro::Ex("meta not found 2");
+    }
+
 };
 
 ///////////////////////////////////////////////////////////////////////////////////////////
@@ -221,6 +253,24 @@ public:
         entity = n;
 		return *this;
     }
+
+    template<class F>
+    void value(T& t,const char* n, F f,typename std::enable_if<std::is_invocable<F,decltype(t.*member)>::value>::type* = nullptr) const
+    {
+        if(strcmp(n,name)==0)
+        {
+            f(t.*member);
+            return;
+        }
+
+        MetaData<T(Args ...)>::value(t,n,f);
+    }
+
+    template<class F>
+    void value(T& t,const char* n, F f,typename std::enable_if<!std::is_invocable<F,decltype(t.*member)>::value>::type* = nullptr) const
+    {
+        MetaData<T(Args ...)>::value(t,n,f);
+    }
 };
 
 ///////////////////////////////////////////////////////////////////////////////////////////
@@ -257,6 +307,25 @@ public:
     {
         entity = n;
 		return *this;
+    }    
+
+
+    template<class F>
+    void value(T& t,const char* n, F f,typename std::enable_if<std::is_invocable<F,decltype(t.*(member.member))>::value>::type* = nullptr) const
+    {
+        if(strcmp(n,member.name)==0)
+        {
+            f(t.*(member.member));
+            return;
+        }
+
+        MetaData<T(Args ...)>::value(t,n,f);
+    }
+
+    template<class F>
+    void value(T& t,const char* n, F f,typename std::enable_if<!std::is_invocable<F,decltype(t.*(member.member))>::value>::type* = nullptr) const
+    {
+        MetaData<T(Args ...)>::value(t,n,f);
     }    
 };
 
@@ -304,6 +373,26 @@ public:
         entity = n;
 		return *this;
     }     
+
+
+    template<class F>
+    void value(T& t,const char* n, F f,typename std::enable_if<std::is_invocable<F,decltype(t.*(getterSetter.getter)())>::value>::type* = nullptr) const
+    {
+        if(strcmp(n,getterSetter.name)==0)
+        {
+            std::remove_const_t<M> m = (t.*getterSetter.getter)();
+            f(m);
+            return;
+        }
+
+        MetaData<T(Args ...)>::value(t,n,f);
+    }
+
+    template<class F>
+    void value(T& t,const char* n, F f,typename std::enable_if<!std::is_invocable<F,decltype(t.*(getterSetter.getter)())>::value>::type* = nullptr) const
+    {
+        MetaData<T(Args ...)>::value(t,n,f);
+    }      
 };
 
 ///////////////////////////////////////////////////////////////////////////////////////////
@@ -350,6 +439,25 @@ public:
         entity = n;
 		return *this;
     }     
+
+    template<class F>
+    void value(T& t,const char* n, F f,typename std::enable_if<std::is_invocable<F,decltype(t.*(getterSetter.getter)())>::value>::type* = nullptr) const
+    {
+        if(strcmp(n,getterSetter.name)==0)
+        {
+            std::remove_const_t<M> m = (t.*getterSetter.getter)();
+            f(m);
+            return;
+        }
+
+        MetaData<T(Args ...)>::value(t,n,f);
+    }
+
+    template<class F>
+    void value(T& t,const char* n, F f,typename std::enable_if<!std::is_invocable<F,decltype(t.*(getterSetter.getter)())>::value>::type* = nullptr) const
+    {
+        MetaData<T(Args ...)>::value(t,n,f);
+    }      
 };
 
 ///////////////////////////////////////////////////////////////////////////////////////////

@@ -97,6 +97,9 @@ clean: clean_obj
 
 release : $(BIN_BUILD)/hello_world.bin
 
+cacert :
+	cd ca && bin/make_pki
+
 update-dockerfile: clean
 	/bin/sed -i "s/FROM .*/FROM ${BASE_IMAGE}/" Dockerfile
 
@@ -109,6 +112,6 @@ up: update-dockerfile ## run the docker image and open a shell
 down: ## stop running docker image, if any
 	CXX=$(CXX) BACKEND=$(BACKEND) BUILDCHAIN=$(BUILDCHAIN) docker-compose stop
 	
-.PHONY: build up down update-dockerfile
+.PHONY: build up down update-dockerfile cacert
  
  

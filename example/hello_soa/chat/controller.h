@@ -24,7 +24,7 @@ public:
 		auto session = req_session(req);
 		if(!session->authenticated)
 		{
-			view_->redirect_to_login(res);
+			view_->redirect_to_login(req,res);
 			return;
 		}
 
@@ -57,7 +57,7 @@ public:
 			json.removeMember("pwd",&rmvd);
 			session->data = json;
 
-			view_->redirect_to_index(res);
+			view_->redirect_to_index(req,res);
 		})
 		.otherwise([this,&req,&res](const std::exception& ex)
 		{
@@ -70,7 +70,7 @@ public:
 	void logout( Request& req, Response& res)
 	{
 		invalidate_session(req);
-		view_->redirect_to_login(res);
+		view_->redirect_to_login(req,res);
 	}
 
 	void register_user( FormParams params, Request& req, Response& res)
@@ -89,7 +89,7 @@ public:
 			session->authenticated = true;
 			session->data = toJson(user);
 
-			view_->redirect_to_index(res);
+			view_->redirect_to_index(req,res);
 		})
 		.otherwise([this,&req,&res](const std::exception& ex)
 		{

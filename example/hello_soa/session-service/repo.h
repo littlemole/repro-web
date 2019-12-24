@@ -4,6 +4,140 @@
 #include "reproredis/redis.h"
 #include "entities.h"
 
+MAKE_REPRO_EX(RedisEx);
+
+
+struct RedisJsonMapper
+{
+	std::shared_ptr<reproredis::RedisPool> redis;
+
+	RedisJsonMapper(std::shared_ptr<reproredis::RedisPool> r)
+		: redis(r)
+	{}
+
+	Future<> put(const std::string& key, Json::Value json, int expire = 0)
+	{
+		auto p = promise<>();
+
+		redis->cmd("SET", key, json) 
+		.then([p,key,expire](reproredis::RedisResult::Ptr reply)
+		{
+			if(!expire)
+			{
+				p.resolve();
+			}
+			else
+			{
+				reply->cmd("EXPIRE", key, expire)
+				.then([p](reproredis::RedisResult::Ptr reply)
+				{
+					p.resolve();
+				})
+				.otherwise(reject(p));
+			}
+		})
+		.otherwise(reject(p));
+
+		return p.future();
+	}
+
+	Future<Json::Value> get(const std::string& key, int expire = 0)
+	{
+		auto p = promise<Json::Value>();
+
+		redis->cmd("GET", key)
+		.then([p,key,expire](reproredis::RedisResult::Ptr reply)
+		{
+			if(reply->isError() || reply->isNill())
+			{
+				throw RedisEx("invalid key");
+			}
+
+			std::string payload = reply->str();
+
+			if(!expire)
+			{
+				Json::Value json = reproweb::JSON::parse(payload);
+				p.resolve(json);				
+			}
+			else
+			{
+				reply->cmd("EXPIRE", key, expire)
+				.then( [p,payload](reproredis::RedisResult::Ptr reply)
+				{
+					Json::Value json = reproweb::JSON::parse(payload);
+					p.resolve(json);				
+				})
+				.otherwise([p](const std::exception& ex)
+				{
+					p.reject(RedisEx(ex.what));
+				});				
+			}			
+		})
+		.otherwise([p](const std::exception& ex)
+		{
+			p.reject(RedisEx(ex.what));
+		});		
+
+		return p.future();
+	}
+
+	Future<> remove(const std::string& key)
+	{
+		auto p = promise<>();
+
+		redis->cmd("DEL", key) 
+		.then([p](reproredis::RedisResult::Ptr reply)
+		{
+			p.resolve();
+		})
+		.otherwise(reject(p));
+
+		return p.future();
+	}
+
+};
+
+struct RedisMapper
+{
+	std::shared_ptr<reproredis::RedisPool> redis;
+
+	RedisMapper(std::shared_ptr<reproredis::RedisPool> r)
+		: redis(r)
+	{}
+
+	template<class T>
+	Future<> put(const std::string& key, T& t, int expire = 0)
+	{
+		Json::Value json = toJson(t);
+
+		return RedisJsonMapper(redis).put(key,json,expire);
+	}	
+
+	template<class T>
+	Future<T> get(const std::string& key, int expire = 0)
+	{
+		auto p = promise<T>();
+
+		RedisJsonMapper(redis).get(key,expire)
+		.then( [p](Json::Value json)
+		{
+			T t;
+			fromJson(json,t);
+			p.resolve(t);
+		})
+		.otherwise(reject(p));
+
+		return p.future();
+	}
+
+	Future<> remove(const std::string& key)
+	{
+		return RedisJsonMapper(redis).remove(key);
+	}	
+
+};
+
 class SessionRepository
 {
 public:
@@ -14,6 +148,8 @@ public:
 
 	Future<Session> get_user_session( std::string sid)
 	{
+		return RedisMapper(redis).get<Session>(sid,180);
+		/*
 		auto p = promise<Session>();
 
 		auto payload = std::make_shared<std::string>();
@@ -40,12 +176,20 @@ public:
 		.otherwise(reject(p));
 
 		return p.future();
+		*/
 	}
 
 	Future<Session> write_user_session(Session session)
 	{
 		auto p = promise<Session>();
 
+		RedisMapper(redis).put(session.sid,session,180)
+		.then([p,session]()
+		{
+			p.resolve(session);
+		})
+		.otherwise(reject(p));
+/*
 		redis->cmd("SET", session.sid, toJson(session) )
 		.then([this,session](reproredis::RedisResult::Ptr reply)
 		{
@@ -56,12 +200,14 @@ public:
 			p.resolve(session);
 		})
 		.otherwise(reject(p));
-
+*/
 		return p.future();
 	}
 
 	Future<> remove_user_session( std::string sid)
 	{
+		return RedisMapper(redis).remove(sid);
+/*
 		auto p = promise<>();
 
 		redis->cmd("DEL", sid)
@@ -72,6 +218,7 @@ public:
 		.otherwise(reject(p));
 
 		return p.future();
+*/		
 	}
 
 private:
