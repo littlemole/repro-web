@@ -142,7 +142,7 @@ void fromSQL(repromysql::result_async::Ptr r, std::vector<T>& v)
 }
 
 ///////////////////////////////////////////////////////////////////////////////////////////
-
+/*
 inline void bondage(repromysql::statement_async::Ptr st, int i, std::string t)
 {
 	st->bind(i,t);
@@ -274,7 +274,7 @@ repro::Future<repromysql::mysql_async::Ptr> persist( std::shared_ptr<repromysql:
         return st->execute();
     });
 }
-
+*/
 
 }
 
