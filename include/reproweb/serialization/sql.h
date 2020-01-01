@@ -121,10 +121,12 @@ void fromSQL(repromysql::result_async::Ptr r, T& t)
 
 	    m. template deserialize<SQLSerializer>(&r,t);
     }
-    else
+    // don' do that, return empty result
+/*    else
     {
         throw repro::Ex("empty result");
     }    
+    */
 }
 
 template<class T>

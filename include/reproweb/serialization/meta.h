@@ -152,6 +152,12 @@ public:
     {
         throw repro::Ex("meta never found");
     }
+
+    template<class R>
+    R get(T& t,const char* name) const
+    {
+        throw repro::Ex("meta never found");
+    }    
 };
 
 ///////////////////////////////////////////////////////////////////////////////////////////
@@ -214,6 +220,22 @@ public:
         throw repro::Ex("meta not found 2");
     }
 
+
+    template<class R>
+    R get(T& t,const char* name,typename std::enable_if<std::is_assignable<R,decltype(t.*member)>::value>::type* = nullptr) const
+    {
+        if(strcmp(name,name)==0)
+        {
+            return t.*member;
+        }
+        throw repro::Ex("meta not found 1");
+    } 
+
+    template<class R>
+    R get(T& t,const char* name,typename std::enable_if<!std::is_assignable<R,decltype(t.*member)>::value>::type* = nullptr) const
+    {
+        throw repro::Ex("meta not found 1");
+    }     
 };
 
 ///////////////////////////////////////////////////////////////////////////////////////////
@@ -271,6 +293,22 @@ public:
     {
         MetaData<T(Args ...)>::value(t,n,f);
     }
+
+    template<class R>
+    R get(T& t,const char* n,typename std::enable_if<std::is_assignable<R,decltype(t.*member)>::value>::type* = nullptr) const
+    {
+        if(strcmp(n,name)==0)
+        {
+            return t.*member;
+        }
+        return MetaData<T(Args ...)>::template get<R>(t,n);
+    } 
+
+    template<class R>
+    R get(T& t,const char* n,typename std::enable_if<!std::is_assignable<R,decltype(t.*member)>::value>::type* = nullptr) const
+    {
+        return MetaData<T(Args ...)>::template get<R>(t,n);
+    }      
 };
 
 ///////////////////////////////////////////////////////////////////////////////////////////
@@ -525,6 +563,16 @@ auto meta_of(const std::vector<T>& t)
 
 
 ///////////////////////////////////////////////////////////////////////////////////////////
+
+
+template<class R, class T>
+R meta_get(T& t,const char* name) 
+{
+    auto m = meta_of(t);
+    return m.template get<R>(t,name);
+}  
+
+
 ///////////////////////////////////////////////////////////////////////////////////////////
 
 }

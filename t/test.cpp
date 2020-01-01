@@ -383,6 +383,26 @@ TEST_F(BasicTest, MetaValue)
 
 }
 
+TEST_F(BasicTest, MetaGet) 
+{
+
+	User user{ "mike", "littlemole", "secret" };
+	const auto& m = meta_of(user);
+
+	std::string test = meta_get<std::string>(user,"username");
+
+	EXPECT_STREQ("mike",test.c_str());
+
+	test = meta_get<std::string>(user,"login");
+
+	EXPECT_STREQ("littlemole",test.c_str());
+
+	test = meta_get<std::string>(user,"pwd");
+
+	EXPECT_STREQ("secret",test.c_str());
+
+}
+
 int main(int argc, char **argv)
 {
 	prio::Libraries<prio::EventLoop,cryptoneat::SSLUser> init;
