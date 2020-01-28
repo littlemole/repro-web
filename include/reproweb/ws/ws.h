@@ -16,7 +16,7 @@ void ws_callback(WsConnection::Ptr ws, void (T::*fun)(WsConnection::Ptr, const A
 {
 	try
 	{
-		auto ptr = ws->attributes.attr<std::shared_ptr<diy::Context>>("ctx")->resolve<T>();
+		auto ptr = ws->req.attributes.attr<std::shared_ptr<diy::Context>>("ctx")->resolve<T>();
 		T* t = ptr.get();
 		(t->*fun)(ws,args...);
 	}
@@ -35,7 +35,7 @@ void ws_callback(WsConnection::Ptr ws, repro::Future<> (T::*fun)(WsConnection::P
 {
 	try
 	{
-		auto ptr = ws->attributes.attr<std::shared_ptr<diy::Context>>("ctx")->resolve<T>();
+		auto ptr = ws->req.attributes.attr<std::shared_ptr<diy::Context>>("ctx")->resolve<T>();
 		T* t = ptr.get();
 		(t->*fun)(ws,args...)
 		.then([]()

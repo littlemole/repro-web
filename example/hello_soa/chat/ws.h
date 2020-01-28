@@ -104,12 +104,12 @@ private:
 
 	void set_subscriber_id(WsConnection::Ptr ws, const std::string& id)
 	{
-		ws->attributes.set("subscription-id",id);
+		ws->req.attributes.set("subscription-id",id);
 	}
 
 	std::string subscriber_id(WsConnection::Ptr ws)
 	{
-		return ws->attributes.attr<std::string>("subscription-id");
+		return ws->req.attributes.attr<std::string>("subscription-id");
 	}
 
     std::shared_ptr<SessionService> session_;

@@ -68,12 +68,11 @@ WsConnection::~WsConnection()
 }
 
 
-std::string WsConnection::handshake(prio::Request& req)
+std::string WsConnection::handshake(prio::Request& r)
 {
-	con_ = req.con();
-	path_ = req.path.path();
-
-	attributes = req.attributes;
+	con_ = r.con();
+	path_ = r.path.path();
+	req = r;
 
     std::string upgrade(req.headers.get("Upgrade"));
     std::string connection = req.headers.get("Connection");
@@ -112,7 +111,7 @@ std::string WsConnection::handshake(prio::Request& req)
 
     if(!hash.empty())
     {
-    	HttpRequest& request = (HttpRequest&)req;
+    	HttpRequest& request = (HttpRequest&)r;
     	request.detach();
 		request.con()->timeouts().rw_timeout_s = 1000L * 60L * 10L;
     }

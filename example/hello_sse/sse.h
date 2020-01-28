@@ -47,12 +47,12 @@ private:
 
 	void set_subscriber_id(SSEConnection::Ptr sse, const std::string& id)
 	{
-		sse->attributes.set("subscription-id",id);
+		sse->req.attributes.set("subscription-id",id);
 	}
 
 	std::string subscriber_id(SSEConnection::Ptr sse)
 	{
-		return sse->attributes.attr<std::string>("subscription-id");
+		return sse->req.attributes.attr<std::string>("subscription-id");
 	}
 
     std::shared_ptr<EventBus> eventBus_;

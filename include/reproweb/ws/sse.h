@@ -21,7 +21,7 @@ class SSEConnection : public std::enable_shared_from_this<SSEConnection>
 {
 public:
 
-	prio::Attributes attributes;
+	prio::Request req;
 
 	~SSEConnection()
     {}
@@ -37,12 +37,12 @@ public:
 	}
 
 	//! \private
-    void handshake(prio::Request& req)
+    void handshake(prio::Request& r)
     {
-        con_ = req.con();
-        attributes = req.attributes;
+		req = r;
+        con_ = r.con();
 
-        HttpRequest& request = (HttpRequest&)req;
+        HttpRequest& request = (HttpRequest&)r;
         request.detach();
         request.con()->timeouts().rw_timeout_s = 1000L * 60L * 10L;
     }
@@ -129,7 +129,7 @@ void sse_callback(SSEConnection::Ptr sse, void (T::*fun)(SSEConnection::Ptr, con
 {
 	try
 	{
-		auto ptr = sse->attributes.attr<std::shared_ptr<diy::Context>>("ctx")->resolve<T>();
+		auto ptr = sse->req.attributes.attr<std::shared_ptr<diy::Context>>("ctx")->resolve<T>();
 		T* t = ptr.get();
 		(t->*fun)(sse,args...);
 	}
@@ -148,7 +148,7 @@ void sse_callback(SSEConnection::Ptr sse, repro::Future<> (T::*fun)(SSEConnectio
 {
 	try
 	{
-		auto ptr = sse->attributes.attr<std::shared_ptr<diy::Context>>("ctx")->resolve<T>();
+		auto ptr = sse->req.attributes.attr<std::shared_ptr<diy::Context>>("ctx")->resolve<T>();
 		T* t = ptr.get();
 		(t->*fun)(sse,args...)
 		.then([]()

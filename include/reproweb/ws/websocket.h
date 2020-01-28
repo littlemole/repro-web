@@ -26,7 +26,7 @@ public:
 
 	LITTLE_MOLE_MONITOR(WsConnections);
 
-	prio::Attributes attributes;
+	prio::Request req;
 
 	~WsConnection();
 
