@@ -228,9 +228,11 @@ private:
 		.contentType("text/event-stream")
 		.header("content-length","-")
 	    .ok()
-	    .flush();
-
-	    sse->run();
+	    .flush()
+		.then([sse]()
+		{
+			sse->run();
+		});
 	};
 
 	std::string path_;

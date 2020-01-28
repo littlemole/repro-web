@@ -125,9 +125,11 @@ private:
 	    .header("Connection","Upgrade")
 	    .header("Sec-WebSocket-Accept",hash)
 	    .status("HTTP/1.1 101 Switching Protocols")
-	    .flush();
-
-	    ws->run();
+	    .flush()
+		.then([ws]()
+		{
+		    ws->run();
+		});
 	};
 
 	std::string path_;
