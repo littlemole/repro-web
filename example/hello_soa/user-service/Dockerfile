@@ -2,6 +2,8 @@
 FROM littlemole/reproweb_gpp_libevent_make
 MAINTAINER me <little.mole@oha7.org>
 
+RUN DEBIAN_FRONTEND=noninteractive apt-get update
+RUN DEBIAN_FRONTEND=noninteractive apt-get upgrade -y
 RUN DEBIAN_FRONTEND=noninteractive apt-get install -y mysql-client libmysqlclient-dev
 
 ARG CXX=g++

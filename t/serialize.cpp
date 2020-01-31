@@ -145,7 +145,7 @@ TEST_F(SerializeTest, fromParams)
 }
   
 
-
+ 
 struct XmlTest
 {
 	XmlTest()
@@ -380,8 +380,8 @@ TEST_F(SerializeTest, toJsonArray3)
 	EXPECT_EQ(4,other.array[1][0]);
 	EXPECT_EQ(5,other.array[1][1]);
 	EXPECT_EQ(6,other.array[1][2]);
-
-}
+  
+} 
 
 TEST_F(SerializeTest, toJsonArray4) 
 {
@@ -414,7 +414,7 @@ public:
     }
 
     void set_x(int v)
-    {
+    { 
         x = v;
     }
 

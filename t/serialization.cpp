@@ -4,12 +4,11 @@
 
 #ifdef _WIN32
 #include <openssl/applink.c>
-#endif
-
+#endif 
 
 class BasicSerializationTest : public ::testing::Test {
  protected:
-
+ 
   static void SetUpTestCase() {
 
 	  //theLoop().signal(SIGPIPE).then([](int s){});
@@ -139,14 +138,14 @@ TEST_F(BasicSerializationTest, fromParams)
 	EXPECT_EQ("two",user.tags[1]);
 	EXPECT_EQ("three",user.tags[2]);
 }
-  
-
+   
+ 
 TEST_F(BasicSerializationTest, toXml) 
 {
 	User user{ "mike", "littlemole", "secret", { "one", "two", "three"} };
 	std::shared_ptr<xml::Document> doc = toXml(user);
 
-	std::string s = doc->toString();
+	std::string s = doc->toString(); 
  
 	std::cout << s << std::endl;
 
@@ -184,7 +183,7 @@ TEST_F(BasicSerializationTest, toXml)
 	rxto.level1.index = 0;
 
 	fromXml(d2,rxto);
-
+ 
 	doc = toXml(rxto);
 	s = doc->toString();
 std::cout << s << std::endl;
@@ -213,7 +212,7 @@ TEST_F(BasicSerializationTest, toJson)
 	EXPECT_EQ("two",other.tags[1]);
 	EXPECT_EQ("three",other.tags[2]);
 }
- 
+    
  
 TEST_F(BasicSerializationTest, toJsonArray) 
 {
@@ -221,16 +220,16 @@ TEST_F(BasicSerializationTest, toJsonArray)
 	std::vector<User> root;
 	root.push_back(user);
 	root.push_back(user);
-	root.push_back(user);
-
+	root.push_back(user);  
+   
 	Json::Value json = toJson(root);
 
 	std::string s = JSON::flatten(json); 
 
 	EXPECT_EQ("[{\"login\":\"littlemole\",\"pwd\":\"secret\",\"tags\":[\"one\",\"two\",\"three\"],\"username\":\"mike\"},{\"login\":\"littlemole\",\"pwd\":\"secret\",\"tags\":[\"one\",\"two\",\"three\"],\"username\":\"mike\"},{\"login\":\"littlemole\",\"pwd\":\"secret\",\"tags\":[\"one\",\"two\",\"three\"],\"username\":\"mike\"}]",s);
 
-	std::vector<User> other;
-	fromJson(json,other);
+	std::vector<User> other; 
+	fromJson(json,other);   
 
 	for(int i = 0; i < 3; i++)
 	{
@@ -243,8 +242,8 @@ TEST_F(BasicSerializationTest, toJsonArray)
 		EXPECT_EQ("three",other[i].tags[2]);
 	}
 }
-
    
+    
 TEST_F(BasicSerializationTest, toJsonArray2) 
 {
 	User user{ "mike", "littlemole", "secret", { "one", "two", "three"} };
@@ -310,7 +309,7 @@ TEST_F(BasicSerializationTest, toJsonArray4)
 	EXPECT_EQ("b",other[0][1]);
 	EXPECT_EQ("c",other[1][0]);
 	EXPECT_EQ("d",other[1][1]);
-}
+} 
 
 
 int main(int argc, char **argv)

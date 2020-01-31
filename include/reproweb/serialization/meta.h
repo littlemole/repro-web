@@ -130,33 +130,16 @@ public:
     const char* entity = 0;
     const char* name = 0;
 
-    template<class S>
-    void serialize( const T& from, void* to ) const
-    {
-    }
+    using value_t = void;
 
-
-    template<class S>
-    void deserialize( const void* from, T& to ) const
-    {
-    }
+    template<class V>
+    void visit( const T& from, V visitor ) const
+    {}
 
     MetaData<T()>& operator[](const char* n)
     {
         entity = n;
 		return *this;
-    }    
-
-    template<class F>
-    void value(T& t,const char* name, F f) const
-    {
-        throw repro::Ex("meta never found");
-    }
-
-    template<class R>
-    R get(T& t,const char* name) const
-    {
-        throw repro::Ex("meta never found");
     }    
 };
 
@@ -169,24 +152,29 @@ public:
 
     MetaData( const char* n, M m )
         : name(n), member(m)
-    {
-    }
+    {}
 
     const char* entity = 0;
     const char* name;
     M member;
 
-    template<class S>
-    void serialize( const T& from, void* to ) const
+    using value_t = decltype( std::declval<T>().*member );
+
+    auto get(const T& from) const
     {
-        S::serialize( name, from.*member, to );
+        return from.*member;
     }
 
-
-    template<class S>
-    void deserialize( const void* from, T& to ) const
+    template<class P>
+    void set(T& to, P value) const
     {
-        S::deserialize( name, from, to.*member );
+        to.*member = value;
+    }
+
+    template<class V>
+    void visit( const T& from, V visitor ) const
+    {
+        visitor(name, *this);
     }
 
     MetaData<T(const char*, M )>& operator[](const char* n)
@@ -194,48 +182,6 @@ public:
         entity = n;
 		return *this;
     }
-
-    auto find(const char* n)
-    {
-        if( strcmp(n,name) == 0)
-        {
-            return *this;
-        }
-    }
-
-    template<class F>
-    void value(T& t,const char* n, F f,typename std::enable_if<std::is_invocable<F,decltype(t.*member)>::value>::type* = nullptr) const
-    {
-        if(strcmp(n,name)==0)
-        {
-            f(t.*member);
-            return;
-        }
-        throw repro::Ex("meta not found 1");
-    }
-
-    template<class F>
-    void value(T& t,const char* n, F f,typename std::enable_if<!std::is_invocable<F,decltype(t.*member)>::value>::type* = nullptr) const
-    {
-        throw repro::Ex("meta not found 2");
-    }
-
-
-    template<class R>
-    R get(T& t,const char* name,typename std::enable_if<std::is_assignable<R,decltype(t.*member)>::value>::type* = nullptr) const
-    {
-        if(strcmp(name,name)==0)
-        {
-            return t.*member;
-        }
-        throw repro::Ex("meta not found 1");
-    } 
-
-    template<class R>
-    R get(T& t,const char* name,typename std::enable_if<!std::is_assignable<R,decltype(t.*member)>::value>::type* = nullptr) const
-    {
-        throw repro::Ex("meta not found 1");
-    }     
 };
 
 ///////////////////////////////////////////////////////////////////////////////////////////
@@ -248,26 +194,30 @@ public:
 
     MetaData( const char* n, M m, Args ... args )
         : MetaData<T(Args ...)>(args...), name(n), member(m)
-    {
-    }
+    {}
 
     const char* entity = 0;
     const char* name;
     M member;
 
-    template<class S>
-    void serialize( const T& from, void* to ) const
+    using value_t = decltype(  std::declval<T>().*member );
+
+    auto get(const T& from) const
     {
-        S::serialize( name, from.*member, to);
-        MetaData<T(Args...)>:: template serialize<S>(from,to);
+        return from.*member;
     }
 
-
-    template<class S>
-    void deserialize(const void* from, T& to ) const
+    template<class P>
+    void set(T& to, P value) const
     {
-        S::deserialize( name, from, to.*member);
-        MetaData<T(Args...)>:: template deserialize<S>(from,to);
+        to.*member = value;
+    }
+
+    template<class V>
+    void visit( const T& from, V visitor ) const
+    {
+        visitor(name, *this);
+        MetaData<T(Args...)>:: template visit<V>(from,visitor);
     }
 
     MetaData<T(const char*, M, Args... )>& operator[](const char* n)
@@ -275,40 +225,6 @@ public:
         entity = n;
 		return *this;
     }
-
-    template<class F>
-    void value(T& t,const char* n, F f,typename std::enable_if<std::is_invocable<F,decltype(t.*member)>::value>::type* = nullptr) const
-    {
-        if(strcmp(n,name)==0)
-        {
-            f(t.*member);
-            return;
-        }
-
-        MetaData<T(Args ...)>::value(t,n,f);
-    }
-
-    template<class F>
-    void value(T& t,const char* n, F f,typename std::enable_if<!std::is_invocable<F,decltype(t.*member)>::value>::type* = nullptr) const
-    {
-        MetaData<T(Args ...)>::value(t,n,f);
-    }
-
-    template<class R>
-    R get(T& t,const char* n,typename std::enable_if<std::is_assignable<R,decltype(t.*member)>::value>::type* = nullptr) const
-    {
-        if(strcmp(n,name)==0)
-        {
-            return t.*member;
-        }
-        return MetaData<T(Args ...)>::template get<R>(t,n);
-    } 
-
-    template<class R>
-    R get(T& t,const char* n,typename std::enable_if<!std::is_assignable<R,decltype(t.*member)>::value>::type* = nullptr) const
-    {
-        return MetaData<T(Args ...)>::template get<R>(t,n);
-    }      
 };
 
 ///////////////////////////////////////////////////////////////////////////////////////////
@@ -320,50 +236,34 @@ public:
 
     MetaData( const Member<T,M>& m, Args ... args )
         : MetaData<T(Args ...)>(args...), member(m)
-    {
-    }
+    {}
 
     const char* entity = 0;
     Member<T,M> member;
 
-    template<class S>
-    void serialize( const T& from, void* to ) const
+    using value_t = M;
+
+    M get(const T& from) const
     {
-        S::serialize( member.name, from.*(member.member), to);
-        MetaData<T(Args...)>:: template serialize<S>(from,to);
+        return from.*member.member;
     }
 
-
-    template<class S>
-    void deserialize( const void* from, T& to ) const
+    void set(T& to, M value) const
     {
-        S::deserialize( member.name, from, to.*(member.member));
-        MetaData<T(Args...)>:: template deserialize<S>(from,to);
+        to.*member.member = value;
+    }
+
+    template<class V>
+    void visit( const T& from, V visitor ) const
+    {
+        visitor(member.name, *this);
+        MetaData<T(Args...)>:: template visit<V>(from,visitor);
     }
 
     MetaData<T( Member<T,M>, Args... )>& operator[](const char* n)
     {
         entity = n;
 		return *this;
-    }    
-
-
-    template<class F>
-    void value(T& t,const char* n, F f,typename std::enable_if<std::is_invocable<F,decltype(t.*(member.member))>::value>::type* = nullptr) const
-    {
-        if(strcmp(n,member.name)==0)
-        {
-            f(t.*(member.member));
-            return;
-        }
-
-        MetaData<T(Args ...)>::value(t,n,f);
-    }
-
-    template<class F>
-    void value(T& t,const char* n, F f,typename std::enable_if<!std::is_invocable<F,decltype(t.*(member.member))>::value>::type* = nullptr) const
-    {
-        MetaData<T(Args ...)>::value(t,n,f);
     }    
 };
 
@@ -376,34 +276,36 @@ public:
 
     MetaData( const GetterSetter<T,M>& m, Args ... args )
         : MetaData<T(Args ...)>(args...), getterSetter(m)
-    {
-    }
+    {}
 
     const char* entity = 0;
     GetterSetter<T,M> getterSetter;
 
-    template<class S>
-    void serialize( const T& from, void* to ) const
+    using value_t = M;
+
+    M get(const T& from) const
     {
-        if(getterSetter.getter)
+        if(!getterSetter.getter)
         {
-            std::remove_const_t<std::remove_reference_t<M>> m = (from.*getterSetter.getter)();
-            S::serialize( getterSetter.name, m, to);
+            return M();
         }
-        MetaData<T(Args...)>:: template serialize<S>(from,to);
+        return (from.*getterSetter.getter)();
     }
 
-
-    template<class S>
-    void deserialize( const void* from, T& to ) const
+    void set(T& to, M value) const
     {
-        if(getterSetter.setter)
+        if(!getterSetter.setter)
         {
-            std::remove_const_t<std::remove_reference_t<M>> m;
-            S::deserialize( getterSetter.name, from, m);
-            (to.*getterSetter.setter)(m);
-        }
-        MetaData<T(Args...)>:: template deserialize<S>(from,to);
+            return;
+        }        
+        (to.*getterSetter.setter)(value);
+    }
+
+    template<class V>
+    void visit( const T& from, V visitor ) const
+    {
+        visitor(getterSetter.name, *this );
+        MetaData<T(Args...)>:: template visit<V>(from,visitor);
     }
 
     MetaData<T( GetterSetter<T,M>, Args... )>& operator[](const char* n)
@@ -411,26 +313,6 @@ public:
         entity = n;
 		return *this;
     }     
-
-
-    template<class F>
-    void value(T& t,const char* n, F f,typename std::enable_if<std::is_invocable<F,decltype(t.*(getterSetter.getter)())>::value>::type* = nullptr) const
-    {
-        if(strcmp(n,getterSetter.name)==0)
-        {
-            std::remove_const_t<M> m = (t.*getterSetter.getter)();
-            f(m);
-            return;
-        }
-
-        MetaData<T(Args ...)>::value(t,n,f);
-    }
-
-    template<class F>
-    void value(T& t,const char* n, F f,typename std::enable_if<!std::is_invocable<F,decltype(t.*(getterSetter.getter)())>::value>::type* = nullptr) const
-    {
-        MetaData<T(Args ...)>::value(t,n,f);
-    }      
 };
 
 ///////////////////////////////////////////////////////////////////////////////////////////
@@ -442,34 +324,51 @@ public:
 
     MetaData( const GetterSetterConst<T,M>& m, Args ... args )
         : MetaData<T(Args ...)>(args...), getterSetter(m)
-    {
-    }
+    {}
 
     const char* entity = 0;
     GetterSetterConst<T,M> getterSetter;
 
-    template<class S>
-    void serialize( const T& from, void* to ) const
+    using value_t = M;
+
+    template<class R,class F>
+    void find(const T& from,const char* name, F fun)
     {
-        if(getterSetter.getter)
+        if(strcmp(name,getterSetter.name)==0)
         {
-            std::remove_const_t<std::remove_reference_t<M>> m = (from.*getterSetter.getter)();
-            S::serialize( getterSetter.name, m, to);
+            if constexpr( std::is_invocable<F,value_t>::value )
+            {
+                fun(this->get(from));
+            }
+            return;
         }
-        MetaData<T(Args...)>:: template serialize<S>(from,to);
+         MetaData<T(Args...)>:: template find<R,F>(from,name,fun);
+    }
+
+    M get(const T& from) const
+    {
+        if(!getterSetter.getter)
+        {
+            return M();
+        }        
+        return (from.*getterSetter.getter)();
+    }
+
+    void set(T& to, M value) const
+    {
+        if(!getterSetter.setter)
+        {
+            return;
+        }        
+        (to.*getterSetter.setter)(value);
     }
 
 
-    template<class S>
-    void deserialize( const void* from, T& to ) const
+    template<class V>
+    void visit( const T& from, V visitor ) const
     {
-        if(getterSetter.setter)
-        {
-            std::remove_const_t<std::remove_reference_t<M>> m;
-            S::deserialize( getterSetter.name, from, m);
-            (to.*getterSetter.setter)(m);
-        }
-        MetaData<T(Args...)>:: template deserialize<S>(from,to);
+        visitor(getterSetter.name, *this );
+        MetaData<T(Args...)>:: template visit<V>(from,visitor);
     }
 
     MetaData<T( GetterSetterConst<T,M>, Args... )>& operator[](const char* n)
@@ -477,25 +376,6 @@ public:
         entity = n;
 		return *this;
     }     
-
-    template<class F>
-    void value(T& t,const char* n, F f,typename std::enable_if<std::is_invocable<F,decltype(t.*(getterSetter.getter)())>::value>::type* = nullptr) const
-    {
-        if(strcmp(n,getterSetter.name)==0)
-        {
-            std::remove_const_t<M> m = (t.*getterSetter.getter)();
-            f(m);
-            return;
-        }
-
-        MetaData<T(Args ...)>::value(t,n,f);
-    }
-
-    template<class F>
-    void value(T& t,const char* n, F f,typename std::enable_if<!std::is_invocable<F,decltype(t.*(getterSetter.getter)())>::value>::type* = nullptr) const
-    {
-        MetaData<T(Args ...)>::value(t,n,f);
-    }      
 };
 
 ///////////////////////////////////////////////////////////////////////////////////////////
@@ -548,10 +428,6 @@ auto meta_of(const T& t, typename std::enable_if<std::is_class<T>::value && !has
     return m;
 }
 
-    
-
-///////////////////////////////////////////////////////////////////////////////////////////
-
 template<class T>
 auto meta_of(const std::vector<T>& t)
 {
@@ -563,16 +439,6 @@ auto meta_of(const std::vector<T>& t)
 
 
 ///////////////////////////////////////////////////////////////////////////////////////////
-
-
-template<class R, class T>
-R meta_get(T& t,const char* name) 
-{
-    auto m = meta_of(t);
-    return m.template get<R>(t,name);
-}  
-
-
 ///////////////////////////////////////////////////////////////////////////////////////////
 
 }

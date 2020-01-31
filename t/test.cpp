@@ -342,66 +342,6 @@ TEST_F(BasicTest, NamedArgs)
 	}
 }
 
-template<class T>
-void assignor(std::string& s, T t)
-{
-	s = t;
-}
-
-template<class T>
-void assignor(std::string& s, std::vector<T>& v)
-{
-}
-
-TEST_F(BasicTest, MetaValue) 
-{
-
-	User user{ "mike", "littlemole", "secret" };
-	const auto& m = meta_of(user);
-
-	std::string test;
-	m.value(user,"username", [&test](auto n)
-	{
-		assignor(test,n);
-	});
-
-	EXPECT_STREQ("mike",test.c_str());
-
-	m.value(user,"login", [&test](auto n)
-	{
-		assignor(test,n);
-	});
-
-	EXPECT_STREQ("littlemole",test.c_str());
-
-	m.value(user,"pwd", [&test](auto n)
-	{
-		assignor(test,n);
-	});
-
-	EXPECT_STREQ("secret",test.c_str());
-
-}
-
-TEST_F(BasicTest, MetaGet) 
-{
-
-	User user{ "mike", "littlemole", "secret" };
-	const auto& m = meta_of(user);
-
-	std::string test = meta_get<std::string>(user,"username");
-
-	EXPECT_STREQ("mike",test.c_str());
-
-	test = meta_get<std::string>(user,"login");
-
-	EXPECT_STREQ("littlemole",test.c_str());
-
-	test = meta_get<std::string>(user,"pwd");
-
-	EXPECT_STREQ("secret",test.c_str());
-
-}
 
 int main(int argc, char **argv)
 {

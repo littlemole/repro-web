@@ -169,53 +169,34 @@ template<class T>
 void fromParams( prio::QueryParams& qp, T& t);
 
 template<class T>
-void fromParams( prio::QueryParams& qp, std::vector<T>& t);
-
-class ParamsSerializer
-{
-public:
-
-    template<class T>
-    static void deserialize( const char* name, const void* from, T& to) 
-    {
-				prio::QueryParams& qp = *( (prio::QueryParams*)from);
-
-				std::string val = qp.get(name);
-
-				fromParams(val,to);
-    }
-    
-    template<class T>
-    static void deserialize( const char* name, const void* from, std::vector<T>& to) 
-    {
-				prio::QueryParams& qp = *( (prio::QueryParams*)from);
-
-				to.clear();
-				std::string val = qp.get(name);
-				auto v = prio::split(val,",");
-				for ( auto& i : v)
-				{
-					T t;
-					fromParams(i,t);
-					to.push_back(std::move(t));
-				}
-    }
-};
+void fromParams( const std::string& val, std::vector<T>& to);
 
 template<class T>
 void fromParams( prio::QueryParams& qp, T& t)
 {
 	const auto& m = meta_of(t);
 
-    m. template deserialize<ParamsSerializer>(&qp,t);
+	auto visitor = [&qp, &t]( const char* name, auto& m)
+	{	
+		std::remove_reference_t<typename std::remove_reference_t<decltype(m)>::value_t> value;
+		std::string val = qp.get(name);
+		fromParams(val,value);
+		m.set(t,value);
+	};
+	m.visit(t,visitor);	
 }
 
 template<class T>
-void fromParams( prio::QueryParams& qp, std::vector<T>& t)
+void fromParams( const std::string& val, std::vector<T>& to)
 {
-	const auto& m = meta_of(t);
-
-    m. template deserialize<ParamsSerializer>(&qp,t);
+	to.clear();
+	auto v = prio::split(val,",");
+	for ( auto& i : v)
+	{
+		T t;
+		fromParams(i,t);
+		to.push_back(std::move(t));
+	}
 }
 
 
@@ -223,32 +204,31 @@ void fromParams( prio::QueryParams& qp, std::vector<T>& t)
 ///////////////////////////////////////////////////////////////////////////////////////////
 
 template<class T>
-void fromRequest( prio::Request& req, T& t);
-
-class RequestSerializer
+void fromRequest( prio::Request& req, T& t)
 {
-public:
+    const auto& m = meta_of(t);
 
-
-    template<class T>
-    static void deserialize( const char* member, const void* from, T& to) 
-    {
-		prio::Request& req = *( (prio::Request*)from);
+	auto visitor = [&req, &t]( const char* member, auto& m)
+	{	
+		std::remove_reference_t<typename std::remove_reference_t<decltype(m)>::value_t> value;
 
 		// path param
 
-		prio::Args args = getPathArgs(req);
+		prio::Args args = req.path.args();
 		if ( args.exists(member) )
 		{
-			reproweb::fromParams( args.get(member), to );
+			reproweb::fromParams( args.get(member), value );
+			m.set(t,value);
 			return;
 		}
 
 		// query param
-		prio::QueryParams qp = getQueryParams(req);
+
+		prio::QueryParams qp = req.path.queryParams();
 		if (qp.exists(member))
 		{
-			reproweb::fromParams( qp.get(member), to );
+			reproweb::fromParams( qp.get(member), value );
+			m.set(t,value);
 			return;
 		}
 
@@ -258,7 +238,8 @@ public:
 
 		if(c.exists(member))
 		{
-			reproweb::fromParams( c.get(member), to );
+			reproweb::fromParams( c.get(member), value );
+			m.set(t,value);
 			return;
 		}
 
@@ -266,41 +247,13 @@ public:
 
 		if(req.headers.exists(member))
 		{
-			reproweb::fromParams( req.headers.values(member), to );
+			reproweb::fromParams( req.headers.values(member), value );
+			m.set(t,value);
 			return;
-		}
-    }
-    
+		}	
 
-	static prio::QueryParams getQueryParams(prio::Request& req )
-	{
-		static const char* key = "__queryparams";
-		if ( !req.attributes.exists(key) )
-		{
-			req.attributes.set(key, req.path.queryParams());
-		}
-
-		return req.attributes.attr<prio::QueryParams>(key);
-	}
-
-	static prio::Args getPathArgs(prio::Request& req )
-	{
-		static const char* key = "__pathargs";
-		if ( !req.attributes.exists(key) )
-		{
-			req.attributes.set(key, req.path.args() );
-		}
-
-		return req.attributes.attr<prio::Args>(key);
-	}		
-};
-
-template<class T>
-void fromRequest( prio::Request& req, T& t)
-{
-    const auto& m = meta_of(t);
-
-    m. template deserialize<RequestSerializer>(&req,t);
+	};
+	m.visit(t,visitor);		
 }
 
 //////////////////////////////////////////////////////////////

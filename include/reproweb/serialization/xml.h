@@ -54,6 +54,12 @@ inline void toXml( const char* n,  std::string from, xml::ElementPtr to)
 {
 	if(!n) return;
 
+	if(n[0] == '@')
+	{
+		to->setAttribute(n+1,from);
+		return;
+	}	
+
 	xml::ElementPtr el = to->ownerDocument()->createElement(n);
 	if(el)
 	{
@@ -73,6 +79,14 @@ template<class T>
 void toXml( const char* n,  T from, xml::ElementPtr to, typename std::enable_if<std::is_arithmetic<T>::value>::type* = nullptr)
 {
 	if(!n) return;
+
+	if(n[0] == '@')
+	{
+		std::ostringstream oss;
+		oss << from;
+		to->setAttribute(n+1,oss.str());
+		return;
+	}	
 
 	std::ostringstream oss;
 	oss << from;
@@ -98,154 +112,79 @@ void toXml( const char* n,  T from, xml::ElementPtr to, typename std::enable_if<
 template<class T>
 void toXml( const char* n, const T& from, xml::ElementPtr to, typename std::enable_if<std::is_class<T>::value>::type* = nullptr );
 
-
-inline void fromXml( xml::ElementPtr from, std::string& to)
-{
-	to = from->innerXml();
-}
-
 template<class T>
-void fromXml( xml::ElementPtr from, T& to, typename std::enable_if<std::is_arithmetic<T>::value>::type* = nullptr)
+void toXml( const char* n, const std::vector<T>& from, xml::ElementPtr to )
 {
-	std::istringstream iss(from->innerXml());
-	iss >> to;
+	for( auto& f : from)
+	{
+		toXml(n,f,to);				
+	}
 }
 
 ///////////////////////////////////////////////////////////////////////////////////////////
 ///////////////////////////////////////////////////////////////////////////////////////////
 
 
-template<class T>
-void fromXml( xml::ElementPtr from, T& to, typename std::enable_if<std::is_class<T>::value>::type* = nullptr);
-
-template<class T>
-void fromXml( xml::ElementPtr from, std::vector<T>&  to);
-
-///////////////////////////////////////////////////////////////////////////////////////////
-
-class XmlSerializer
+inline void fromXml( const char* name, xml::ElementPtr from, std::string& to)
 {
-public:
+	//to = from->innerXml();
 
-    static void serialize( const char* name, const std::string& from, void* to ) 
-    {
-		xml::ElementPtr xmlTo = *((xml::ElementPtr*) to);
+	if(!name)
+	{
+		to = from->innerXml();
+		return;
+	}
 
-		if(name[0] == '@')
-		{
-			xmlTo->setAttribute(name+1,from);
-			return;
-		}
+	if(name[0] == '@')
+	{
+		to = from->attr(name+1);
+		return;
+	}
 
-		toXml(name,from,xmlTo);
-    }
+	xml::ElementPtr el = from->childNodes()->getChildByName(name);
+	if(el)
+	{
+		to = el->innerXml();
+	}	
+}
 
-	template<class T>
-    static void serialize( const char* name, const T& from, void* to, typename std::enable_if<std::is_arithmetic<T>::value>::type* = nullptr ) 
-    {
-		xml::ElementPtr xmlTo = *((xml::ElementPtr*) to);
+template<class T>
+void fromXml(const char* name, xml::ElementPtr from, T& to, typename std::enable_if<std::is_arithmetic<T>::value>::type* = nullptr)
+{
+	if(!name)
+	{
+		std::istringstream iss(from->innerXml());
+		iss >> to;
+		return;
+	}
 
-		if(name[0] == '@')
-		{
-			std::ostringstream oss;
-			oss << from;
-			xmlTo->setAttribute(name+1,oss.str());
-			return;
-		}
+	if(name[0] == '@')
+	{
+		std::istringstream iss(from->attr(name+1));
+		iss >> to;
+		return;
+	}
 
-		toXml(name,from,xmlTo);
-    }
-
-    template<class T>
-    static void serialize( const char* name, const T& from, void* to, typename std::enable_if<std::is_class<T>::value>::type* = nullptr ) 
-    {
-		xml::ElementPtr xmlTo = *((xml::ElementPtr*) to);
-
-		toXml(name,from,xmlTo);		
-    }
+	xml::ElementPtr el = from->childNodes()->getChildByName(name);
+	if(el)
+	{
+		std::istringstream iss(from->innerXml());
+		iss >> to;
+	}		
+}
 
 
-    template<class T>
-    static void serialize( const char* name, const std::vector<T>& from, void* to ) 
-    {
-		xml::ElementPtr xmlTo = *((xml::ElementPtr*) to);
 
-		for( auto& f : from)
-		{
-			toXml(name,f,xmlTo);				
-		}
-    }
+template<class T>
+void fromXml( const char* name, xml::ElementPtr from, T& to, typename std::enable_if<std::is_class<T>::value>::type* = nullptr);
 
-	template<class T>
-    static void deserialize( const char* name, const void* from, T& to, typename std::enable_if<std::is_arithmetic<T>::value>::type* = nullptr) 
-    {
-		xml::ElementPtr xmlFrom = *((xml::ElementPtr*) from);
-
-		if(name[0] == '@')
-		{
-			std::istringstream iss(xmlFrom->attr(name+1));
-			iss >> to;
-			return;
-		}
-
-		xml::ElementPtr el = xmlFrom->childNodes()->getChildByName(name);
-		if(el)
-		{
-			fromXml(el,to);
-		}
-    }
-
-    static void deserialize( const char* name, const void* from, std::string& to) 
-    {
-		xml::ElementPtr xmlFrom = *((xml::ElementPtr*) from);
-
-		if(name[0] == '@')
-		{
-			to = xmlFrom->attr(name+1);
-			return;
-		}
-
-		xml::ElementPtr el = xmlFrom->childNodes()->getChildByName(name);
-		if(el)
-		{
-			fromXml(el,to);
-		}
-    }
-
-    template<class T>
-    static void deserialize( const char* name, const void* from, T& to, typename std::enable_if<std::is_class<T>::value>::type* = nullptr) 
-    {
-		xml::ElementPtr xmlFrom = *((xml::ElementPtr*) from);
-
-		xml::ElementPtr el = xmlFrom->childNodes()->getChildByName(name);
-		if(el)
-		{
-			fromXml(el,to);
-		}
-    }
-	
-    template<class T>
-    static void deserialize( const char* name, const void* from, std::vector<T>& to) 
-    {
-		xml::ElementPtr xmlFrom = *((xml::ElementPtr*) from);
-
-		to.clear();
-
-		xml::NodeListPtr items = xmlFrom->childNodes()->getChildrenByName(name);
-
-		int size = items->length();
-		for( int i = 0; i < size; i++)
-		{
-			T t;
-			fromXml( std::dynamic_pointer_cast<xml::Element>(items->item(i)), t);
-			to.push_back(std::move(t));	
-		}
-    }
-    
-};
+template<class T>
+void fromXml( const char* name, xml::ElementPtr from, std::vector<T>&  to);
 
 ///////////////////////////////////////////////////////////////////////////////////////////
 ///////////////////////////////////////////////////////////////////////////////////////////
+///////////////////////////////////////////////////////////////////////////////////////////
+
 
 template<class T>
 void toXml( const char* n, const T& from, xml::ElementPtr to, typename std::enable_if<std::is_class<T>::value>::type*  )
@@ -256,15 +195,22 @@ void toXml( const char* n, const T& from, xml::ElementPtr to, typename std::enab
 	{
 		xml::ElementPtr el = to->ownerDocument()->createElement(n);
 		to->appendChild(el);		
-	    m. template serialize<XmlSerializer>(from,&el);
+
+		auto visitor = [&from, &el]( const char* name, auto& m)
+		{	
+			toXml(name, m.get(from), el);
+		};
+		m.visit(from,visitor);		   
 	}
 	else
 	{
-	    m. template serialize<XmlSerializer>(from,&to);
+		auto visitor = [&from, &to]( const char* name, auto& m)
+		{	
+			toXml(name, m.get(from), to);
+		};
+		m.visit(from,visitor);		
 	}
 }
-
-
 template<class T>
 void toXml( const T& from, xml::ElementPtr to, typename std::enable_if<std::is_class<T>::value>::type* )
 {
@@ -278,20 +224,65 @@ void toXml( const T& from, xml::ElementPtr to, typename std::enable_if<std::is_c
 ///////////////////////////////////////////////////////////////////////////////////////////
 
 template<class T>
-void fromXml( xml::ElementPtr from, T& to, typename std::enable_if<std::is_class<T>::value>::type*)
+void fromXml( const char* name, xml::ElementPtr from, T& to, typename std::enable_if<std::is_class<T>::value>::type* )
+{
+	const auto& m = meta_of(to);
+
+	auto el = from;
+
+	if(name)
+	{
+		el = from->childNodes()->getChildByName(name);
+	}
+
+	auto visitor = [&el, &to]( const char* name, auto& m)
+	{	
+		using value_t = std::remove_reference_t<typename std::remove_reference_t<decltype(m)>::value_t>;
+		value_t value;
+
+		fromXml(name,el,value);
+		m.set(to,value);
+	};
+	m.visit(to,visitor);	
+}
+
+template<class T>
+void fromXml( xml::ElementPtr from, T& to, typename std::enable_if<std::is_class<T>::value>::type* = nullptr )
 {
 	const auto& m = meta_of(to);
 
 	if(m.entity)
 	{
-		xml::ElementPtr el = from->childNodes()->getChildByName(m.entity);
-		if(el)
-		{
-			m. template deserialize<XmlSerializer>(&el,to);
-			return;
-		}
+		fromXml(m.entity,from,to);
+		return;
 	}
-   	m. template deserialize<XmlSerializer>(&from,to);
+
+	auto visitor = [&from, &to]( const char* name, auto& m)
+	{	
+		using value_t = std::remove_reference_t<typename std::remove_reference_t<decltype(m)>::value_t>;
+		value_t value;
+
+		fromXml(name,from,value);
+		m.set(to,value);
+	};
+	m.visit(to,visitor);	
+
+}
+
+template<class T>
+void fromXml( const char* name, xml::ElementPtr from, std::vector<T>&  to)
+{
+	to.clear();
+
+	xml::NodeListPtr items = from->childNodes()->getChildrenByName(name);
+
+	int size = items->length();
+	for( int i = 0; i < size; i++)
+	{
+		T t;
+		fromXml( 0, std::dynamic_pointer_cast<xml::Element>(items->item(i)), t);
+		to.push_back(std::move(t));	
+	}
 }
 
 ///////////////////////////////////////////////////////////////////////////////////////////
@@ -324,10 +315,6 @@ void fromXml(const std::string& xml, T& t )
 }
 
 //////////////////////////////////////////////////////////////
-
-
-
-
 //////////////////////////////////////////////////////////////
 
 template<class T>

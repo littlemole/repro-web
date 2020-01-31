@@ -88,27 +88,6 @@ void fromSQL(repromysql::result_async::Ptr r, std::vector<T>& v);
 
 
 ///////////////////////////////////////////////////////////////////////////////////////////
-
-class SQLSerializer
-{
-public:
-
-    template<class T>
-    static void deserialize( const char* name, const void* from, T& to) 
-    {
-        repromysql::result_async::Ptr r = *((repromysql::result_async::Ptr*)from);
-
-        try {
-            fromSQL( name, r, to);
-        }
-        catch(...)
-        {
-            // memmber might not be in result set so I will throw
-        }
-    }
-};
-
-///////////////////////////////////////////////////////////////////////////////////////////
 ///////////////////////////////////////////////////////////////////////////////////////////
 
 
@@ -119,14 +98,21 @@ void fromSQL(repromysql::result_async::Ptr r, T& t)
     {
         const auto& m = meta_of(t);
 
-	    m. template deserialize<SQLSerializer>(&r,t);
+        auto visitor = [&r, &t]( const char* name, auto& m)
+        {	
+            std::remove_reference_t<typename std::remove_reference_t<decltype(m)>::value_t> value;
+            try 
+            {
+                fromSQL(name,r,value);
+                m.set(t,value);
+            }
+            catch(...)
+            {
+                // memmber might not be in result set so I will throw
+            }            
+        };
+        m.visit(t,visitor);
     }
-    // don' do that, return empty result
-/*    else
-    {
-        throw repro::Ex("empty result");
-    }    
-    */
 }
 
 template<class T>
@@ -138,7 +124,21 @@ void fromSQL(repromysql::result_async::Ptr r, std::vector<T>& v)
         T t;
         const auto& m = meta_of(t);
 
-	    m. template deserialize<SQLSerializer>(&r,t);
+        auto visitor = [&r, &t]( const char* name, auto& m)
+        {	
+            std::remove_reference_t<typename std::remove_reference_t<decltype(m)>::value_t> value;
+            try 
+            {
+                fromSQL(name,r,value);
+                m.set(t,value);
+            }
+            catch(...)
+            {
+                // memmber might not be in result set so I will throw
+            }                
+        };
+        m.visit(t,visitor);        
+
         v.push_back(std::move(t));
     }
 }

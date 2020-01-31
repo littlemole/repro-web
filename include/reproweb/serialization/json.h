@@ -176,29 +176,37 @@ public:
 
 
 template<class T>
-void toJson(const char* name, const T& from, Json::Value& to, typename std::enable_if<std::is_class<T>::value>::type*)
+void toJson(const char* n, const T& from, Json::Value& to, typename std::enable_if<std::is_class<T>::value>::type*)
 {
     const auto& m = meta_of(from);
 
-	to[name] = Json::Value(Json::objectValue);
+	auto result = Json::Value(Json::objectValue);
 
-	m. template serialize<JsonSerializer>(from,&(to[name]));
+	auto visitor = [&from,&to,n]( const char* name, auto& m)
+	{	
+		toJson(name,m.get(from),to[n]);
+	};
+	m.visit(from,visitor);
 }
 
 template<class T>
 Json::Value toJson(const T& t)
 {
-    const auto& m = meta_of(t);
-
     Json::Value result(Json::objectValue);
+
+    const auto& m = meta_of(t);
 
 	if(m.entity)
 	{
 		toJson(m.entity,t,result);
-	}
+	} 
 	else
 	{
-	    m. template serialize<JsonSerializer>(t,&result);
+		auto visitor = [&t, &result]( const char* name, auto& m)
+		{	
+			toJson(name,m.get(t),result);
+		};
+		m.visit(t,visitor);
 	}
 
     return result;
@@ -237,12 +245,24 @@ void fromJson(const Json::Value& from, T& t)
 		if ( from.isMember(m.entity))
 		{
 			Json::Value member = from[m.entity];
-			m. template deserialize<JsonSerializer>(&member,t);
+			auto visitor = [&member, &t]( const char* name, auto& m)
+			{	
+				std::remove_reference_t<typename std::remove_reference_t<decltype(m)>::value_t> value;
+				fromJson(member[name],value);
+				m.set(t,value);
+			};
+			m.visit(t,visitor);			
 			return;
 		}
 	}
 
-	m. template deserialize<JsonSerializer>(&from,t);
+	auto visitor = [&from, &t]( const char* name, auto& m)
+	{	
+		std::remove_reference_t<typename std::remove_reference_t<decltype(m)>::value_t> value;
+		fromJson(from[name],value);
+		m.set(t,value);
+	};
+	m.visit(t,visitor);
 }
 
 template<class T>

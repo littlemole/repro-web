@@ -70,13 +70,13 @@ struct RedisJsonMapper
 				})
 				.otherwise([p](const std::exception& ex)
 				{
-					p.reject(RedisEx(ex.what));
+					p.reject(RedisEx(ex.what()));
 				});				
 			}			
 		})
 		.otherwise([p](const std::exception& ex)
 		{
-			p.reject(RedisEx(ex.what));
+			p.reject(RedisEx(ex.what()));
 		});		
 
 		return p.future();
