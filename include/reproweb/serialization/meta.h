@@ -331,20 +331,6 @@ public:
 
     using value_t = M;
 
-    template<class R,class F>
-    void find(const T& from,const char* name, F fun)
-    {
-        if(strcmp(name,getterSetter.name)==0)
-        {
-            if constexpr( std::is_invocable<F,value_t>::value )
-            {
-                fun(this->get(from));
-            }
-            return;
-        }
-         MetaData<T(Args...)>:: template find<R,F>(from,name,fun);
-    }
-
     M get(const T& from) const
     {
         if(!getterSetter.getter)
