@@ -342,6 +342,38 @@ TEST_F(BasicTest, NamedArgs)
 	}
 }
 
+ 
+TEST_F(BasicTest, MetaFind) 
+{
+	User user{ "mike", "littlemole", "secret", { "one", "two", "three"} };
+
+	auto m = meta_of(user);
+
+/*
+	std::string username ;
+	m.find<std::string>("username",[&user,&username](auto& m)
+	{
+		username = m.get(user);
+	});
+*/
+	std::string username = meta_get<std::string>(user,"username");
+
+	EXPECT_EQ("mike",username);
+
+	meta_set(user,"username",std::string("mole"));
+
+	EXPECT_EQ("mole",user.username);
+
+	bool r = meta_has<std::string>(user,"username");
+
+	EXPECT_EQ(true,r);
+
+	r = meta_has<std::string>(user,"username2");
+
+	EXPECT_EQ(false,r);
+
+}
+
 
 int main(int argc, char **argv)
 {

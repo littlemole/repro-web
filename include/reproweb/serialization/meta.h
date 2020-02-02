@@ -242,7 +242,7 @@ public:
     Member<T,M> member;
 
     using value_t = M;
-
+    
     M get(const T& from) const
     {
         return from.*member.member;
@@ -406,12 +406,28 @@ auto meta_of(const T& t, typename std::enable_if<std::is_class<T>::value && has_
 
 
 template<class T>
+auto meta_of(typename std::enable_if<std::is_class<T>::value && has_meta<T>::value>::type* = nullptr) 
+{
+    static T t;
+    static auto m = t.meta();
+    return m;
+}
+
+template<class T>
 auto meta_of(const T& t, typename std::enable_if<std::is_class<T>::value && !has_meta<T>::value>::type* = nullptr) 
 {
     typedef decltype( meta(t) ) meta_t;
 
     static meta_t m = meta(t);
     return m;
+}
+
+
+template<class T>
+auto meta_of(typename std::enable_if<std::is_class<T>::value && !has_meta<T>::value>::type* = nullptr) 
+{
+    static T t;
+    return meta(t);
 }
 
 template<class T>
@@ -425,6 +441,75 @@ auto meta_of(const std::vector<T>& t)
 
 
 ///////////////////////////////////////////////////////////////////////////////////////////
+
+ template<class R, class T>
+ R meta_get(const T& t, const char* name)
+ {
+    R result;
+
+    auto visitor = [&t, &result, name]( const char* n, auto& m)
+    {	
+        using value_t = std::remove_reference_t<typename std::remove_reference_t<decltype(m)>::value_t>;
+        if constexpr( std::is_assignable<R,value_t>::value )
+        {
+            if(strcmp(name,n)==0)
+            {
+                result = m.get(t);
+            }
+        }
+    };
+
+	auto m = meta_of(t);
+    m.visit(t,visitor);    
+
+    return result;
+ }
+
+  
+ template<class T, class P>
+ void meta_set( T& t, const char* name,P p)
+ {
+    auto visitor = [&t, &p, name]( const char* n, auto& m)
+    {	
+        using value_t = std::remove_reference_t<typename std::remove_reference_t<decltype(m)>::value_t>;
+        if constexpr( std::is_assignable<value_t,P>::value )
+        {
+            if(strcmp(name,n)==0)
+            {
+                m.set(t,p);
+            }
+        }
+    };
+
+	auto m = meta_of(t);
+    m.visit(t,visitor);  
+ }
+
+
+  
+ template<class R, class T>
+ bool meta_has( T& t, const char* name)
+ {
+    bool result = false;
+
+    auto visitor = [&t, &result, name]( const char* n, auto& m)
+    {	
+        using value_t = std::remove_reference_t<typename std::remove_reference_t<decltype(m)>::value_t>;
+        if constexpr( std::is_assignable<R,value_t>::value )
+        {
+            if(strcmp(name,n)==0)
+            {
+                result = true;
+            }
+        }
+    };
+
+	auto m = meta_of(t);
+    m.visit(t,visitor);
+
+    return result;
+ }
+
 ///////////////////////////////////////////////////////////////////////////////////////////
 
 }
