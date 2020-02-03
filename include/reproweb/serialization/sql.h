@@ -13,64 +13,143 @@ namespace reproweb {
 
 inline void fromSQL( const char* name, repromysql::result_async::Ptr r, std::string& t)
 {
-    const repromysql::Retval& rv = r->field(std::string(name));
-    if( !rv.null() )
+    try
     {
-        t = r->field(std::string(name)).getString(); 
+        const repromysql::Retval& rv = r->field(std::string(name));
+
+        if( !rv.null() )
+        {
+            t = r->field(std::string(name)).getString(); 
+        }
+        else
+        {
+            t = "";
+        }    
+    }
+    catch(...)
+    {
+        t = "";
     }
 }
 
 inline void fromSQL( const char* name, repromysql::result_async::Ptr r, int& t)
 {
-    const repromysql::Retval& rv = r->field(std::string(name));
-    if( !rv.null() )
+    try
     {
-        t = r->field(std::string(name)).getInt(); 
+        const repromysql::Retval& rv = r->field(std::string(name));
+        if( !rv.null() )
+        {
+            t = r->field(std::string(name)).getInt(); 
+        }
+        else
+        {
+            t = 0;
+        }
+    }
+    catch(...)
+    {
+        t = 0;
     }
 }
 
 inline void fromSQL( const char* name, repromysql::result_async::Ptr r, double& t)
 {
-    const repromysql::Retval& rv = r->field(std::string(name));
-    if( !rv.null() )
+    try
     {
-        t = r->field(std::string(name)).getDouble(); 
+        const repromysql::Retval& rv = r->field(std::string(name));
+        if( !rv.null() )
+        {
+            t = r->field(std::string(name)).getDouble(); 
+        }
+        else
+        {
+            t = 0;
+        }       
     }
-}
+    catch(...)
+    {
+        t = 0;
+    }
+} 
 
 inline void fromSQL( const char* name, repromysql::result_async::Ptr r, float& t)
 {
-    const repromysql::Retval& rv = r->field(std::string(name));
-    if( !rv.null() )
+    try
     {
-        t = r->field(std::string(name)).getFloat(); 
-    }    
+        const repromysql::Retval& rv = r->field(std::string(name));
+        if( !rv.null() )
+        {
+            t = r->field(std::string(name)).getFloat(); 
+        }            
+        else
+        {
+            t = 0;
+        }
+    }
+    catch(...)
+    {
+        t = 0;
+    }
+
 }
 
 inline void fromSQL( const char* name, repromysql::result_async::Ptr r, bool& t)
 {
-    const repromysql::Retval& rv = r->field(std::string(name));
-    if( !rv.null() )
+    try
     {
-        t = r->field(std::string(name)).getInt() != 0; 
-    }    
+        const repromysql::Retval& rv = r->field(std::string(name));
+        if( !rv.null() )
+        {
+            t = r->field(std::string(name)).getInt() != 0; 
+        }         
+        else
+        {
+            t = 0;
+        }
+    }
+    catch(...)
+    {
+        t = 0;
+    }   
 }
 
 inline void fromSQL( const char* name, repromysql::result_async::Ptr r, long long& t)
 {
-    const repromysql::Retval& rv = r->field(std::string(name));
-    if( !rv.null() )
+    try
     {
-        t = r->field(std::string(name)).getLongLong(); 
-    }    
+        const repromysql::Retval& rv = r->field(std::string(name));
+        if( !rv.null() )
+        {
+            t = r->field(std::string(name)).getLongLong(); 
+        }  
+        else
+        {
+            t = 0;
+        }        
+    }
+    catch(...)
+    {
+        t = 0;
+    }  
 }
 
 inline void fromSQL( const char* name, repromysql::result_async::Ptr r, char& t)
 {
-    const repromysql::Retval& rv = r->field(std::string(name));
-    if( !rv.null() )
+    try
     {
-        t = r->field(std::string(name)).getInt(); 
+        const repromysql::Retval& rv = r->field(std::string(name));
+        if( !rv.null() )
+        {
+            t = r->field(std::string(name)).getInt(); 
+        }
+        else
+        {
+            t = 0;
+        }        
+    }
+    catch(...)
+    {
+        t = 0;
     }
 }
 
@@ -101,15 +180,9 @@ void fromSQL(repromysql::result_async::Ptr r, T& t)
         auto visitor = [&r, &t]( const char* name, auto& m)
         {	
             std::remove_reference_t<typename std::remove_reference_t<decltype(m)>::value_t> value;
-            try 
-            {
-                fromSQL(name,r,value);
-                m.set(t,value);
-            }
-            catch(...)
-            {
-                // memmber might not be in result set so I will throw
-            }            
+
+            fromSQL(name,r,value);
+            m.set(t,value);
         };
         m.visit(t,visitor);
     }
@@ -127,15 +200,9 @@ void fromSQL(repromysql::result_async::Ptr r, std::vector<T>& v)
         auto visitor = [&r, &t]( const char* name, auto& m)
         {	
             std::remove_reference_t<typename std::remove_reference_t<decltype(m)>::value_t> value;
-            try 
-            {
-                fromSQL(name,r,value);
-                m.set(t,value);
-            }
-            catch(...)
-            {
-                // memmber might not be in result set so I will throw
-            }                
+
+            fromSQL(name,r,value);
+            m.set(t,value);
         };
         m.visit(t,visitor);        
 
