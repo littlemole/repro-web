@@ -440,6 +440,27 @@ auto meta_of(const std::vector<T>& t)
 }
 
 
+template<class T>
+std::vector<const char*> meta_fields_of(const T& t)
+{
+    auto m = meta_of<T>();
+    std::vector<const char*> result;
+
+    auto visitor = [&result]( const char* n, auto& )
+    {	
+        result.push_back(n);
+    };
+
+    m.visit(t,visitor);     
+    return result;
+}
+
+template<class T>
+std::vector<const char*> meta_fields_of()
+{
+    static T t;
+    return meta_fields_of(t);
+}
 ///////////////////////////////////////////////////////////////////////////////////////////
 
  template<class R, class T>

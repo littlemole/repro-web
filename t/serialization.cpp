@@ -120,8 +120,42 @@ public:
 		);
 	}
 };
+
+class Dummy
+{
+public:
+	int x = 0;
+
+	auto meta() const 
+	{
+		return metadata(
+			"value", &Dummy::x
+		);
+	}	
+};
  
+TEST_F(BasicSerializationTest, fromParamsInt) 
+{
+	QueryParams qp("value=8");
+
+	Dummy d;
+	fromParams(qp,d);
  
+	EXPECT_EQ(8,d.x);
+}
+
+ 
+TEST_F(BasicSerializationTest, fields) 
+{
+	User user{ "mike", "littlemole", "secret", { "one", "two", "three"} };
+
+	auto fields = meta_fields_of(user);
+ 
+	EXPECT_EQ("username",fields[0]);
+	EXPECT_EQ("login",fields[1]);
+	EXPECT_EQ("pwd",fields[2]);
+	EXPECT_EQ("tags",fields[3]);
+}
 
 TEST_F(BasicSerializationTest, fromParams) 
 {
@@ -242,7 +276,83 @@ TEST_F(BasicSerializationTest, toJsonArray)
 		EXPECT_EQ("three",other[i].tags[2]);
 	}
 }
+
+template<class T>
+std::string joinTabs(const std::vector<T>& v)
+{
+	if(v.empty())
+	return "";
+
+	std::ostringstream oss;
+
+	for( auto i : v)
+	{
+		oss << csv_quote(i);
+		oss << '\t';
+	}
+
+	std::string result = oss.str();
+	return result.substr(0,result.size()-1);
+}
+
+
+template<class T>
+std::string toCSV(const std::vector<T>& v)
+{
+	std::ostringstream oss;
+	auto m = meta_of<T>();
+
+	oss << joinTabs(meta_fields_of<T>()) << std::endl;
+	for( auto i : v)
+	{
+		std::vector<std::string> result;
+		auto visitor = [&i,&result]( const char* n, auto& m )
+		{	
+			std::ostringstream oss;
+			oss << m.get(i);
+			result.push_back(oss.str());
+		};
+
+		m.visit(i,visitor); 
+
+		oss << joinTabs(result) << std::endl;
+	}
+
+	return oss.str();
+}
+
+class CSVTest
+{
+public:
+
+	std::string columna;
+	int columnb;
+	long columnc;
+
+	auto meta() const
+	{
+		return metadata<CSVTest>(
+			"columna", &CSVTest::columna,
+			"columnb", &CSVTest::columnb,
+			"columnc", &CSVTest::columnc
+		);
+	}
+};
+ 
+TEST_F(BasicSerializationTest, toCSV) 
+{
+	CSVTest t{ "a value", 42, 4711};
+
+	std::vector<CSVTest> root;
+	root.push_back(t);
+	root.push_back(t);
+	root.push_back(t);  
    
+	std::string s = toCSV(root);
+
+	EXPECT_EQ("\"columna\"\t\"columnb\"\t\"columnc\"\n\"a value\"\t\"42\"\t\"4711\"\n\"a value\"\t\"42\"\t\"4711\"\n\"a value\"\t\"42\"\t\"4711\"\n",s);
+}
+
     
 TEST_F(BasicSerializationTest, toJsonArray2) 
 {

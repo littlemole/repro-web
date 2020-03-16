@@ -180,6 +180,8 @@ void fromParams( prio::QueryParams& qp, T& t)
 	{	
 		std::remove_reference_t<typename std::remove_reference_t<decltype(m)>::value_t> value;
 		std::string val = qp.get(name);
+		std::cout << "val: " << val << std::endl;
+		std::cout << typeid(value).name() << std::endl;
 		fromParams(val,value);
 		m.set(t,value);
 	};

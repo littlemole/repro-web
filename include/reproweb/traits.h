@@ -4,7 +4,7 @@
 #include <functional>
 #include <set>
 #include <type_traits>
-
+#include <sstream>
 
 #ifndef _WIN32
 #include <experimental/type_traits>
@@ -127,6 +127,29 @@ namespace reproweb {
 typedef ::repro::Future<> Async;
 
 //#endif
+
+
+inline std::string csv_quote(const std::string& in)
+{
+	std::ostringstream oss;
+    oss << '"';
+
+	for(char c : in)
+	{
+		if(c=='"')
+		{
+			oss << '"';
+		}
+        if(c=='\t' || c=='\r' || c=='\n' || c=='\\')
+        {
+            oss << '\\';
+        }
+		oss << c;
+	}
+    oss << '"';
+
+	return oss.str();
+}
 
 }
 

@@ -243,10 +243,19 @@ TEST_F(BasicTest,dummy)
     std::string b64 = Base64Url::encode(plain);
 
     plain = Base64Url::decode(in);
-
+ 
     EXPECT_STREQ(b64.c_str(),in.c_str());
 }
 
+
+TEST_F(BasicTest,quote)
+{
+	std::string in = "some\"text\"with\"embedded\"quotes";
+
+    std::string escaped = reproweb::csv_quote(in);
+
+    EXPECT_STREQ("\"some\"\"text\"\"with\"\"embedded\"\"quotes\"",escaped.c_str());
+}
 
  
 TEST_F(BasicTest, Invocable) 
