@@ -17,10 +17,10 @@ ENV TS=${TS}
 ARG PG=
 ENV PG=${PG}
 
-RUN /usr/local/bin/install.sh repro 
-RUN /usr/local/bin/install.sh prio 
-RUN /usr/local/bin/install.sh repro-curl
-RUN /usr/local/bin/install.sh prio-http 
+RUN BRANCH=ng /usr/local/bin/install.sh repro 
+RUN BRANCH=ng /usr/local/bin/install.sh prio 
+RUN BRANCH=ng /usr/local/bin/install.sh repro-curl
+RUN BRANCH=ng /usr/local/bin/install.sh prio-http 
 
 RUN mkdir -p /usr/local/src/reproweb
 ADD . /usr/local/src/reproweb
