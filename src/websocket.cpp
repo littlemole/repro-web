@@ -43,6 +43,8 @@ WsConnection::WsConnection()
 	onConnect_ = [](Ptr){};
 	onClose_ = [](Ptr){};
 	onMsg_ = [](Ptr,const std::string&){};
+
+	REPRO_MONITOR_INCR(ws);
 }
 
 
@@ -60,11 +62,14 @@ WsConnection::WsConnection( prio::SslCtx& ctx)
 	onConnect_ = [](Ptr){};
 	onClose_ = [](Ptr){};
 	onMsg_ = [](Ptr,const std::string&){};
+
+	REPRO_MONITOR_INCR(ws);
 }
 
 
 WsConnection::~WsConnection()
 {
+	REPRO_MONITOR_DECR(ws);
 }
 
 
@@ -184,7 +189,7 @@ Future<WsConnection::Ptr> WsConnection::connect(std::string urlStr)
 		tmp.resolve(this->shared_from_this());
 		send_msg();
 	})	
-	.otherwise( [this,p](const std::exception& ex) {
+	.otherwise( [this,p](const std::exception_ptr& ex) {
 
 		p.reject(ex);
 		onClose_(shared_from_this());
@@ -265,7 +270,7 @@ void WsConnection::read_frame()
 
 		read_len();
 	})
-	.otherwise( [this](const std::exception& e)
+	.otherwise( [this](const std::exception_ptr& e)
 	{
 		pending_ = false;
 		onClose_(shared_from_this());
@@ -308,7 +313,7 @@ void WsConnection::read_len()
 
 			read_mask_or_msg();
 		})
-		.otherwise([this](const std::exception& ex)
+		.otherwise([this](const std::exception_ptr& ex)
 		{
 			pending_ = false;
 		});
@@ -494,10 +499,12 @@ WebsocketWriter::WebsocketWriter(int op, WsConnection::Ptr f, bool isClient)
 		}
 	}
 
+	REPRO_MONITOR_INCR(wsWriter);
 }
 
 WebsocketWriter::~WebsocketWriter()
 {
+	REPRO_MONITOR_DECR(wsWriter);
 }
 
 std::string WebsocketWriter::mask( const std::string& buf )

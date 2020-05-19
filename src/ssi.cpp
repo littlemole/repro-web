@@ -66,7 +66,7 @@ Future<std::string> SSIResolver::fetch( Request& req, const std::string& tmpl)
                 self_.reset();
             }
         })
-        .otherwise([this,p,rejected](const std::exception& ex)
+        .otherwise([this,p,rejected](const std::exception_ptr& ex)
         {
             if(!*rejected)
             {

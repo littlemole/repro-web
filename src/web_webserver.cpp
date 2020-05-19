@@ -221,7 +221,7 @@ void WebServer::run_config(Json::Value json)
                 res.body(s);
                 res.ok().flush();
             })
-            .otherwise([&res](const std::exception& ex)
+            .otherwise([&res](const std::exception_ptr& ex)
             {
                 res.error().flush();
             });

@@ -28,7 +28,7 @@ public:
 
 		if(username.empty() || login.empty() || pwd.empty())
 		{
-			return prio::rejected(p,RegistrationEx("username, login and password may not be empty"));
+			return p.rejected(RegistrationEx("username, login and password may not be empty"));
 		}
 
 		cryptoneat::Password pass;

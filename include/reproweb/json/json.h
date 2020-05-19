@@ -148,7 +148,7 @@ repro::Future<> forEach( std::shared_ptr<Json::Value> json, unsigned int index, 
 	{
 		p.resolve();
 	})
-	.otherwise(prio::reject(p));
+	.otherwise(repro::reject(p));
 
 	return p.future();
 }

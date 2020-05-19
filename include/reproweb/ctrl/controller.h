@@ -66,7 +66,10 @@ private:
 		{
 			invoke_handler(fc,req,res,fun)
 			.then([](){})
-			.otherwise([](const std::exception& ex){ std::cout << ex.what() << std::endl;});
+			.otherwise([](const std::exception& ex)
+			{ 
+				std::cout << ex.what() << std::endl;
+			});
 		});
 	}
 

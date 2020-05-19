@@ -222,7 +222,7 @@ repro::Future<std::string> FrontController::include(const prio::Request& req, co
 	{
 		p.resolve(res.body()); 
 	})
-	.otherwise(prio::reject(p));
+	.otherwise(repro::reject(p));
 
     std::shared_ptr<diy::Context> ctx = std::make_shared<diy::Context>( ctx_.get() );
     subreq->req.attributes.set("ctx", ctx);

@@ -253,10 +253,7 @@ repro::Future<std::string> ViewI18nDecorator::render_content(prio::Request& req,
 
 		p.resolve(tmpl);
 	})
-	.otherwise([p](const std::exception& ex)
-	{
-		p.reject(ex);
-	});
+	.otherwise(reject(p));
 	
 	return p.future();
 }
@@ -279,10 +276,7 @@ repro::Future<std::string> ViewMustacheDecorator::render_content(prio::Request& 
 
 		p.resolve(content);
 	})
-	.otherwise([p](const std::exception& ex)
-	{
-		p.reject(ex);
-	});
+	.otherwise(reject(p));
 	
 	return p.future();
 }
@@ -307,10 +301,7 @@ repro::Future<std::string> ViewSSIDecorator::render_content(prio::Request& req, 
 	{
 		p.resolve(txt);
 	})		
-	.otherwise([p](const std::exception& ex)
-	{
-		p.reject(ex);
-	});
+	.otherwise(reject(p));
 	
 	return p.future();
 }

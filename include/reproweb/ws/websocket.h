@@ -24,8 +24,6 @@ class WsConnection : public std::enable_shared_from_this<WsConnection>
 {
 public:
 
-	LITTLE_MOLE_MONITOR(WsConnections);
-
 	prio::Request req;
 
 	~WsConnection();
@@ -150,8 +148,6 @@ private:
 class WebsocketWriter : public std::enable_shared_from_this<WebsocketWriter>
 {
 public:
-
-	LITTLE_MOLE_MONITOR(WebsocketWriters);
 
 	~WebsocketWriter();
 
