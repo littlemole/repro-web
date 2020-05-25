@@ -156,6 +156,7 @@ TEST_F(BasicWsTest, SimpleHttps) {
 		prio::SslCtx server_ctx;
 		server_ctx.load_cert_pem("pem/server.pem");
 		prio::SslCtx client_ctx;
+		client_ctx.set_ca_path("pem/ca.crt");
 
 		reproweb::WebServer server(ctx);
 
