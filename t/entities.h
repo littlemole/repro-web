@@ -111,7 +111,7 @@ public:
 
 	repro::Future<int> test()
 	{
-		co_await nextTick();
+		(void)(co_await nextTick());
 		co_return 42;
 	}
 #endif

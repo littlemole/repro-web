@@ -150,14 +150,14 @@ Async invoke_handler(FrontController& fc, prio::Request& req,  prio::Response& r
 	try
 	{
 		C& c = prepare_controller<C>(req);
-		co_await (c.*fun)(HandlerParam<Args>::get(req,res)...);
+		(void)(co_await (c.*fun)(HandlerParam<Args>::get(req,res)...));
 	}
 	catch(std::exception& ex)
 	{
 		fc.handle_exception(ex, req, res);
 	}
 
-	co_await prio::nextTick();
+	(void)(co_await prio::nextTick());
 	co_return;
 }
 
@@ -226,7 +226,7 @@ Async invoke_handler(FrontController& fc, prio::Request& req,  prio::Response& r
 		fc.handle_exception(ex, req, res);
 	}
 
-	co_await prio::nextTick();
+	(void)(co_await prio::nextTick());
 	co_return;
 }
  

@@ -513,7 +513,7 @@ std::vector<const char*> meta_fields_of()
  {
     bool result = false;
 
-    auto visitor = [&t, &result, name]( const char* n, auto& m)
+    auto visitor = [ &result, name]( const char* n, auto& m)
     {	
         using value_t = std::remove_reference_t<typename std::remove_reference_t<decltype(m)>::value_t>;
         if constexpr( std::is_assignable<R,value_t>::value )

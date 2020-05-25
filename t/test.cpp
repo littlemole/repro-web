@@ -356,7 +356,7 @@ TEST_F(BasicTest, MetaFind)
 {
 	User user{ "mike", "littlemole", "secret", { "one", "two", "three"} };
 
-	auto m = meta_of(user);
+//	auto m = meta_of(user);
 
 /*
 	std::string username ;

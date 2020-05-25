@@ -391,7 +391,7 @@ Async invoke_handler(FrontController& fc, prio::Request& req,  prio::Response& r
 		fc.handle_exception(ex, req, res);
 	}
 
-	co_await prio::nextTick();
+	(void)(co_await prio::nextTick());
 	co_return;
 }
 
@@ -448,7 +448,7 @@ Async invoke_handler(FrontController& fc, prio::Request& req,  prio::Response& r
 		fc.handle_exception(ex, req, res);
 	}
 
-	co_await prio::nextTick();
+	(void)(co_await prio::nextTick());
 	co_return;
 }
 

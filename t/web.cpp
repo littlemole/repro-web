@@ -118,7 +118,7 @@ repro::Future<> coroutine_example(reproweb::WebServer& server, std::string& resu
 {
 	try
 	{
-		co_await nextTick();
+		(void) co_await nextTick();
 
 		auto post = reprocurl::async_curl()->url("http://127.0.0.1:8765/root/path/b")->method("POST")->data("dummy");
 
