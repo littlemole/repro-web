@@ -13,8 +13,8 @@ ENV BACKEND=${BACKEND}
 ARG BUILDCHAIN=make
 ENV BUILDCHAIN=${BUILDCHAIN}
 
-RUN /usr/local/bin/install.sh  repro-redis
-RUN /usr/local/bin/install.sh  repro-sqlite
+RUN BRANCH=ng /usr/local/bin/install.sh  repro-redis
+RUN BRANCH=ng /usr/local/bin/install.sh  repro-sqlite
 
 RUN mkdir -p /usr/local/src/reproweb-example
 ADD . /usr/local/src/reproweb-example

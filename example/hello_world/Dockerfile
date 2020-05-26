@@ -1,5 +1,5 @@
 # This is a comment
-FROM littlemole/reproweb_gpp_libevent_make
+FROM littlemole/reproweb_clangpp_boost_asio_make
 MAINTAINER me <little.mole@oha7.org>
 
 RUN DEBIAN_FRONTEND=noninteractive apt-get install -y redis-server libsqlite3-dev libnss3-tools
@@ -13,8 +13,8 @@ ENV BACKEND=${BACKEND}
 ARG BUILDCHAIN=make
 ENV BUILDCHAIN=${BUILDCHAIN}
 
-RUN /usr/local/bin/install.sh  repro-redis
-RUN /usr/local/bin/install.sh  repro-sqlite
+RUN BRANCH=ng /usr/local/bin/install.sh  repro-redis
+RUN BRANCH=ng /usr/local/bin/install.sh  repro-sqlite
 
 RUN mkdir -p /usr/local/src/reproweb-example
 ADD . /usr/local/src/reproweb-example

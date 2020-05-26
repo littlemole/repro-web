@@ -44,6 +44,12 @@ struct Rest
 		return url(oss.str(),args ...);
 	}
 
+	Rest& cert(const std::string& crt)
+	{
+		req_.client_cert(crt);
+		return *this;
+	}
+
 	Rest& insecure()
 	{
 		req_.insecure();
@@ -124,7 +130,7 @@ private:
 
 			p.resolve(o);
 		})
-		.otherwise(prio::reject(p));
+		.otherwise(repro::reject(p));
 
 		return p.future();			
 	}
@@ -142,7 +148,7 @@ private:
 
 			p.resolve();
 		})
-		.otherwise(prio::reject(p));
+		.otherwise(repro::reject(p));
 
 		return p.future();			
 	}	

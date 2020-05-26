@@ -98,8 +98,6 @@ private:
 			},10);
 		});				
 
-		std::cout << "redis subscribed " << topic << std::endl;
-
 		listeners_[topic] = std::unique_ptr<reproredis::RedisSubscriber>(sub);
 	}
 
