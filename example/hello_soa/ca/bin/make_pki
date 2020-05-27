@@ -10,11 +10,13 @@ bin/install_ca ca/ca.crt
 bin/install_ca_nss ca/ca.crt
 
 bin/make_cert "web" "DNS:localhost,DNS:web"
-cp certs/web/web.pem ../chat/pem/server.pem
+cp certs/web/web.pem ../chat/pem/web.pem
 cp ca/ca.crt ../chat/pem/ca.crt
 
 bin/make_cert "session" "DNS:localhost,DNS:session"
-cp certs/session/session.pem ../session-service/pem/server.pem
+cp certs/session/session.pem ../session-service/pem/session.pem
+cp ca/ca.crt ../session-service/pem/ca.crt
 
 bin/make_cert "user" "DNS:localhost,DNS:user"
-cp certs/user/user.pem ../user-service/pem/server.pem
+cp certs/user/user.pem ../user-service/pem/user.pem
+cp ca/ca.crt ../user-service/pem/ca.crt

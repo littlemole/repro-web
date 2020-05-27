@@ -133,6 +133,11 @@ public:
 		return loginService_;
 	}		
 
+	std::string cert()
+	{
+		return getString("cert");
+	}
+
 private:
 
 	std::string sessionService_;

@@ -103,6 +103,7 @@ public:
 
 		reproweb::JSON::Rest::url( config->registrationEndpoint())
 		//.insecure()
+		.cert(config->cert())
 		.post( user )
 		.fetch<Json::Value>()
 		.then([p](Json::Value json)
@@ -131,6 +132,7 @@ public:
 
 		reproweb::JSON::Rest::url( config->loginEndpoint())
 		//.insecure()
+		.cert(config->cert())
 		.post(json)
 		.fetch<Json::Value>()
 		.then([p](Json::Value json)		

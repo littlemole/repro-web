@@ -3,7 +3,7 @@
     "session-service" : "https://localhost:9878",
     "redis"  : "redis://localhost:6379/",
     "sqlite" : "./user.db",
-    "cert"   : "pem/server.pem",
+    "cert"   : "pem/web.pem",
     "view"   : "/view/",
     "htdocs" : "/htdocs/",
     "i18n"   : {
@@ -12,7 +12,7 @@
     },
     "https"  :
     {
-        "cert"   : "pem/server.pem",
+        "cert"   : "pem/web.pem",
         "ports"  : [ 9876 ],
         "http2"  : false
     }
