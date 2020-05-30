@@ -9,11 +9,12 @@
 #include <priocpp/api.h>
 #include <reprocpp/promise.h>
 #include <reproweb/traits.h>
-
+#include <metacpp/json.h>
 #include <algorithm>
 
 namespace reproweb  {
 
+/*
 namespace JSON {
 
 //////////////////////////////////////////////////////////////
@@ -68,7 +69,7 @@ inline const std::string flatten(Json::Value value)
 } // end namespace JSON
 
 
-
+*/
 //////////////////////////////////////////////////////////////
 //////////////////////////////////////////////////////////////
 

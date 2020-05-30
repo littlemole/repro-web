@@ -3,7 +3,8 @@
 
 #include "priohttp/multipart.h"
 #include "priohttp/response.h"
-#include "reproweb/serialization/meta.h"
+#include "metacpp/meta.h"
+#include "reproweb/traits.h"
 #include "reproweb/ctrl/front_controller.h"
 
 namespace reproweb  {

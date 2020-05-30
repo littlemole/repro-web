@@ -6,7 +6,7 @@
 #include "reproweb/ctrl/controller.h"
 #include "reproweb/ctrl/filter.h"
 #include "reproweb/json/json.h"
-#include "reproweb/serialization/meta.h"
+#include "metacpp/meta.h"
 #include "cryptoneat/cryptoneat.h"
 #include <ctime>
 
@@ -41,7 +41,7 @@ public:
     //! \private
     auto meta() const
     {
-        return metadata<Session>(
+        return meta::data<Session>(
             "authenticated", &Session::authenticated,
             "sid", &Session::sid,
             "data", &Session::data

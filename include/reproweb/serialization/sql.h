@@ -3,7 +3,7 @@
 
 #include <repromysql/mysql-bindings.h>
 #include <repromysql/mysql-async.h>
-#include <reproweb/serialization/meta.h>
+#include <metacpp/meta.h>
 
 namespace reproweb {
 

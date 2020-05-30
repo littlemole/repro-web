@@ -3,6 +3,7 @@
 
 #include <reproweb/json/json.h>
 #include <reproweb/serialization/parameter.h>
+#include <metacpp/json.h>
 #include "reproweb/ctrl/front_controller.h"
 
 namespace reproweb {
@@ -36,7 +37,7 @@ auto json_promise()
 }
 
 ///////////////////////////////////////////////////////////////////////////////////////////
-
+/*
 inline void toJson( const char* name, Json::Value& from, Json::Value& to)
 {
 	to[name] = from;
@@ -277,7 +278,7 @@ void fromJson(const std::string& from, T& t)
 	Json::Value json = JSON::parse(from);
 	fromJson(json,t);
 }
-
+*/
 //////////////////////////////////////////////////////////////
 
 template<class T>
@@ -290,7 +291,7 @@ public:
 		Json::Value json = JSON::parse(req.body());
 
 		json_t<T> t;
-		fromJson(json,t.value);
+		meta::fromJson(json,t.value);
 		validate(t.value);
 
 		return t;
@@ -329,14 +330,14 @@ inline void output_json(prio::Response& res,Json::Value json)
 template<class T>
 void output_json(prio::Response& res, T& t)
 {
-	output_json(res, toJson(t) );
+	output_json(res, meta::toJson(t) );
 }
 
 
 template<class T>
 void output_json(prio::Response& res, json_t<T>& t)
 {
-	output_json(res, toJson(t.value) );
+	output_json(res, meta::toJson(t.value) );
 }
 
 //////////////////////////////////////////////////////////////

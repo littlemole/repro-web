@@ -43,7 +43,7 @@ mustache::Data mustache::fromJson(Json::Value& data)
 {
 	if ( data.isArray())
 	{
-		Data d(Data::List());
+		Data d(Data::type::list);
 		for( unsigned int i = 0; i < data.size(); i++)
 		{
 			d.push_back( fromJson( data[i]));
@@ -52,7 +52,7 @@ mustache::Data mustache::fromJson(Json::Value& data)
 	}
 	if ( data.isObject())
 	{
-		Data d(Data::Type::Object);
+		Data d(Data::type::object);
 		std::vector<std::string> members = data.getMemberNames();
 		for( std::string m : members)
 		{
@@ -62,7 +62,7 @@ mustache::Data mustache::fromJson(Json::Value& data)
 	}
 	if ( data.isNull())
 	{
-		return Data(Data::Type::False);
+		return Data(Data::type::bool_false);
 	}
 	return Data(data.asString());
 }
@@ -131,7 +131,7 @@ std::string TplStore::render(const std::string& tpl, const std::string& json)
 		get(tpl)
 	};
 
-	Json::Value val = reproweb::JSON::parse(json);
+	Json::Value val = JSON::parse(json);
 	return m.render(val);
 }
 

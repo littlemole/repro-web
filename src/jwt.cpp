@@ -147,7 +147,7 @@ size_t JWT::inspect(const std::string& token)
     try {
         header_ = JSON::parse( jwt_header );
         claim_ = JSON::parse( jwt_claim );
-    } catch( JSON::JsonParseEx& ex)
+    } catch( JSON::ParseEx& ex)
     {
         return std::string::npos;
     }

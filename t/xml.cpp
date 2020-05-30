@@ -1,9 +1,8 @@
 #include "gtest/gtest.h"
 
-#include "reproweb/xml/document.h"
+#include "patex/document.h"
 
-using namespace reproweb;
-
+using namespace patex;
 
 class BasicTest : public ::testing::Test {
  protected:

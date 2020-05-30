@@ -8,7 +8,7 @@
 #include "reproweb/json/json.h"
 #include "reproweb/view/i18n.h"
 #include "reproweb/ctrl/ssi.h"
-#include "reproweb/view/mustache.hpp"
+#include <mustache.hpp>
 
 namespace reproweb  {
 
@@ -19,8 +19,9 @@ namespace reproweb  {
 class mustache
 {
 public:
-	using Mustache = Kainjow::BasicMustache<std::string>;
-	using Data = Mustache::Data;
+
+	using Mustache = kainjow::mustache::mustache;//<std::string>;
+	using Data = kainjow::mustache::data;
 
 	//! constrcut mustache template from string
 	mustache( const std::string& tpl);

@@ -2,7 +2,8 @@
 #define _MOL_DEF_GUARD_DEFINE_REPROWEB_SERIALIZER_XML_XXX_DEF_GUARD_
 
 
-#include <reproweb/xml/document.h>
+#include <patex/document.h>
+#include <metacpp/xml.h>
 #include <reproweb/serialization/parameter.h>
 #include "reproweb/ctrl/front_controller.h"
 
@@ -42,7 +43,7 @@ auto xml_promise()
 ///////////////////////////////////////////////////////////////////////////////////////////
 ///////////////////////////////////////////////////////////////////////////////////////////
 
-
+/*
 template<class T>
 void toXml( const T& from, xml::ElementPtr to, typename std::enable_if<std::is_class<T>::value>::type* = nullptr);
 
@@ -313,7 +314,7 @@ void fromXml(const std::string& xml, T& t )
 	auto doc = xml::Document::parse_str(xml);
 	fromXml(doc->documentElement(),t);
 }
-
+*/
 //////////////////////////////////////////////////////////////
 //////////////////////////////////////////////////////////////
 
@@ -324,10 +325,10 @@ public:
 
 	static xml_t<T> get(prio::Request& req,  prio::Response& res)
 	{
-		auto doc = xml::Document::parse_str(req.body());
+		auto doc = patex::xml::Document::parse_str(req.body());
 
 		xml_t<T> t;
-		fromXml(doc,t.value);
+		meta::fromXml(doc,t.value);
 		validate(t.value);
 
 		return t;
@@ -349,7 +350,7 @@ inline void output_xml(prio::Response& res,const std::string& xml)
 template<class T>
 void output_xml(prio::Response& res, T& t)
 {
-	auto doc = toXml(t);
+	auto doc = meta::toXml(t);
 	output_xml(res, doc->toString() );
 }
 
@@ -357,7 +358,7 @@ void output_xml(prio::Response& res, T& t)
 template<class T>
 void output_xml(prio::Response& res, xml_t<T>& t)
 {
-	auto doc = toXml(t.value);
+	auto doc = meta::toXml(t.value);
 	output_xml(res, doc->toString() );
 }
 

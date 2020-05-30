@@ -174,18 +174,15 @@ void fromParams( const std::string& val, std::vector<T>& to);
 template<class T>
 void fromParams( prio::QueryParams& qp, T& t)
 {
-	const auto& m = meta_of(t);
-
-	auto visitor = [&qp, &t]( const char* name, auto& m)
+	meta::visit(t, [&qp](auto n, auto m) 
 	{	
-		std::remove_reference_t<typename std::remove_reference_t<decltype(m)>::value_t> value;
-		std::string val = qp.get(name);
+		std::remove_reference_t<typename decltype(m)::setter_value_t> value;
+		std::string val = qp.get(n.name);
 		std::cout << "val: " << val << std::endl;
-		std::cout << typeid(value).name() << std::endl;
+		//std::cout << typeid(value).name() << std::endl;
 		fromParams(val,value);
-		m.set(t,value);
-	};
-	m.visit(t,visitor);	
+		m = value;
+	});
 }
 
 template<class T>
@@ -208,29 +205,28 @@ void fromParams( const std::string& val, std::vector<T>& to)
 template<class T>
 void fromRequest( prio::Request& req, T& t)
 {
-    const auto& m = meta_of(t);
-
-	auto visitor = [&req, &t]( const char* member, auto& m)
+	//auto visitor = [&req, &t]( const char* member, auto& m)
+	meta::visit(t, [&req](auto n, auto m) 
 	{	
-		std::remove_reference_t<typename std::remove_reference_t<decltype(m)>::value_t> value;
+		std::remove_reference_t<typename decltype(m)::setter_value_t> value;
 
 		// path param
 
 		prio::Args args = req.path.args();
-		if ( args.exists(member) )
+		if ( args.exists(n.name) )
 		{
-			reproweb::fromParams( args.get(member), value );
-			m.set(t,value);
+			reproweb::fromParams( args.get(n.name), value );
+			m = value;
 			return;
 		}
 
 		// query param
 
 		prio::QueryParams qp = req.path.queryParams();
-		if (qp.exists(member))
+		if (qp.exists(n.name))
 		{
-			reproweb::fromParams( qp.get(member), value );
-			m.set(t,value);
+			reproweb::fromParams( qp.get(n.name), value );
+			m = value;
 			return;
 		}
 
@@ -238,24 +234,23 @@ void fromRequest( prio::Request& req, T& t)
 
 		const prio::Cookies& c = req.headers.cookies();
 
-		if(c.exists(member))
+		if(c.exists(n.name))
 		{
-			reproweb::fromParams( c.get(member), value );
-			m.set(t,value);
+			reproweb::fromParams( c.get(n.name), value );
+			m = value;
 			return;
 		}
 
 		// header
 
-		if(req.headers.exists(member))
+		if(req.headers.exists(n.name))
 		{
-			reproweb::fromParams( req.headers.values(member), value );
-			m.set(t,value);
+			reproweb::fromParams( req.headers.values(n.name), value );
+			m = value;
 			return;
 		}	
 
-	};
-	m.visit(t,visitor);		
+	});
 }
 
 //////////////////////////////////////////////////////////////

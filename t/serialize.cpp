@@ -41,6 +41,8 @@ using namespace repro;
 using namespace prio;
 using namespace cryptoneat;
 using namespace diy;
+using namespace patex;
+using namespace meta;
 
 typedef const char* entity_name_t;
 
@@ -77,20 +79,25 @@ struct Input
 
 };
  
-auto meta(const Input&)
+template<>
+struct meta::Data<Input>
 {
-	return metadata (
-		// note some mappings are duplicated
-		// for serialization, last one will overider earlier ones
-		// for deserialization however, all will be mapped
-		"id", &Input::id,
-		"filter", &Input::filter,
-		"sid", &Input::sid,
-		"Accept-Language", &Input::header,
-		"Accept-Language", &Input::lang,
-		"sid", &Input::cookie
-	)["Input"];
-}
+        static constexpr auto meta()
+        {
+                return meta::data<Input>(
+					entity_root("Input"),
+					// note some mappings are duplicated
+					// for serialization, last one will overider earlier ones
+					// for deserialization however, all will be mapped
+					"id", &Input::id,
+					"filter", &Input::filter,
+					"sid", &Input::sid,
+					"Accept-Language", &Input::header,
+					"Accept-Language", &Input::lang,
+					"sid", &Input::cookie
+				);
+		}
+};
 
 
 struct User
@@ -103,15 +110,22 @@ public:
 	std::vector<std::string> tags;
 };
 
-auto meta(const User&)
+
+template<>
+struct meta::Data<User>
 {
-	return metadata (
-		"username", &User::username,
-		"login", &User::login,
-		"pwd", &User::pwd,
-		"tags", &User::tags
-	)["user"];
-}
+        static constexpr auto meta()
+        {
+                return meta::data<User>(
+					entity_root("user"),
+					"username", &User::username,
+					"login", &User::login,
+					"pwd", &User::pwd,
+					"tags", &User::tags
+				);
+		}
+};
+ 
  
 
 void validate(User& user)
@@ -176,32 +190,45 @@ struct XmlTest
 
 };  
 
-
-auto meta(const XmlTest::XmlTest1::XmlTest2& t)
+template<>
+struct meta::Data<XmlTest::XmlTest1::XmlTest2>
 {
-	return metadata(
-		"v", &XmlTest::XmlTest1::XmlTest2::v
-	);
-}
+        static constexpr auto meta()
+        {
+                return meta::data<XmlTest::XmlTest1::XmlTest2>(
+					"v", &XmlTest::XmlTest1::XmlTest2::v
+				);
+		}
+};
 
     
 
-auto meta(const XmlTest::XmlTest1& t)
+template<>
+struct meta::Data<XmlTest::XmlTest1>
 {
-	return metadata (
-		"@index", &XmlTest::XmlTest1::index,
-		"level2", &XmlTest::XmlTest1::level2
-	);
-}
+        static constexpr auto meta()
+        {
+                return meta::data<XmlTest::XmlTest1>(
+					member("index", &XmlTest::XmlTest1::index, attribute()),
+					"level2", &XmlTest::XmlTest1::level2
+				);
+		}
+};
  
 
-auto meta(const XmlTest& t)
+template<>
+struct meta::Data<XmlTest>
 {
-	return metadata (
-			"@id", &XmlTest::id,
-			"level1", &XmlTest::level1
-	)["XmlTest"];
-}
+        static constexpr auto meta()
+        {
+                return meta::data<XmlTest>(
+					entity_root("XmlTest"),
+					member("id", &XmlTest::id, attribute()),
+					"level1", &XmlTest::level1
+				);
+		}
+};
+ 
  
 
 TEST_F(SerializeTest, toXml) 
@@ -313,9 +340,9 @@ public:
 	std::string something;
 	std::vector<User> users;
 
-	auto meta() const
+	static constexpr auto meta()
 	{
-		return metadata(
+		return meta::data(
 			"something", &Users::something,
 			"users", &Users::users
 		);
@@ -353,9 +380,9 @@ public:
 
 	std::vector<std::vector<int>> array;
 
-	auto meta() const 
+	static constexpr auto meta()
 	{
-		return metadata(
+		return meta::data(
 			"array", &ArrayTest::array
 		);
 	}
@@ -428,9 +455,9 @@ public:
         s = v;
     }    
 
-    auto meta() const
+    static constexpr auto meta()
     {
-        return metadata<TestGetterSetter>(
+        return meta::data<TestGetterSetter>(
 
             getter_setter("x",&TestGetterSetter::get_x,&TestGetterSetter::set_x),
             getter_setter("s",&TestGetterSetter::get_s,&TestGetterSetter::set_s)

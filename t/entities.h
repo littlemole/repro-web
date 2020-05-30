@@ -52,20 +52,25 @@ struct Input
 
 };
  
-auto meta(const Input&)
+template<>
+struct meta::Data<Input>
 {
-	return metadata (
-		// note some mappings are duplicated
-		// for serialization, last one will overider earlier ones
-		// for deserialization however, all will be mapped
-		"id", &Input::id,
-		"filter", &Input::filter,
-		"sid", &Input::sid,
-		"Accept-Language", &Input::header,
-		"Accept-Language", &Input::lang,
-		"sid", &Input::cookie
-	)["Input"];
-}
+        static constexpr auto meta()
+        {
+                return meta::data<Input>(
+                        entity_root("Input"),
+						// note some mappings are duplicated
+						// for serialization, last one will overider earlier ones
+						// for deserialization however, all will be mapped
+						"id", &Input::id,
+						"filter", &Input::filter,
+						"sid", &Input::sid,
+						"Accept-Language", &Input::header,
+						"Accept-Language", &Input::lang,
+						"sid", &Input::cookie
+                );
+        }
+};
 
 
 struct User
@@ -78,15 +83,20 @@ public:
 	std::vector<std::string> tags;
 };
 
-auto meta(const User&)
+template<>
+struct meta::Data<User>
 {
-	return metadata (
-		"username", &User::username,
-		"login", &User::login,
-		"pwd", &User::pwd,
-		"tags", &User::tags
-	)["user"];
-}
+        static constexpr auto meta()
+        {
+                return meta::data<User>(
+					entity_root("user"),
+					"username", &User::username,
+					"login", &User::login,
+					"pwd", &User::pwd,
+					"tags", &User::tags
+				);
+		}
+};
  
 
 void validate(User& user)
