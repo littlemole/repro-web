@@ -39,9 +39,9 @@ public:
 	std::string hash() const  	  { return hash_; }
 	std::string avatar_url() const  { return avatar_url_; }
 
-	auto meta() const
+	static constexpr auto meta()
 	{
-		return metadata(
+		return meta::data(
 			"login", &User::login_,
 			"username", &User::name_,
 			"pwd", &User::hash_,

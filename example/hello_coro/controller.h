@@ -53,7 +53,7 @@ public:
 
 		std::cout << "valid pwd: " << verified << std::endl;
 
-		if(!verified) throw repro::Ex("invalid login/password combination");
+		if(!verified) throw LoginEx("invalid login/password combination");
 
 		auto session = req_session(req);
 		session->authenticated = true;
@@ -104,19 +104,19 @@ public:
 
 	void on_auth_failed(const AuthEx& ex,Request& req, Response& res)
 	{
-		std::cout << ex.what() << std::endl;
+		std::cout << "auth failed: " << ex.what() << std::endl;
 		view_->redirect_to_login(res);
 	}
 
 	void on_login_failed(const LoginEx& ex,Request& req, Response& res)
 	{
-		std::cout << ex.what() << std::endl;
+		std::cout << "login failed: " <<  ex.what() << std::endl;
 		view_->render_login(res,ex.what());
 	}
 
 	void on_registration_failed(const RegistrationEx& ex,Request& req, Response& res)
 	{
-		std::cout << ex.what() << std::endl;
+		std::cout << "reg failed: " << ex.what() << std::endl;
 		view_->render_registration(res,ex.what());
 	}
 

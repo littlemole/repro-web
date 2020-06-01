@@ -25,9 +25,9 @@ public:
 
 	std::string sid;
 
-	auto meta() const
+	static constexpr auto meta()
 	{
-		return metadata(
+		return meta::data(
 			"sid", 		&SessionId::sid
 		);
 	}	
@@ -67,13 +67,14 @@ public:
 	std::string login() const 	  	{ return login_; }
 	std::string avatar_url() const  { return avatar_url_; }
 
-	auto meta() const
+	static constexpr auto meta()
 	{
-		return metadata(
+		return meta::data(
+			meta::entity_root("user"),
 			"login", 		&User::login_,
 			"username", 	&User::name_,
 			"avatar_url", 	&User::avatar_url_
-		)["user"];
+		);
 	}
 	
 private:
@@ -101,9 +102,9 @@ public:
 	std::string sid() const  	{ return sid_; }
 	User profile() const 		{ return profile_; }
 
-	auto meta() const
+	static constexpr auto meta()
 	{
-		return metadata(
+		return meta::data(
 			"sid", 		&Session::sid_,
 			"profile", 	&Session::profile_
 		);

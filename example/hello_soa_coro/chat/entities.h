@@ -21,9 +21,9 @@ public:
 
 	std::string sid;
 
-	auto meta() const
+	static constexpr auto meta()
 	{
-		return metadata(
+		return meta::data(
 			"repro_web_sid", 		&SessionCookie::sid
 		);
 	}	
@@ -60,12 +60,13 @@ public:
 	std::string login() const 	  		{ return login_; }
 	std::string hash() const  	  		{ return hash_; }
 
-	auto meta() const
+	static constexpr auto meta()
 	{
-		return metadata(
+		return meta::data(
+			meta::entity_root("login"),
 			"login", 		&Login::login_,
 			"pwd", 			&Login::hash_
-		)["login"];
+		);
 	}	
 
 	void validate()
@@ -109,14 +110,15 @@ public:
 	std::string hash() const  	  		{ return hash_; }
 	std::string avatar_url() const  	{ return avatar_url_; }
 
-	auto meta() const
+	static constexpr auto meta()
 	{
-		return metadata(
+		return meta::data(
+			meta::entity_root("user"),
 			"username", 	&User::name_,
 			"login", 		&User::login_,
 			"pwd", 			&User::hash_,
 			"avatar_url", 	&User::avatar_url_
-		)["user"];
+		);
 	}	
 
 	void validate()
@@ -169,9 +171,9 @@ public:
 	User profile() const     { return profile_; }
 
 
-	auto meta() const
+	static constexpr auto meta()
 	{
-		return metadata(
+		return meta::data(
 			"sid", 		&Session::sid_,
 			"profile", 	&Session::profile_
 		);

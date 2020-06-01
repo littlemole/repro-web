@@ -24,7 +24,7 @@ public:
 		sessionRepository->get_user_session(sid)
 		.then([p](Session session)
 		{
-			p.resolve(toJson(session));
+			p.resolve(meta::toJson(session));
 		})
 		.otherwise([this,p](const std::exception& ex)
 		{
@@ -32,7 +32,7 @@ public:
 			sessionRepository->write_user_session(session)
 			.then([p](Session session)
 			{
-				p.resolve(toJson(session));
+				p.resolve(meta::toJson(session));
 			})
 			.otherwise(reject(p));
 		});
@@ -47,7 +47,7 @@ public:
 		sessionRepository->write_user_session(*session)
 		.then([p](Session session)
 		{
-			p.resolve(toJson(session));
+			p.resolve(meta::toJson(session));
 		})
 		.otherwise(reject(p));
 
@@ -89,7 +89,7 @@ public:
 	{
 		std::cout << typeid(ex).name() << ":" << ex.what() << std::endl;
 
-		Json::Value json = exToJson(ex);
+		Json::Value json = meta::exToJson(ex);
 
 		res
 		.not_found()
@@ -102,7 +102,7 @@ public:
 	{
 		std::cout << typeid(ex).name() << ":" << ex.what() << std::endl;
 
-		Json::Value json = exToJson(ex);
+		Json::Value json = meta::exToJson(ex);
 
 		res
 		.error()

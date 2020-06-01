@@ -22,14 +22,14 @@ public:
 	{
 		auto p = promise<reproweb::Session>();
 
-		reproweb::JSON::Rest::url( config->sessionEndpoint(), sid )  
+		reproweb::Rest::url( config->sessionEndpoint(), sid )  
 		//.insecure()
 		.get() 
 		.fetch<Json::Value>() 
 		.then([p,sid](Json::Value json)
 		{
 			Session session;
-			fromJson(json,session);
+			meta::fromJson(json,session);
 			p.resolve(session);
 		})
 		.otherwise([p,sid](const std::exception& ex)
@@ -45,7 +45,8 @@ public:
 	{
 		auto p = promise<>();
 
-		reproweb::JSON::Rest::url( config->sessionEndpoint() )
+		
+		reproweb::Rest::url( config->sessionEndpoint() )
 		//.insecure()
 		.post( session )
 		.fetch<Json::Value>()
@@ -66,7 +67,7 @@ public:
 	{
 		auto p = promise<>();
 
-		reproweb::JSON::Rest::url( config->sessionEndpoint(), sid )
+		reproweb::Rest::url( config->sessionEndpoint(), sid )
 		//.insecure()
 		.remove( )
 		.call()
@@ -101,7 +102,7 @@ public:
 	{
 		auto p = promise<User>();
 
-		reproweb::JSON::Rest::url( config->registrationEndpoint())
+		reproweb::Rest::url( config->registrationEndpoint())
 		//.insecure()
 		.cert(config->cert())
 		.post( user )
@@ -109,7 +110,7 @@ public:
 		.then([p](Json::Value json)
 		{
 			User user;
-			fromJson(json,user);
+			meta::fromJson(json,user);
 
 			p.resolve(user);
 		})
@@ -130,7 +131,7 @@ public:
 		json["login"] = login;
 		json["pwd"] = pwd;
 
-		reproweb::JSON::Rest::url( config->loginEndpoint())
+		reproweb::Rest::url( config->loginEndpoint())
 		//.insecure()
 		.cert(config->cert())
 		.post(json)
@@ -138,7 +139,7 @@ public:
 		.then([p](Json::Value json)		
 		{
 			User user;
-			fromJson(json,user);
+			meta::fromJson(json,user);
 
 			p.resolve(user);
 		})

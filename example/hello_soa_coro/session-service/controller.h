@@ -17,14 +17,14 @@ public:
 	{
 		::Session session = co_await sessionRepository->get_user_session(params->sid);
 
-		co_return toJson(session.profile());
+		co_return meta::toJson(session.profile());
 	}
 
 	Future<Json::Value> write_session( json_t<User> user)
 	{
 		::Session session = co_await sessionRepository->write_user_session(*user);
 
-		co_return toJson(session);
+		co_return meta::toJson(session);
 	}	
 
 	reproweb::Async remove_session( Parameter<SessionId> params, Response& res)
@@ -58,7 +58,7 @@ public:
 	{
 		std::cout << typeid(ex).name() << ":" << ex.what() << std::endl;
 
-		Json::Value json = exToJson(ex);
+		Json::Value json = meta::exToJson(ex);
 
 		res
 		.error()

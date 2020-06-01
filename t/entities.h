@@ -57,7 +57,7 @@ struct meta::Data<Input>
 {
         static constexpr auto meta()
         {
-                return meta::data<Input>(
+                return meta::data(
                         entity_root("Input"),
 						// note some mappings are duplicated
 						// for serialization, last one will overider earlier ones
@@ -88,7 +88,7 @@ struct meta::Data<User>
 {
         static constexpr auto meta()
         {
-                return meta::data<User>(
+                return meta::data(
 					entity_root("user"),
 					"username", &User::username,
 					"login", &User::login,
@@ -101,6 +101,7 @@ struct meta::Data<User>
 
 void validate(User& user)
 {
+	std::cout << "validate user: " << JSON::stringify(meta::toJson(user)) << std::endl;
 	reproweb::valid( user.username, std::regex("[^<>&]+"), "invalid username");
 	reproweb::valid( user.login, std::regex("[^<>&]+"), "invalid login");
 	reproweb::valid( user.pwd, std::regex(".+"), "invalid pwd");

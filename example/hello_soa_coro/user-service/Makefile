@@ -12,8 +12,8 @@ DEBUG = -g -DMOL_PROMISE_DEBUG
 release : override DEBUG = -O3
 
 LIBEVENT=$(shell pkg-config libevent_pthreads --libs)
-PKG_INC=$(shell pkg-config cryptoneat reprocpp mysqlclient --cflags)
-PKG_LIB=$(shell pkg-config jsoncpp cryptoneat libnghttp2 zlib libcurl expat --libs)
+PKG_INC=$(shell pkg-config cryptoneat reprocpp mysqlclient patex --cflags)
+PKG_LIB=$(shell pkg-config jsoncpp cryptoneat libnghttp2 zlib libcurl patex expat --libs)
 
 # if not g++ we assume clang++
 DEFAULT_LIBS = $(TS) -stdlib=libc++ -fcoroutines-ts  -lc++abi -std=c++17

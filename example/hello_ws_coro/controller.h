@@ -51,7 +51,7 @@ public:
 
 		auto session = req_session(req);
 		session->authenticated = true;
-		session->data = toJson(user);
+		session->data = meta::toJson(user);
 
 		view_->redirect_to_index(req,res);
 	
@@ -72,7 +72,7 @@ public:
 
 		auto session = req_session(req);
 		session->authenticated = true;
-		session->data = toJson(user);
+		session->data = meta::toJson(user);
 
 		view_->redirect_to_index(req,res);
 

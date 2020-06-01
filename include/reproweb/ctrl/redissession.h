@@ -43,8 +43,8 @@ public:
 
 			if( !reply->isNill() )
 			{
-				Json::Value json = reproweb::JSON::parse(reply->str());
-				fromJson(json,*session);
+				Json::Value json = JSON::parse(reply->str());
+				meta::fromJson(json,*session);
 			}
 
             return redis_->cmd("EXPIRE", session->sid, 60);
@@ -65,7 +65,7 @@ public:
     {
 		auto p = repro::promise<>();
 
-		std::string json = JSON::stringify(toJson(session));
+		std::string json = JSON::stringify(meta::toJson(session));
 
 		std::string sid = session.sid;
 
@@ -78,7 +78,7 @@ public:
 		{
 			p.resolve();
 		})
-		.otherwise(prio::reject(p));
+		.otherwise(repro::reject(p));
 
 		return p.future();
     }
@@ -93,7 +93,7 @@ public:
 		{
 			p.resolve();
 		})
-		.otherwise(prio::reject(p));
+		.otherwise(repro::reject(p));
 
 		return p.future();
 	}

@@ -98,10 +98,8 @@ clean: clean_obj
 release : $(BIN_BUILD)/hello_world.bin
 
 cacert :
-	cd ca && bin/make_pki
+	cd pem && ./make_cert.sh
 	
-remove-ca:
-	cd ca && bin/remove_ca
 
 update-dockerfile: clean
 	/bin/sed -i "s/FROM .*/FROM ${BASE_IMAGE}/" Dockerfile

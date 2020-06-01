@@ -25,7 +25,7 @@ public:
 		reply =	co_await redis->cmd("EXPIRE", sid, 180);
 
 		User user;
-		fromJson(payload,user);
+		meta::fromJson(payload,user);
 
 		co_return ::Session(sid,user);
 	}
@@ -34,7 +34,7 @@ public:
 	{
 		::Session session(user);
 
-		Json::Value json = toJson(session.profile());
+		Json::Value json = meta::toJson(session.profile());
 
 		reproredis::RedisResult::Ptr reply = co_await redis->cmd("SET", session.sid(), JSON::flatten(json));
 

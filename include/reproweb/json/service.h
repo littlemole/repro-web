@@ -5,7 +5,6 @@
 #include "reprocurl/api.h"
 
 namespace reproweb {
-namespace JSON {
 
 
 class RestEx : public repro::ReproEx<RestEx>	
@@ -15,7 +14,17 @@ public:
 	RestEx() : status(500), json(Json::nullValue) {};
 	RestEx(long s) : status(s),json(Json::nullValue)  {};
 	RestEx(long s,const std::string& b) : repro::ReproEx<RestEx>(b),status(s),json(Json::nullValue)  {};
-	RestEx(long s,Json::Value j) : status(s),json(j)  {};
+	RestEx(long s,Json::Value j) : status(s),json(j)  
+	{
+		if(json.isMember("error"))
+		{
+			auto e = json["error"];
+			if (e.isMember("msg"))
+			{
+				msg = e["msg"].asString();
+			}
+		}
+	};
 
 	long status;
 	Json::Value json;
@@ -84,7 +93,7 @@ struct Rest
 	template<class T>
 	Rest& post(T& t)
 	{
-		req_.data( JSON::flatten(toJson(t))).method("POST");
+		req_.data( ::JSON::flatten(meta::toJson(t))).method("POST");
 
 		return *this;	
 	}
@@ -92,7 +101,7 @@ struct Rest
 	template<class T>
 	Rest& put(T& t)
 	{
-		req_.data( JSON::flatten(toJson(t))).method("PUT");
+		req_.data( ::JSON::flatten(meta::toJson(t))).method("PUT");
 
 		return *this;	
 	}
@@ -126,7 +135,7 @@ private:
 
 			Json::Value json = parse(res);
 			O o;
-			fromJson(json,o);
+			meta::fromJson(json,o);
 
 			p.resolve(o);
 		})
@@ -157,7 +166,7 @@ private:
 	{
 		Json::Value json;
 		try {
-			json = reproweb::JSON::parse(res.content());
+			json = ::JSON::parse(res.content());
 		}
 		catch(...)
 		{
@@ -180,7 +189,7 @@ private:
 
 };
 
-}}
+}
 
 
 #endif

@@ -158,8 +158,14 @@ void SessionFilter::before( prio::Request& req, prio::Response& res, std::shared
 void SessionFilter::after( prio::Request& req, prio::Response& res, std::shared_ptr<FilterChain> chain)
 {
     auto session = req.attributes.attr<std::shared_ptr<Session>>("_session_");
+    if(session->sid.empty())
+    {
+        session->sid = make_session_id();
+    }
+
     if ( session && session->valid)
     {
+        
         res.cookie(prio::Cookie(sid_cookie_name_,session->sid).path("/"));
 
         session_provider_->set_session(*session)

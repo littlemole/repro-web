@@ -13,6 +13,7 @@
 namespace reproweb  
 {
 
+
 //! HTTP Session
 //! \ingroup session
 
@@ -39,9 +40,9 @@ public:
 	Json::Value data;	
 
     //! \private
-    auto meta() const
+    static constexpr auto meta()
     {
-        return meta::data<Session>(
+        return meta::data(
             "authenticated", &Session::authenticated,
             "sid", &Session::sid,
             "data", &Session::data
@@ -118,7 +119,8 @@ private:
     std::string sid_cookie_name_;
     std::shared_ptr<SessionProvider> session_provider_;
 
-	std::string make_session_id();
+    std::string make_session_id();
+
 };
 
 //! declare HTTP filter in WebApplicationContext

@@ -34,6 +34,8 @@ public:
 
     virtual repro::Future<> set_session(reproweb::Session session)
 	{
+        std::cout << "write SESSION: " << JSON::stringify(meta::toJson(session)) << std::endl;
+
 		return sessionService_->write_user_session(session);
 	} 
 

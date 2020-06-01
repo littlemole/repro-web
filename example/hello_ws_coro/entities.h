@@ -52,9 +52,9 @@ public:
 	std::string login() const 	  	{ return login_; }
 	std::string hash() const  	  	{ return hash_; }
 
-	auto meta() const
+	static constexpr auto meta()
 	{
-		return metadata(
+		return meta::data(
 			"login",		&Login::login_,
 			"pwd",			&Login::hash_
 		);
@@ -102,9 +102,9 @@ public:
 	std::string hash() const  	  	{ return hash_; }
 	std::string avatar_url() const  { return avatar_url_; }
 	
-	auto meta() const
+	static constexpr auto meta()
 	{
-		return metadata(
+		return meta::data(
 			"username", 	&User::name_,
 			"login",		&User::login_,
 			"pwd",			&User::hash_,

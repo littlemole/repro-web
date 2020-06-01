@@ -23,7 +23,7 @@ public:
 		
 		try
 		{
-			user = co_await JSON::Rest::url( config->sessionEndpoint(), sid )
+			user = co_await Rest::url( config->sessionEndpoint(), sid )
 			.insecure()
 			.get()
 			.fetch<User>();
@@ -38,7 +38,7 @@ public:
 
 	Future<::Session> write_user_session(User user)
 	{
-		::Session session = co_await JSON::Rest::url( config->sessionEndpoint() )
+		::Session session = co_await Rest::url( config->sessionEndpoint() )
 		.insecure()
 		.post(user)
 		.fetch<::Session>();
@@ -48,7 +48,7 @@ public:
 
 	Future<> remove_user_session( std::string sid)
 	{
-		co_await JSON::Rest::url( config->sessionEndpoint(), sid )
+		co_await Rest::url( config->sessionEndpoint(), sid )
 		.insecure()
 		.remove()
 		.call();
@@ -76,12 +76,12 @@ public:
 		
 		try 
 		{
-			result = co_await JSON::Rest::url(config->registrationEndpoint())
+			result = co_await Rest::url(config->registrationEndpoint())
 			.insecure()
 			.post(user)
 			.fetch<User>();
 		}
-		catch(JSON::RestEx& ex)
+		catch(RestEx& ex)
 		{
 			throw RegistrationEx(ex.json["error"]["msg"].asString());
 		}
@@ -93,12 +93,12 @@ public:
 		User result;
 		try 
 		{
-			result = co_await JSON::Rest::url( config->loginEndpoint())
+			result = co_await Rest::url( config->loginEndpoint())
 			.insecure()
 			.post( login )
 			.fetch<User>();
 		}
-		catch(JSON::RestEx& ex)
+		catch(RestEx& ex)
 		{
 			throw LoginEx(ex.json["error"]["msg"].asString());
 		}

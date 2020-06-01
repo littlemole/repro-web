@@ -59,6 +59,8 @@ public:
 	{
 		auto p = json_promise<User>();
 
+		std::cout << JSON::stringify(meta::toJson(*user)) << std::endl;
+
 		userRepository->register_user(user.value)
 		.then([p,user]()
 		{
@@ -124,7 +126,7 @@ private:
 	{
 		std::cout << typeid(ex).name() << ":" << ex.what() << std::endl;
 
-		Json::Value json = exToJson(ex);
+		Json::Value json = meta::exToJson(ex);
 
 		res
 		.body(JSON::flatten(json))

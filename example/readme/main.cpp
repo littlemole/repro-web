@@ -30,13 +30,8 @@ private:
     reproweb::TplStore templates_;
 };
 
-#define TO_STR_HELPER(x) #x
-#define TO_STR(x) TO_STR_HELPER(x)
-
 int main(int argc, char** argv)
 {
-    std::cout << TO_STR(VERSION) << std::endl;
-
     prio::Libraries<prio::EventLoop> init;
 
     WebApplicationContext ctx 

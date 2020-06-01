@@ -8,6 +8,7 @@
 #include <reproweb/serialization/json.h>
 #include <reproweb/serialization/xml.h>
 #include <reproweb/serialization/web.h>
+#include <metacpp/meta.h>
 
 using namespace reproweb;
 using namespace repro;
@@ -87,15 +88,14 @@ public:
 		Valid::passwd(hash_);
 	}
 
-	auto meta () const
+	static constexpr auto meta()
 	{
-		return metadata (
+		return meta::data (
 			"login",&Login::login_,
 			"pwd", &Login::hash_
 		);
 	}
 
-	
 protected:
 	std::string login_;	
 	std::string hash_;	
@@ -124,14 +124,15 @@ public:
 
 	void validate()
 	{
-		Login::validate();
+		Valid::login(login_);
+		Valid::passwd(hash_);
 		Valid::username(name_);
 		Valid::avatar(avatar_url_);
 	}
 
-	auto meta () const
+	static constexpr auto meta()
 	{
-		return metadata (
+		return ::meta::data (
 			"username", &User::name_,
 			"login",&User::login_,
 			"pwd", &User::hash_,

@@ -97,6 +97,9 @@ clean: clean_obj
 
 release : $(BIN_BUILD)/hello_world.bin
 
+cert:
+	cd pem && ./make_cert.sh
+
 
 update-dockerfile: clean
 	/bin/sed -i "s/FROM .*/FROM ${BASE_IMAGE}/" Dockerfile

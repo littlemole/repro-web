@@ -507,6 +507,8 @@ TEST_F(BasicWebTest, SimpleRestPostCoro)
 {
 	std::string result;
 
+	std::string userJson("{\"user\":{\"login\" : \"littlemole\",\"pwd\" : \"secret\",\"tags\" : [\"one\",\"two\",\"three\"],\"username\" : \"mike\"\n}}");
+
 	WebApplicationContext ctx {
 
 		LoggerComponent,
@@ -519,10 +521,10 @@ TEST_F(BasicWebTest, SimpleRestPostCoro)
 		reproweb::WebServer server(ctx);
 
 		nextTick()
-		.then( [&result,&server]()
+		.then( [&result,&server,&userJson]()
 		{
 			HttpClient::url("http://localhost:8765/root/path/a")
-			->POST("{\"login\":\"littlemole\",\"pwd\":\"secret\",\"tags\":[\"one\",\"two\",\"three\"],\"username\":\"mike\"}")
+			->POST(userJson)
 			.then([&result,&server](prio::Response& res)
 			{
 				result = res.body();

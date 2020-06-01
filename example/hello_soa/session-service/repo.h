@@ -57,7 +57,7 @@ struct RedisJsonMapper
 
 			if(!expire)
 			{
-				Json::Value json = reproweb::JSON::parse(payload);
+				Json::Value json = JSON::parse(payload);
 				p.resolve(json);				
 			}
 			else
@@ -65,7 +65,7 @@ struct RedisJsonMapper
 				reply->cmd("EXPIRE", key, expire)
 				.then( [p,payload](reproredis::RedisResult::Ptr reply)
 				{
-					Json::Value json = reproweb::JSON::parse(payload);
+					Json::Value json = JSON::parse(payload);
 					p.resolve(json);				
 				})
 				.otherwise([p](const std::exception& ex)
@@ -109,7 +109,7 @@ struct RedisMapper
 	template<class T>
 	Future<> put(const std::string& key, T& t, int expire = 0)
 	{
-		Json::Value json = toJson(t);
+		Json::Value json = meta::toJson(t);
 
 		return RedisJsonMapper(redis).put(key,json,expire);
 	}	
@@ -123,7 +123,7 @@ struct RedisMapper
 		.then( [p](Json::Value json)
 		{
 			T t;
-			fromJson(json,t);
+			meta::fromJson(json,t);
 			p.resolve(t);
 		})
 		.otherwise(reject(p));

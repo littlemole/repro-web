@@ -54,11 +54,11 @@ public:
 
         if(req.headers.content_type() == "application/xml")
         {
-            fromXml(req.body(),t.value);
+            meta::fromXml(req.body(),t.value);
         }
         else
         {
-            fromJson(req.body(),t.value);
+            meta::fromJson(req.body(),t.value);
         }
 
         validate(t);

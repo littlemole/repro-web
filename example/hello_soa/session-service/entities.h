@@ -27,9 +27,9 @@ public:
 	std::string login() const 	  	{ return login_; }
 	std::string avatar_url() const  { return avatar_url_; }
 
-	auto meta() const
+	static constexpr auto meta()
 	{
-		return metadata(
+		return meta::data(
 			"login", &User::login_,
 			"username", &User::name_,
 			"avatar_url", &User::avatar_url_

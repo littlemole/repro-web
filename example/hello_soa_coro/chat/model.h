@@ -16,7 +16,7 @@ public:
 	{
   		::Session session = co_await sessionService->get_user_session(sid);
 		
-		co_return toJson(session.profile());
+		co_return meta::toJson(session.profile());
 	}
 
 	Future<std::string> login( Login login )

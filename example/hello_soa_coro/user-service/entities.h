@@ -24,7 +24,7 @@ public:
 
 	virtual void render_error(Response& res) const		
 	{										
-		Json::Value json = exToJson(*this);	
+		Json::Value json = meta::exToJson(*this);	
 		res									
 		.body(JSON::flatten(json))			
 		.status(status_)						
@@ -56,7 +56,7 @@ public:
 	{			
 		E* e = (E*) this;					
 
-		Json::Value json = exToJson(*e);	
+		Json::Value json = meta::exToJson(*e);	
 		res									
 		.body(JSON::flatten(json))			
 		.status(status_)						
@@ -139,9 +139,9 @@ public:
 
 	std::string value;
 
-	auto meta() const
+	static constexpr auto meta()
 	{
-		return metadata(
+		return meta::data(
 			"email", 		&Email::value
 		);
 	}	
@@ -176,12 +176,13 @@ public:
 		Valid::passwd(hash_);
 	}
 
-	auto meta() const
+	static constexpr auto meta()
 	{
-		return metadata(
+		return meta::data(
+			meta::entity_root("login"),
 			"login", 		&Login::login_,
 			"pwd", 			&Login::hash_
-		)["login"];
+		);
 	}
 	
 protected:
@@ -217,14 +218,15 @@ public:
 		Valid::avatar(avatar_url_);
 	}
 
-	auto meta() const
+	static constexpr auto meta()
 	{
-		return metadata(
+		return meta::data(
+			meta::entity_root("user"),
 			"username", 	&User::name_,
 			"login", 		&User::login_,
 			"pwd", 			&User::hash_,
 			"avatar_url", 	&User::avatar_url_
-		)["user"];
+		);
 	}
 	
 private:

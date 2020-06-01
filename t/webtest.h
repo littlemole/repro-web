@@ -192,6 +192,7 @@ public:
 	repro::Future<json_t<User>> postUserCoro(json_t<User> user)//, prio::Request& req, prio::Response& res)
 	{
 		//co_await nextTick();
+		std::cout << JSON::stringify(meta::toJson(*user)) << std::endl;
 		co_return user;
 	}
 

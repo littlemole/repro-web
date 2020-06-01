@@ -49,10 +49,11 @@ public:
 		model_->login(login,pwd)
 		.then([this,&req,&res](User user)
 		{
+			std::cout << "LOGIN SUCCESS" << std::endl;
 			auto session = req_session(req);
 			session->authenticated = true;
 
-			auto json = toJson(user);
+			auto json = meta::toJson(user);
 			Json::Value rmvd;
 			json.removeMember("pwd",&rmvd);
 			session->data = json;
@@ -87,7 +88,7 @@ public:
 		{
 			auto session = req_session(req);
 			session->authenticated = true;
-			session->data = toJson(user);
+			session->data = meta::toJson(user);
 
 			view_->redirect_to_index(req,res);
 		})
