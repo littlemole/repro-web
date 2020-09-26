@@ -175,16 +175,16 @@ void fromSQL(repromysql::result_async::Ptr r, T& t)
 {
     if( r->fetch() )
     {
-        const auto& m = meta_of(t);
+       // const auto& m = meta::of(t);
 
-        auto visitor = [&r, &t]( const char* name, auto& m)
+        auto visitor = [&r]( auto name, auto m)
         {	
-            std::remove_reference_t<typename std::remove_reference_t<decltype(m)>::value_t> value;
-
-            fromSQL(name,r,value);
-            m.set(t,value);
+//            std::remove_reference_t<typename std::remove_reference_t<decltype(m.m)>::value_t> value;
+            typename decltype(m)::setter_value_t value;
+            fromSQL(name.name,r,value);
+            m = value;
         };
-        m.visit(t,visitor);
+        meta::visit(t,visitor);
     }
 }
 
@@ -195,16 +195,17 @@ void fromSQL(repromysql::result_async::Ptr r, std::vector<T>& v)
     while( r->fetch() )
     {
         T t;
-        const auto& m = meta_of(t);
+        //const auto& m = meta::of(t);
 
-        auto visitor = [&r, &t]( const char* name, auto& m)
+        auto visitor = [&r]( auto name, auto m)
         {	
-            std::remove_reference_t<typename std::remove_reference_t<decltype(m)>::value_t> value;
+//            std::remove_reference_t<typename std::remove_reference_t<decltype(m.m)>::value_t> value;
+            typename decltype(m)::setter_value_t value;
 
-            fromSQL(name,r,value);
-            m.set(t,value);
+            fromSQL(name.name,r,value);
+            m = value;
         };
-        m.visit(t,visitor);        
+        meta::visit(t,visitor);        
 
         v.push_back(std::move(t));
     }

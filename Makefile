@@ -104,18 +104,18 @@ deb :
 	echo "$(IMAGE).deb"
 	-docker rm "${CONTAINER}.deb"	
 	-docker rmi "$(IMAGE).deb"
-	sed -i "s~FROM .*~FROM ${IMAGE}~" Dockerfile.deb	
-	sed -i "s~TARGET=.*~TARGET=${CONTAINER}~" Dockerfile.deb	
-	docker build -t "$(IMAGE).deb" . -fDockerfile.deb   --build-arg CXX=$(CXX) --build-arg BACKEND=$(BACKEND) --build-arg BUILDCHAIN=$(BUILDCHAIN)
+	sed -i "s~FROM .*~FROM ${IMAGE}~" Dockerfile.debian
+	sed -i "s~TARGET=.*~TARGET=${CONTAINER}~" Dockerfile.debian	
+	docker build -t "$(IMAGE).deb" . -fDockerfile.debian   --build-arg CXX=$(CXX) --build-arg BACKEND=$(BACKEND) --build-arg BUILDCHAIN=$(BUILDCHAIN)
 	docker run -ti --name "${CONTAINER}.deb" -v "$(PWD)/deb:/deb" "${IMAGE}.deb"
 
 clean-deb :
 	mkdir -p deb
 	-docker rm "${CONTAINER}.deb"
 	-docker rmi "$(IMAGE).deb"
-	sed -i "s~FROM .*~FROM ${IMAGE}~" Dockerfile.deb	
-	sed -i "s~TARGET=.*~TARGET=${CONTAINER}~" Dockerfile.deb	
-	docker build --no-cache -t "$(IMAGE).deb" . -fDockerfile.deb   --build-arg CXX=$(CXX) --build-arg BACKEND=$(BACKEND) --build-arg BUILDCHAIN=$(BUILDCHAIN)
+	sed -i "s~FROM .*~FROM ${IMAGE}~" Dockerfile.debian	
+	sed -i "s~TARGET=.*~TARGET=${CONTAINER}~" Dockerfile.debian	
+	docker build --no-cache -t "$(IMAGE).deb" . -fDockerfile.debian   --build-arg CXX=$(CXX) --build-arg BACKEND=$(BACKEND) --build-arg BUILDCHAIN=$(BUILDCHAIN)
 	docker run -ti --name "${CONTAINER}.deb" -v "$(PWD)/deb:/deb" "${IMAGE}.deb"
 
 # self documenting makefile, see 
