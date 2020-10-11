@@ -16,8 +16,8 @@ ENV BUILDCHAIN=${BUILDCHAIN}
 ARG TS=
 ENV TS=${TS}
 
-RUN BRANCH=ng /usr/local/bin/install.sh  repro-redis
-RUN BRANCH=ng /usr/local/bin/install.sh  repro-sqlite
+RUN  /usr/local/bin/install.sh  repro-redis
+RUN  /usr/local/bin/install.sh  repro-sqlite
 
 RUN mkdir -p /usr/local/src/reproweb-example
 ADD ./CMakeLists.txt /usr/local/src/reproweb-example/

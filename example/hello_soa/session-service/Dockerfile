@@ -15,7 +15,7 @@ ENV BUILDCHAIN=${BUILDCHAIN}
 
 ENV REDIS_HOST=redis
 
-RUN BRANCH=ng /usr/local/bin/install.sh  repro-redis
+RUN  /usr/local/bin/install.sh  repro-redis
 
 RUN mkdir -p /usr/local/src/reproweb-example
 ADD . /usr/local/src/reproweb-example
