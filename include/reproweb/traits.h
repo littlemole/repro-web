@@ -5,12 +5,13 @@
 #include <set>
 #include <type_traits>
 #include <sstream>
+#include <metacpp/traits.h>
 
 #ifndef _WIN32
 #include <experimental/type_traits>
 #endif
 
-
+/*
 #ifdef _WIN32
 
 namespace std {
@@ -55,6 +56,7 @@ using detected_or = detail::detector<Default, void, Op, Args...>;
 }}
 
 #endif
+*/
 
 namespace diy {
 
