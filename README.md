@@ -356,7 +356,7 @@ git clone https://github.com/littlemole/repro-web
 cd repro-web\examples\hello_world
 mkdir debug
 cd debug
-cmake .. -DCMAKE_BUILD_TYPE=Debug -DCMAKE_TOOLCHAIN_FILE=..\..\..\..\vcpkg\scripts\buildsystems\vcpkg.cmake
+cmake .. -DCMAKE_BUILD_TYPE=Debug -DCMAKE_TOOLCHAIN_FILE=..\..\..\..\vcpkg\scripts\buildsystems\vcpkg.cmake -G "Visual Studio 16 2019" -A x64
 
 ``` 
 change CMAKE_BUILD_TYPE to Release for a Release build.
