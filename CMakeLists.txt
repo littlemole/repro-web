@@ -78,7 +78,7 @@ message("+++++++++++++++++")
 		find_library(JSONCPP_LIBRARY NAMES jsoncpp)
 		find_library(CURL_LIBRARY NAMES libcurl)
 		find_library(ZLIB_LIBRARY NAMES zlib.lib)
-		find_library(EXPAT_LIBRARY NAMES expat.lib)
+		find_library(EXPAT_LIBRARY NAMES libexpat)
 		find_library(REPROCURL_LIBRARY NAMES reprocurl)
 
 		set(LIBS debug ${CMAKE_PROJECT_NAME} optimized ${CMAKE_PROJECT_NAME} 
@@ -111,7 +111,7 @@ message("+++++++++++++++++")
 		find_library(REPROCURLD_LIBRARY NAMES reprocurld)
 		find_library(ZLIB_LIBRARY NAMES zlib.lib)
 		find_library(ZLIBD_LIBRARY NAMES zlibd.lib)
-		find_library(EXPAT_LIBRARY NAMES expat.lib)
+		find_library(EXPAT_LIBRARY NAMES libexpat)
 
 
 		set(LIBS debug ${CMAKE_PROJECT_NAME} optimized ${CMAKE_PROJECT_NAME} debug ${PRIOCPPD_LIBRARY} optimized  ${PRIOCPP_LIBRARY} 
