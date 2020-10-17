@@ -70,7 +70,7 @@ message("+++++++++++++++++")
 		find_library(CURL_LIBRARY NAMES libcurl)
 		find_library(CURL_LIBRARY NAMES libcurl)
 		find_library(ZLIB_LIBRARY NAMES zlib.lib)
-		find_library(EXPAT_LIBRARY NAMES expat.lib)
+		find_library(EXPAT_LIBRARY NAMES libexpat)
 		find_library(REPROCURL_LIBRARY NAMES reprocurl)
 		find_library(REPROWEB_LIBRARY NAMES reproweb)
 		find_library(REPROMYSQL_LIBRARY NAMES repromysql)
@@ -114,7 +114,7 @@ message("+++++++++++++++++")
 		find_library(REPROMYSQL_LIBRARY NAMES repromysql)
 		find_library(REPROMYSQLD_LIBRARY NAMES repromysqld)
 		find_library(MYSQL_LIBRARY NAMES libmysql)
-		find_library(EXPAT_LIBRARY NAMES expat.lib)
+		find_library(EXPAT_LIBRARY NAMES libexpat)
 
 
 		set(LIBS  
