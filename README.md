@@ -44,6 +44,8 @@ from a developer perspective, allow for server side web development at a level o
 - [diy](http://github.com/littlemole/diy) dependency injection for c++
 - [jsoncpp](https://github.com/open-source-parsers/jsoncpp) for JSON support
 - [mustache](https://github.com/kainjow/Mustache) for templating
+- [metacpp](https://github.com/littlemole/metacpp) for reflection
+- [patex](https://github.com/littlemole/patex) XML DOM backed by expat
 
 # 3d party dependencies
 - libevent or boost_asio for main event loop and async IO
