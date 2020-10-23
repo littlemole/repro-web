@@ -1,4 +1,5 @@
 <map id="reproweb::SessionProvider" name="reproweb::SessionProvider">
-<area shape="rect" id="node2" href="$classreproweb_1_1MemorySessionProvider.html" title="reproweb::MemorySessionProvider" alt="" coords="5,80,231,107"/>
-<area shape="rect" id="node3" href="$classreproweb_1_1RedisSessionProvider.html" title="reproweb::RedisSessionProvider" alt="" coords="255,80,467,107"/>
+<area shape="rect" id="node1" title=" " alt="" coords="165,5,359,32"/>
+<area shape="rect" id="node2" href="$classreproweb_1_1MemorySessionProvider.html" title=" " alt="" coords="5,80,255,107"/>
+<area shape="rect" id="node3" href="$classreproweb_1_1RedisSessionProvider.html" title=" " alt="" coords="279,80,509,107"/>
 </map>

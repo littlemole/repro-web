@@ -3,7 +3,7 @@
   <compound kind="file">
     <name>controller.h</name>
     <path>/home/mike/workspace/repro-web/include/reproweb/ctrl/</path>
-    <filename>controller_8h</filename>
+    <filename>controller_8h.html</filename>
     <class kind="class">reproweb::WebApplicationContext</class>
     <member kind="function">
       <type>router&lt; F &gt;</type>
@@ -86,13 +86,13 @@
   <compound kind="file">
     <name>filter.h</name>
     <path>/home/mike/workspace/repro-web/include/reproweb/ctrl/</path>
-    <filename>filter_8h</filename>
+    <filename>filter_8h.html</filename>
     <class kind="class">reproweb::FilterChain</class>
   </compound>
   <compound kind="file">
     <name>front_controller.h</name>
     <path>/home/mike/workspace/repro-web/include/reproweb/ctrl/</path>
-    <filename>front__controller_8h</filename>
+    <filename>front__controller_8h.html</filename>
     <class kind="class">reproweb::FrontController</class>
     <class kind="class">reproweb::static_content</class>
     <member kind="function">
@@ -106,7 +106,7 @@
   <compound kind="file">
     <name>handler.h</name>
     <path>/home/mike/workspace/repro-web/include/reproweb/ctrl/</path>
-    <filename>handler_8h</filename>
+    <filename>handler_8h.html</filename>
     <member kind="typedef">
       <type>std::function&lt; void(prio::Request &amp;req, prio::Response &amp;res)&gt;</type>
       <name>http_handler_t</name>
@@ -125,16 +125,17 @@
   <compound kind="file">
     <name>redissession.h</name>
     <path>/home/mike/workspace/repro-web/include/reproweb/ctrl/</path>
-    <filename>redissession_8h</filename>
+    <filename>redissession_8h.html</filename>
     <includes id="session_8h" name="session.h" local="yes" imported="no">reproweb/ctrl/session.h</includes>
     <class kind="class">reproweb::RedisSessionProvider</class>
   </compound>
   <compound kind="file">
     <name>session.h</name>
     <path>/home/mike/workspace/repro-web/include/reproweb/ctrl/</path>
-    <filename>session_8h</filename>
+    <filename>session_8h.html</filename>
     <includes id="controller_8h" name="controller.h" local="yes" imported="no">reproweb/ctrl/controller.h</includes>
     <includes id="filter_8h" name="filter.h" local="yes" imported="no">reproweb/ctrl/filter.h</includes>
+    <includes id="json_2json_8h" name="json.h" local="yes" imported="no">reproweb/json/json.h</includes>
     <class kind="class">reproweb::Session</class>
     <class kind="class">reproweb::SessionProvider</class>
     <class kind="class">reproweb::MemorySessionProvider</class>
@@ -165,15 +166,38 @@
   <compound kind="file">
     <name>ssi.h</name>
     <path>/home/mike/workspace/repro-web/include/reproweb/ctrl/</path>
-    <filename>ssi_8h</filename>
+    <filename>ssi_8h.html</filename>
     <includes id="front__controller_8h" name="front_controller.h" local="yes" imported="no">reproweb/ctrl/front_controller.h</includes>
     <class kind="class">reproweb::SSIResolver</class>
     <class kind="class">reproweb::ssi_content</class>
   </compound>
   <compound kind="file">
+    <name>json.h</name>
+    <path>/home/mike/workspace/repro-web/include/reproweb/json/</path>
+    <filename>json_2json_8h.html</filename>
+    <includes id="json_2json_8h" name="json.h" local="no" imported="no">json/json.h</includes>
+    <class kind="struct">reproweb::subscription</class>
+    <class kind="class">reproweb::EventBus</class>
+    <member kind="function">
+      <type>repro::Future</type>
+      <name>forEach</name>
+      <anchorfile>group__json.html</anchorfile>
+      <anchor>ga09241712ea12f24c4ed37b03a2b7cdf4</anchor>
+      <arglist>(Json::Value json, F f)</arglist>
+    </member>
+    <member kind="function">
+      <type>Json::Value</type>
+      <name>sort</name>
+      <anchorfile>group__json.html</anchorfile>
+      <anchor>ga13a4de05719b7d00a37a39878ebe9af3</anchor>
+      <arglist>(const Json::Value &amp;arrayIn, const std::string member)</arglist>
+    </member>
+  </compound>
+  <compound kind="file">
     <name>jwt.h</name>
     <path>/home/mike/workspace/repro-web/include/reproweb/json/</path>
-    <filename>jwt_8h</filename>
+    <filename>jwt_8h.html</filename>
+    <includes id="json_2json_8h" name="json.h" local="yes" imported="no">reproweb/json/json.h</includes>
     <class kind="class">reproweb::JWT</class>
     <member kind="function">
       <type>void</type>
@@ -193,26 +217,28 @@
   <compound kind="file">
     <name>config.h</name>
     <path>/home/mike/workspace/repro-web/include/reproweb/tools/</path>
-    <filename>config_8h</filename>
+    <filename>config_8h.html</filename>
+    <includes id="json_2json_8h" name="json.h" local="yes" imported="no">reproweb/json/json.h</includes>
     <class kind="class">reproweb::Config</class>
   </compound>
   <compound kind="file">
     <name>ic.h</name>
     <path>/home/mike/workspace/repro-web/include/reproweb/tools/</path>
-    <filename>ic_8h</filename>
+    <filename>ic_8h.html</filename>
     <class kind="class">reproweb::miconv</class>
   </compound>
   <compound kind="file">
     <name>i18n.h</name>
     <path>/home/mike/workspace/repro-web/include/reproweb/view/</path>
-    <filename>i18n_8h</filename>
+    <filename>i18n_8h.html</filename>
     <class kind="class">reproweb::I18N</class>
     <class kind="class">reproweb::i18n_props</class>
   </compound>
   <compound kind="file">
     <name>tpl.h</name>
     <path>/home/mike/workspace/repro-web/include/reproweb/view/</path>
-    <filename>tpl_8h</filename>
+    <filename>tpl_8h.html</filename>
+    <includes id="json_2json_8h" name="json.h" local="yes" imported="no">reproweb/json/json.h</includes>
     <includes id="i18n_8h" name="i18n.h" local="yes" imported="no">reproweb/view/i18n.h</includes>
     <includes id="ssi_8h" name="ssi.h" local="yes" imported="no">reproweb/ctrl/ssi.h</includes>
     <class kind="class">reproweb::mustache</class>
@@ -231,21 +257,28 @@
   <compound kind="file">
     <name>web_webserver.h</name>
     <path>/home/mike/workspace/repro-web/include/reproweb/</path>
-    <filename>web__webserver_8h</filename>
+    <filename>web__webserver_8h.html</filename>
     <includes id="front__controller_8h" name="front_controller.h" local="yes" imported="no">reproweb/ctrl/front_controller.h</includes>
     <includes id="session_8h" name="session.h" local="yes" imported="no">reproweb/ctrl/session.h</includes>
     <class kind="class">reproweb::WebServer</class>
   </compound>
   <compound kind="file">
+    <name>sse.h</name>
+    <path>/home/mike/workspace/repro-web/include/reproweb/ws/</path>
+    <filename>sse_8h.html</filename>
+    <class kind="class">reproweb::SSEConnection</class>
+    <class kind="class">reproweb::sse_controller</class>
+  </compound>
+  <compound kind="file">
     <name>websocket.h</name>
     <path>/home/mike/workspace/repro-web/include/reproweb/ws/</path>
-    <filename>websocket_8h</filename>
+    <filename>websocket_8h.html</filename>
     <class kind="class">reproweb::WsConnection</class>
   </compound>
   <compound kind="file">
     <name>ws.h</name>
     <path>/home/mike/workspace/repro-web/include/reproweb/ws/</path>
-    <filename>ws_8h</filename>
+    <filename>ws_8h.html</filename>
     <includes id="websocket_8h" name="websocket.h" local="yes" imported="no">reproweb/ws/websocket.h</includes>
     <class kind="class">reproweb::ws_controller</class>
   </compound>
@@ -272,6 +305,13 @@
       <anchorfile>classreproweb_1_1AbstractView.html</anchorfile>
       <anchor>aeea775759562cd400f32336b698a75de</anchor>
       <arglist>(prio::Response &amp;res, const std::string &amp;url)</arglist>
+    </member>
+    <member kind="function">
+      <type>void</type>
+      <name>redirect</name>
+      <anchorfile>classreproweb_1_1AbstractView.html</anchorfile>
+      <anchor>aaf334933153fef018f71c4a3df2bdf72</anchor>
+      <arglist>(prio::Request &amp;req, prio::Response &amp;res, const std::string &amp;url)</arglist>
     </member>
     <member kind="function">
       <type>void</type>
@@ -783,7 +823,7 @@
   <compound kind="struct">
     <name>reproweb::session_filter</name>
     <filename>structreproweb_1_1session__filter.html</filename>
-    <templarg>F</templarg>
+    <templarg></templarg>
     <member kind="function">
       <type></type>
       <name>session_filter</name>
@@ -819,6 +859,50 @@
       <anchorfile>classreproweb_1_1SessionProvider.html</anchorfile>
       <anchor>a4d1c2b33d6a053323caff07696af4355</anchor>
       <arglist>(Session session)=0</arglist>
+    </member>
+  </compound>
+  <compound kind="class">
+    <name>reproweb::sse_controller</name>
+    <filename>classreproweb_1_1sse__controller.html</filename>
+    <templarg></templarg>
+    <member kind="function">
+      <type></type>
+      <name>sse_controller</name>
+      <anchorfile>classreproweb_1_1sse__controller.html</anchorfile>
+      <anchor>a42a8d84398b01ac010e4f7e1d126b728</anchor>
+      <arglist>(const std::string &amp;path)</arglist>
+    </member>
+  </compound>
+  <compound kind="class">
+    <name>reproweb::SSEConnection</name>
+    <filename>classreproweb_1_1SSEConnection.html</filename>
+    <member kind="function">
+      <type>void</type>
+      <name>send</name>
+      <anchorfile>classreproweb_1_1SSEConnection.html</anchorfile>
+      <anchor>afb6ea3584f4374958d2b676295f41aca</anchor>
+      <arglist>(const std::string &amp;s)</arglist>
+    </member>
+    <member kind="function">
+      <type>SSEConnection *</type>
+      <name>onClose</name>
+      <anchorfile>classreproweb_1_1SSEConnection.html</anchorfile>
+      <anchor>a3434f74b2a6f0ca330be0706d8074a16</anchor>
+      <arglist>(T t)</arglist>
+    </member>
+    <member kind="function">
+      <type>SSEConnection *</type>
+      <name>onConnect</name>
+      <anchorfile>classreproweb_1_1SSEConnection.html</anchorfile>
+      <anchor>a45446c4adf7c1f6648b3102800172871</anchor>
+      <arglist>(T t)</arglist>
+    </member>
+    <member kind="function">
+      <type>void</type>
+      <name>close</name>
+      <anchorfile>classreproweb_1_1SSEConnection.html</anchorfile>
+      <anchor>a973d1ea5c41551a09e6cd330846bf5ea</anchor>
+      <arglist>()</arglist>
     </member>
   </compound>
   <compound kind="class">
@@ -931,7 +1015,7 @@
   <compound kind="class">
     <name>reproweb::validator</name>
     <filename>classreproweb_1_1validator.html</filename>
-    <templarg>E</templarg>
+    <templarg></templarg>
     <member kind="function">
       <type></type>
       <name>validator</name>
@@ -1011,7 +1095,6 @@
   <compound kind="class">
     <name>reproweb::WebApplicationContext</name>
     <filename>classreproweb_1_1WebApplicationContext.html</filename>
-    <base>diy::Context</base>
   </compound>
   <compound kind="class">
     <name>reproweb::WebServer</name>
@@ -1298,27 +1381,6 @@
     <class kind="class">reproweb::EventBus</class>
     <class kind="class">reproweb::JWT</class>
     <member kind="function">
-      <type>Json::Value</type>
-      <name>parse</name>
-      <anchorfile>group__json.html</anchorfile>
-      <anchor>ga2c0edce6553f79539a58c9b49d5472cc</anchor>
-      <arglist>(const std::string &amp;txt)</arglist>
-    </member>
-    <member kind="function">
-      <type>const std::string</type>
-      <name>stringify</name>
-      <anchorfile>group__json.html</anchorfile>
-      <anchor>ga034e30b47c67f3af204cb4d8c312d945</anchor>
-      <arglist>(Json::Value value)</arglist>
-    </member>
-    <member kind="function">
-      <type>const std::string</type>
-      <name>flatten</name>
-      <anchorfile>group__json.html</anchorfile>
-      <anchor>ga96cde5128614c47d2554b026b8a10be0</anchor>
-      <arglist>(Json::Value value)</arglist>
-    </member>
-    <member kind="function">
       <type>repro::Future</type>
       <name>forEach</name>
       <anchorfile>group__json.html</anchorfile>
@@ -1359,6 +1421,8 @@
     <name>ws</name>
     <title>Ws</title>
     <filename>group__ws.html</filename>
+    <class kind="class">reproweb::SSEConnection</class>
+    <class kind="class">reproweb::sse_controller</class>
     <class kind="class">reproweb::WsConnection</class>
     <class kind="class">reproweb::ws_controller</class>
   </compound>

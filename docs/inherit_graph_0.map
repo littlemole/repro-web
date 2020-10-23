@@ -1,4 +1,11 @@
 <map id="Graphical Class Hierarchy" name="Graphical Class Hierarchy">
-<area shape="rect" id="node1" href="/home/mike/workspace/diy/diy.tag$classdiy_1_1Context.html" title="diy::Context" alt="" coords="5,13,99,39"/>
-<area shape="rect" id="node2" href="$classreproweb_1_1WebApplicationContext.html" title="WebApplicationContext. " alt="" coords="147,5,321,47"/>
+<area shape="rect" id="node1" href="$classreproweb_1_1AbstractView.html" title=" " alt="" coords="5,81,183,108"/>
+<area shape="rect" id="node2" href="$classreproweb_1_1TemplateView.html" title=" " alt="" coords="265,5,447,32"/>
+<area shape="rect" id="node3" href="$classreproweb_1_1ViewI18nDecorator.html" title=" " alt="" coords="249,56,463,83"/>
+<area shape="rect" id="node4" href="$classreproweb_1_1ViewMustacheDecorator.html" title=" " alt="" coords="231,107,481,133"/>
+<area shape="rect" id="node9" href="$classreproweb_1_1ViewSSIDecorator.html" title=" " alt="" coords="253,157,459,184"/>
+<area shape="rect" id="node5" href="$classreproweb_1_1I18nMustacheView.html" title=" " alt="" coords="539,31,754,57"/>
+<area shape="rect" id="node6" href="$classreproweb_1_1I18nSSIMustacheView.html" title=" " alt="" coords="529,81,764,108"/>
+<area shape="rect" id="node7" href="$classreproweb_1_1MustacheView.html" title=" " alt="" coords="553,132,740,159"/>
+<area shape="rect" id="node8" href="$classreproweb_1_1SSIMustacheView.html" title=" " alt="" coords="543,183,750,209"/>
 </map>

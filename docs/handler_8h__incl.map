@@ -1,10 +1,11 @@
 <map id="include/reproweb/ctrl/handler.h" name="include/reproweb/ctrl/handler.h">
-<area shape="rect" id="node2" href="/home/mike/workspace/prio-http/prio-http.tag$response_8h.html" title="priohttp/response.h" alt="" coords="253,95,387,121"/>
-<area shape="rect" id="node3" href="/home/mike/workspace/prio-http/prio-http.tag$request_8h.html" title="priohttp/request.h" alt="" coords="209,169,332,196"/>
-<area shape="rect" id="node7" href="/home/mike/workspace/prio-http/prio-http.tag$header_8h.html" title="priohttp/header.h" alt="" coords="389,244,507,271"/>
-<area shape="rect" id="node4" href="/home/mike/workspace/prio-http/prio-http.tag$arg_8h.html" title="priohttp/arg.h" alt="" coords="5,319,104,345"/>
-<area shape="rect" id="node5" href="/home/mike/workspace/prio-http/prio-http.tag$path_8h.html" title="priohttp/path.h" alt="" coords="85,244,190,271"/>
-<area shape="rect" id="node6" href="/home/mike/workspace/prio-http/prio-http.tag$queryparams_8h.html" title="priohttp/queryparams.h" alt="" coords="136,319,291,345"/>
-<area shape="rect" id="node9" href="/home/mike/workspace/prio-http/prio-http.tag$attr_8h.html" title="priohttp/attr.h" alt="" coords="265,244,364,271"/>
-<area shape="rect" id="node8" href="/home/mike/workspace/prio-http/prio-http.tag$cookie_8h.html" title="priohttp/cookie.h" alt="" coords="389,319,507,345"/>
+<area shape="rect" id="node1" title=" " alt="" coords="268,5,427,47"/>
+<area shape="rect" id="node2" href="/home/mike/workspace/prio-http/prio-http.tag$response_8h.html" title=" " alt="" coords="273,95,421,121"/>
+<area shape="rect" id="node3" href="/home/mike/workspace/prio-http/prio-http.tag$request_8h.html" title=" " alt="" coords="225,169,363,196"/>
+<area shape="rect" id="node7" href="/home/mike/workspace/prio-http/prio-http.tag$header_8h.html" title=" " alt="" coords="421,244,554,271"/>
+<area shape="rect" id="node4" href="/home/mike/workspace/prio-http/prio-http.tag$arg_8h.html" title=" " alt="" coords="5,319,116,345"/>
+<area shape="rect" id="node5" href="/home/mike/workspace/prio-http/prio-http.tag$path_8h.html" title=" " alt="" coords="91,244,209,271"/>
+<area shape="rect" id="node6" href="/home/mike/workspace/prio-http/prio-http.tag$queryparams_8h.html" title=" " alt="" coords="147,319,321,345"/>
+<area shape="rect" id="node9" href="/home/mike/workspace/prio-http/prio-http.tag$attr_8h.html" title=" " alt="" coords="285,244,396,271"/>
+<area shape="rect" id="node8" href="/home/mike/workspace/prio-http/prio-http.tag$cookie_8h.html" title=" " alt="" coords="421,319,553,345"/>
 </map>
