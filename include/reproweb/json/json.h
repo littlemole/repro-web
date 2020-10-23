@@ -14,62 +14,7 @@
 
 namespace reproweb  {
 
-/*
-namespace JSON {
 
-//////////////////////////////////////////////////////////////
-	
-typedef repro::Ex JsonParseEx;
-
-//////////////////////////////////////////////////////////////
-
-//! parse string containing JSON 
-//! \ingroup json
-inline Json::Value parse(const std::string& txt)
-{
-	Json::Value json;
-	
-	Json::CharReaderBuilder rbuilder;
-	std::string errs;
-	std::istringstream iss(txt);
-	bool ok = Json::parseFromStream(rbuilder, iss, &json, &errs);
-	if(!ok)
-	{
-		throw JsonParseEx(errs);
-	}
-    return json;
-}
-
-//////////////////////////////////////////////////////////////
-
-//! serialize JSON structure into plaintext
-//! \ingroup json
-
-inline const std::string stringify(Json::Value value)
-{
-	Json::StreamWriterBuilder wbuilder;
-	return Json::writeString(wbuilder, value);
-
-}
-
-//! flatten a JSON structure removing whitespace and newlines
-//! \ingroup json
-inline const std::string flatten(Json::Value value)
-{
-	Json::StreamWriterBuilder wbuilder;
-	wbuilder["commentStyle"] = "None";
-	wbuilder["indentation"] = ""; 
-	return Json::writeString(wbuilder, value);
-}
-
-
-//////////////////////////////////////////////////////////////
-
-
-} // end namespace JSON
-
-
-*/
 //////////////////////////////////////////////////////////////
 //////////////////////////////////////////////////////////////
 

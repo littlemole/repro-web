@@ -205,7 +205,6 @@ void fromParams( const std::string& val, std::vector<T>& to)
 template<class T>
 void fromRequest( prio::Request& req, T& t)
 {
-	//auto visitor = [&req, &t]( const char* member, auto& m)
 	meta::visit(t, [&req](auto n, auto m) 
 	{	
 		std::remove_reference_t<typename decltype(m)::setter_value_t> value;
